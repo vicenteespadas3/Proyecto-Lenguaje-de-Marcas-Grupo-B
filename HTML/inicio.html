@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Mecatrónica - Inicio</title>
+    <link rel="stylesheet" href="../CSS/estilos.css">
+</head>
+<body>
+
+    <main style="padding: 40px; max-width: 1200px; margin: 0 auto;">
+        
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h1 style="color: #2c3e50; font-size: 2.5em;">Bienvenido al ERP de Taller</h1>
+            <p style="color: #7f8c8d; font-size: 1.2em;">Selecciona el módulo en el que deseas trabajar hoy.</p>
+        </div>
+
+        <div class="dashboard-grid">
+
+            <div class="tarjeta-modulo" style="border-top-color: #e67e22;">
+                <div style="font-size: 3em; margin-bottom: 10px;">🛠️</div>
+                <h2>Mantenimiento</h2>
+                <p>Gestión de planes preventivos, gamas, tareas y órdenes de trabajo diarias.</p>
+                <a href="mantenimiento.html" class="btn-entrar" style="background-color: #e67e22;">Entrar al Módulo</a>
+            </div>
+
+            <div class="tarjeta-modulo">
+                <div style="font-size: 3em; margin-bottom: 10px;">🏭</div>
+                <h2>Activos Fijos</h2>
+                <p>Catálogo de máquinas, control de estados y gestión de proveedores.</p>
+                <a href="activos.html" class="btn-entrar">Entrar al Módulo</a>
+            </div>
+
+            <div class="tarjeta-modulo" style="border-top-color: #27ae60;">
+                <div style="font-size: 3em; margin-bottom: 10px;">📦</div>
+                <h2>Inventario</h2>
+                <p>Control de stock de piezas, herramientas y registro de pedidos de compra.</p>
+                <a href="inventario.html" class="btn-entrar" style="background-color: #27ae60;">Entrar al Módulo</a>
+            </div>
+
+            <div class="tarjeta-modulo" style="border-top-color: #9b59b6;">
+                <div style="font-size: 3em; margin-bottom: 10px;">🚨</div>
+                <h2>Incidencias</h2>
+                <p>Reporte de averías, seguimiento de proyectos Gantt y análisis.</p>
+                <a href="incidencias_taller.html" class="btn-entrar" style="background-color: #9b59b6;">Entrar al Módulo</a>
+            </div>
+
+            <div class="tarjeta-modulo" style="border-top-color: #e74c3c;">
+                <div style="font-size: 3em; margin-bottom: 10px;">👥</div>
+                <h2>Administración</h2>
+                <p>Gestión de usuarios del sistema, horarios de los técnicos y ajustes.</p>
+                <a href="administracion.html" class="btn-entrar" style="background-color: #e74c3c;">Entrar al Módulo</a>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="../Js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Le decimos al menú que marque "inicio" como activo
+            renderMenu('inicio'); 
+        });
+    </script>
+</body>
+</html>

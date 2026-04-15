@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP - Módulo de Administración</title>
+    <link rel="stylesheet" href="../CSS/estilos.css">
+</head>
+<body>
+    <main style="padding: 40px; max-width: 1200px; margin: 0 auto;">
+        
+        <a href="inicio.html" style="color: #3498db; text-decoration: none; font-weight: bold;">&larr; Volver al Inicio</a>
+
+        <div style="text-align: center; margin-bottom: 40px; margin-top: 20px;">
+            <h1 style="color: #e74c3c; font-size: 2.5em;">👥 Módulo de Administración</h1>
+            <p style="color: #7f8c8d; font-size: 1.2em;">Gestión interna del sistema y personal.</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="tarjeta-modulo" style="border-top-color: #e74c3c;">
+                <h2>👤 Usuarios</h2>
+                <p>Gestión de cuentas de acceso, técnicos y roles.</p>
+                <a href="usuarios.html" class="btn-entrar" style="background-color: #e74c3c;">Gestionar Usuarios</a>
+            </div>
+
+            <div class="tarjeta-modulo" style="border-top-color: #e74c3c;">
+                <h2>🕒 Horarios</h2>
+                <p>Definición de turnos de trabajo del personal.</p>
+                <a href="horarios.html" class="btn-entrar" style="background-color: #e74c3c;">Gestionar Horarios</a>
+            </div>
+
+            <div class="tarjeta-modulo" style="border-top-color: #e74c3c;">
+                <h2>⚙️ Definiciones</h2>
+                <p>Configuración de listas desplegables y parámetros base.</p>
+                <a href="definiciones.html" class="btn-entrar" style="background-color: #e74c3c;">Gestionar Definiciones</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="../Js/app.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', () => { renderMenu(); });</script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP - Módulo de Mantenimiento</title>
+    <link rel="stylesheet" href="../CSS/estilos.css">
+</head>
+<body>
+
+    <main style="padding: 40px; max-width: 1200px; margin: 0 auto;">
+        
+        <a href="inicio.html" style="color: #3498db; text-decoration: none; font-weight: bold;">&larr; Volver al Inicio</a>
+
+        <div style="text-align: center; margin-bottom: 40px; margin-top: 20px;">
+            <h1 style="color: #e67e22; font-size: 2.5em;">🛠️ Módulo de Mantenimiento</h1>
+            <p style="color: #7f8c8d; font-size: 1.2em;">Selecciona la tabla que deseas gestionar.</p>
+        </div>
+
+        <div class="dashboard-grid">
+
+            <div class="tarjeta-modulo" style="border-top-color: #f39c12;">
+                <h2>📋 Gamas</h2>
+                <p>Configuración de los tipos de mantenimiento.</p>
+                <a href="gamas.html" class="btn-entrar" style="background-color: #f39c12;">Gestionar Gamas</a>
+            </div>
+
+            <div class="tarjeta-modulo" style="border-top-color: #f39c12;">
+                <h2>📅 Planes</h2>
+                <p>Planes preventivos asignados a las máquinas.</p>
+                <a href="planes.html" class="btn-entrar" style="background-color: #f39c12;">Gestionar Planes</a>
+            </div>
+
+            <div class="tarjeta-modulo" style="border-top-color: #f39c12;">
+                <h2>✅ Tareas</h2>
+                <p>Pasos e instrucciones para cada plan.</p>
+                <a href="tareas_mant.html" class="btn-entrar" style="background-color: #f39c12;">Gestionar Tareas</a>
+            </div>
+
+            <div class="tarjeta-modulo" style="border-top-color: #d35400;">
+                <h2>📝 Órdenes de Trabajo</h2>
+                <p>Emisión y control de órdenes diarias.</p>
+                <a href="ordenes.html" class="btn-entrar" style="background-color: #d35400;">Gestionar Órdenes</a>
+            </div>
+
+            <div class="tarjeta-modulo" style="border-top-color: #d35400;">
+                <h2>⚙️ Ejecuciones</h2>
+                <p>Registro de mantenimientos realizados.</p>
+                <a href="ejecuciones.html" class="btn-entrar" style="background-color: #d35400;">Gestionar Ejecuciones</a>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="../Js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Le decimos al menú que marque Mantenimiento si tienes esa lógica
+            renderMenu('mantenimiento'); 
+        });
+    </script>
+</body>
+</html>
