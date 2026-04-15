@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>GMAO - Directorio de Proveedores</title>
+    <link rel="stylesheet" href="../CSS/estilos.css">
+</head>
+<body>
+    <div class="app-body">
+        <main class="main-content">
+        <header class="header">
+            <div class="header-info">
+                <h1>Directorio de Proveedores</h1>
+                <p>Gestión de empresas suministradoras y contactos técnicos</p>
+            </div>
+            <div class="header-actions">
+                <input type="text" id="searchProveedor" placeholder="Buscar proveedor..." style="padding: 10px; border-radius: 6px; border: 1px solid var(--border); margin-right: 10px;">
+                <button class="btn btn-primary" onclick="nuevoProveedor()">+ Nuevo Proveedor</button>
+            </div>
+        </header>
+
+        <section class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Empresa</th>
+                        <th>Contacto</th>
+                        <th>Teléfono / Email</th>
+                        <th>Equipos</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-proveedores-body">
+                    </tbody>
+            </table>
+        </section>
+        </main>
+    </div>
+
+    <script src="../Js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu(); 
+        });
+    </script>
+</body>
+</html>

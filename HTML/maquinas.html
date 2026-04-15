@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gamas de Mantenimiento</title>
+    <link rel="stylesheet" href="../CSS/estilos.css">
+</head>
+
+<body>
+    <div class="app-body">
+        <main class="main-content">
+
+            <header class="header">
+                <div class="header-info">
+                    <h1>Panel de Maquinaria</h1>
+                    <p>Gestión de inventario técnico y activos</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="abrirModalAlta()">
+                        + Añadir Nueva Máquina
+                    </button>
+                </div>
+            </header>
+
+            <section class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre del Equipo</th>
+                            <th>Estado</th>
+                            <th>Ubicación</th>
+                            <th>Última Revisión</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-maquinas-body">
+                        <tr>
+                            <td><strong>MAQ-001</strong></td>
+                            <td>Torno CNC Mod. Alpha</td>
+                            <td><span class="status-badge success">Operativa</span></td>
+                            <td>Nave 1 - Sector B</td>
+                            <td>12/03/2026</td>
+                            <td class="action-buttons">
+                                <button class="btn-icon" title="Ver Ficha" onclick="verDetalle(1)">👁️</button>
+                                <button class="btn-icon" title="Editar" onclick="editarMaquina(1)">✏️</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+        </main>
+    </div>
+
+        <script src="../Js/app.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                renderMenu();
+            });
+        </script>
+    </body>
+
+</html>

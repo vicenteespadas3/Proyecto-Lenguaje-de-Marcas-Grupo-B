@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>GMAO - Gestor de Archivos</title>
+    <link rel="stylesheet" href="../CSS/estilos.css">
+</head>
+<body>
+    <div class="app-body">
+        <main class="main-content">
+            <header class="header">
+                <div class="header-info">
+                    <h1>Gestor de Documentación</h1>
+                    <p>Planos, manuales y certificados vinculados a activos</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="subirArchivo()">📁 Subir Archivo</button>
+                </div>
+            </header>
+
+            <section class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Doc. ID</th>
+                            <th>Nombre Archivo</th>
+                            <th>Tipo</th>
+                            <th>Vínculo (Máquina)</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-archivos-body">
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <script src="../Js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu();
+        });
+    </script>
+    <script src="../Js/archivos.js"></script>
+</body>
+</html>
