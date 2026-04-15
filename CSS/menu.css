@@ -1,0 +1,169 @@
+/* css/estilos.css */
+
+body { 
+    font-family: Arial, sans-serif; 
+    margin: 0; 
+    padding: 0; 
+    background-color: #f4f4f9; 
+}
+
+/* --- ESTILOS DEL MENÚ PRINCIPAL --- */
+.menu-principal { 
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    display: flex; 
+    align-items: center; 
+    padding: 0 25px; 
+    height: 65px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    position: relative;
+    z-index: 1000;
+}
+
+.menu-principal .logo { 
+    color: white;
+    font-weight: 800; 
+    font-size: 1.2em; 
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.menu-principal .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #cbd5e1;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.menu-principal .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #3b82f6;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1em;
+    box-shadow: 0 2px 5px rgba(59, 130, 246, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.menu-principal ul { 
+    list-style: none; 
+    margin: 0; 
+    padding: 0; 
+}
+
+.nav-links {
+    display: flex; /* Pone los elementos principales en horizontal */
+}
+
+.nav-links > li > a { 
+    color: #ecf0f1; 
+    text-decoration: none; 
+    padding: 15px 20px; 
+    display: block; 
+}
+
+.nav-links > li > a:hover { 
+    background-color: #34495e; 
+}
+
+/* --- ESTILOS DE LOS DESPLEGABLES --- */
+.dropdown {
+    position: relative; /* Importante para que el submenú sepa de dónde colgar */
+}
+
+.submenu {
+    display: none; /* Oculto por defecto */
+    position: absolute;
+    top: 100%; /* Justo debajo de su padre */
+    left: 0;
+    background-color: #34495e;
+    min-width: 220px; /* Ancho del desplegable */
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+/* Cuando pasas el ratón por el padre, muestra el submenú */
+.dropdown:hover .submenu {
+    display: block;
+}
+
+.submenu li a {
+    color: white;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    border-bottom: 1px solid #2c3e50;
+}
+
+.submenu li a:hover {
+    background-color: #3498db;
+}
+
+/* Estilo para los separadores del submenú (ej: Preventivo vs Día a Día) */
+.seccion-menu {
+    color: #bdc3c7;
+    font-size: 0.8em;
+    padding: 8px 16px;
+    background-color: #22313f;
+    text-align: center;
+}
+
+/* --- ESTILOS DEL DASHBOARD (PANTALLA DE INICIO) --- */
+.dashboard-grid {
+    display: grid;
+    /* Esto hace que las tarjetas se adapten solas si encoges la pantalla */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.tarjeta-modulo {
+    background-color: white;
+    border-radius: 10px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-top: 5px solid #3498db; /* Una línea azul bonita arriba */
+}
+
+/* Efecto al pasar el ratón por la tarjeta */
+.tarjeta-modulo:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+.tarjeta-modulo h2 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.tarjeta-modulo p {
+    color: #7f8c8d;
+    font-size: 0.95em;
+    margin-bottom: 20px;
+}
+
+.btn-entrar {
+    display: inline-block;
+    background-color: #3498db;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.btn-entrar:hover {
+    background-color: #2980b9;
+}
