@@ -1,3 +1,47 @@
+:root {
+    --primary: #3498db;
+    --primary-hover: #2980b9;
+    --th-bg: #34495e;
+    --nav-active-bg: #ecf0f1;
+    --nav-hover-bg: #f8f9fa;
+    --subnav-hover-bg: #f0f4f8;
+}
+
+/* Temas de los módulos */
+.theme-activos {
+    --primary: #3498db;
+    --primary-hover: #2980b9;
+    --th-bg: #3498db;
+}
+
+.theme-mantenimiento {
+    --primary: #e67e22;
+    --primary-hover: #d35400;
+    --th-bg: #e67e22;
+    --nav-active-bg: #fcf3cf;
+}
+
+.theme-inventario {
+    --primary: #27ae60;
+    --primary-hover: #2ecc71;
+    --th-bg: #27ae60;
+    --nav-active-bg: #eafeea;
+}
+
+.theme-incidencias {
+    --primary: #9b59b6;
+    --primary-hover: #8e44ad;
+    --th-bg: #9b59b6;
+    --nav-active-bg: #f4ecf8;
+}
+
+.theme-administracion {
+    --primary: #e74c3c;
+    --primary-hover: #c0392b;
+    --th-bg: #e74c3c;
+    --nav-active-bg: #fadbd8;
+}
+
 /* --- ESTILOS DE LA APLICACIÓN (PANELES, SIDEBAR, TABLAS) --- */
 .app-body {
     display: flex;
@@ -45,7 +89,7 @@
 }
 
 .category-link:hover {
-    color: #3498db;
+    color: var(--primary);
 }
 
 .category-toggle {
@@ -59,7 +103,7 @@
 }
 
 .category-toggle:hover {
-    color: #3498db;
+    color: var(--primary);
 }
 
 .sidebar-submenu {
@@ -78,8 +122,8 @@
 }
 
 .sidebar-submenu .nav-link:hover {
-    color: #3498db;
-    background-color: #f0f4f8;
+    color: var(--primary);
+    background-color: var(--subnav-hover-bg);
 }
 
 .sidebar-nav .nav-link {
@@ -91,15 +135,15 @@
 }
 
 .sidebar-nav .nav-link:hover {
-    background-color: #f8f9fa;
-    color: #3498db;
-    border-left: 3px solid #3498db;
+    background-color: var(--nav-hover-bg);
+    color: var(--primary);
+    border-left: 3px solid var(--primary);
 }
 
 .sidebar-nav .nav-link.active {
-    background-color: #ecf0f1;
-    color: #2980b9;
-    border-left: 3px solid #2980b9;
+    background-color: var(--nav-active-bg);
+    color: var(--primary-hover);
+    border-left: 3px solid var(--primary-hover);
     font-weight: bold;
 }
 
@@ -118,7 +162,7 @@
 
 .header-info h1 {
     margin: 0 0 5px 0;
-    color: #2c3e50;
+    color: var(--primary);
     font-size: 1.8em;
 }
 
@@ -141,7 +185,7 @@ table {
 }
 
 thead {
-    background-color: #34495e;
+    background-color: var(--th-bg);
     color: white;
 }
 
@@ -181,12 +225,12 @@ tbody tr:hover {
 }
 
 .btn-primary {
-    background-color: #3498db;
+    background-color: var(--primary);
     color: white;
 }
 
 .btn-primary:hover {
-    background-color: #2980b9;
+    background-color: var(--primary-hover);
 }
 
 .action-buttons {
