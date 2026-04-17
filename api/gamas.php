@@ -12,15 +12,20 @@ $conn = conectar();
 $m    = $_SERVER['REQUEST_METHOD'];
 
 // ── GET ───────────────────────────────────────────────────────
+//Get: Leer recursos, sin cambiar el estado del servidor(operacion "segura")
+
 if ($m === 'GET') {
     if (isset($_GET['id'])) {
         $id = (int)$_GET['id'];
         $s  = $conn->prepare("SELECT id_gama, nombre, tipo_mantenimiento, tipo_gama FROM gamas WHERE id_gama=?");
         $s->bind_param("i", $id); 
         $s->execute();
+        //En $f se almacenan los resultados de $s sacados de la funcion get_result, y con la función fetch_assoc(), que devuelve un array asociativo con los datos de la gama encontrada.
+        // Si no se encuentra ninguna gama con el ID proporcionado, $f será false.
         $f  = $s->get_result()->fetch_assoc(); 
         $s->close(); 
         $conn->close();
+        // Si no se encuentra la gama, se devuelve un error 404. Si se encuentra, se devuelve la información de la gama en formato JSON.
         if (!$f) respuestaError('Gama no encontrada.', 404);
         respuestaOk(['gama' => $f]);
     } else {
@@ -37,14 +42,20 @@ if ($m === 'GET') {
 }
 
 // ── POST (alta) ───────────────────────────────────────────────
+//Post: Crear recursos, con datos enviados en el cuerpo de la petición (body), generalmente en formato JSON. Esta operación no es "segura" porque modifica el estado del servidor.
+    //No usamos $_POST porque si el cliente manda un JSON el $_POST llega vacío y tendrías que usar php://input para leer el cuerpo de la petición.
+    // Por eso se ignora el $_POST y se lee directamente el cuerpo de la petición con file_get_contents('php://input'), que devuelve el contenido del cuerpo de la petición como una cadena. 
+    // Luego, esa cadena se decodifica como JSON usando json_decode, lo que convierte el JSON en un array asociativo de PHP. Si no se recibe un JSON válido, se asigna un array vacío.
+
 if ($m === 'POST') {
+    //Lee el cuerpo de la petición como JSON y lo convierte en un array PHP. Si no se recibe un JSON válido, se asigna un array vacío.
     $b                  = json_decode(file_get_contents('php://input'), true) ?? [];
     $nombre             = trim($b['nombre'] ?? '');
     $tipo_mantenimiento = trim($b['tipo_mantenimiento'] ?? 'preventivo');
     $tipo_gama          = trim($b['tipo_gama'] ?? 'mecanica');
 
     if (!$nombre) respuestaError('El nombre de la gama es obligatorio.');
-
+    //
     $s = $conn->prepare("INSERT INTO gamas (nombre, tipo_mantenimiento, tipo_gama) VALUES (?, ?, ?)");
     $s->bind_param("sss", $nombre, $tipo_mantenimiento, $tipo_gama);
     $ok = $s->execute(); 
@@ -57,7 +68,11 @@ if ($m === 'POST') {
 
 // ── PUT (modificación) ────────────────────────────────────────
 if ($m === 'PUT') {
+    //No usamos $_POST porque si el cliente manda un JSON el $_POST llega vacío y tendrías que usar php://input para leer el cuerpo de la petición.
+    // Por eso se ignora el $_POST y se lee directamente el cuerpo de la petición con file_get_contents('php://input'), que devuelve el contenido del cuerpo de la petición como una cadena. 
+    // Luego, esa cadena se decodifica como JSON usando json_decode, lo que convierte el JSON en un array asociativo de PHP. Si no se recibe un JSON válido, se asigna un array vacío.
     $b                  = json_decode(file_get_contents('php://input'), true) ?? [];
+    //php://input te da ek body crudo nosotros decidimos si es JSON, XML y lo parseamos manualmente
     $id_gama            = (int)($b['id_gama'] ?? 0);
     $nombre             = trim($b['nombre'] ?? '');
     $tipo_mantenimiento = trim($b['tipo_mantenimiento'] ?? 'preventivo');
@@ -88,6 +103,10 @@ if ($m === 'PUT') {
 
 // ── DELETE (baja) ─────────────────────────────────────────────
 if ($m === 'DELETE') {
+    //No usamos $_POST porque si el cliente manda un JSON el $_POST llega vacío y tendrías que usar php://input para leer el cuerpo de la petición.
+    // Por eso se ignora el $_POST y se lee directamente el cuerpo de la petición con file_get_contents('php://input'), que devuelve el contenido del cuerpo de la petición como una cadena. 
+    // Luego, esa cadena se decodifica como JSON usando json_decode, lo que convierte el JSON en un array asociativo de PHP. Si no se recibe un JSON válido, se asigna un array vacío.
+
     $b       = json_decode(file_get_contents('php://input'), true) ?? [];
     $id_gama = (int)($b['id_gama'] ?? 0);
     if ($id_gama <= 0) respuestaError('ID de gama no válido.');
