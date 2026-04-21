@@ -2,8 +2,8 @@
 // ============================================================
 //  api/gamas.php  —  CRUD para Gamas de Mantenimiento
 // ============================================================
-require_once 'helpers.php';
-require_once 'db_config.php';
+require_once '../config/helpers.php';
+require_once '../config/db_config.php';
 
 // Descomentar la siguiente línea si se requiere autenticación para este endpoint
 // $yo = requireAuth();

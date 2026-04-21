@@ -20,27 +20,59 @@ async function api(metodo, url, cuerpo = null) {
     }
 }
 
-//Función temporal del Menú (Sin comprobación de sesión de momento)
-// js/app.js
-
-function renderMenu() {
-    // Topbar simplificado y embellecido
-    const topbarHTML = `
-        <nav class="menu-principal" style="justify-content: space-between;">
-            <div class="logo">
-                <span style="font-size: 1.2em;">⚙️</span> 
-                <span>ERP Mecatrónica</span>
-            </div>
-            <div class="user-profile">
-                <span class="user-name">Administrador</span>
-                <div class="avatar">A</div>
-            </div>
-        </nav>
-    `;
-
+// Función principal del Menú (CON comprobación de sesión de usuario real desde PHP)
+async function renderMenu(activeCategory = null) {
     // Determinar rutas relativas
     const inSubFolder = window.location.pathname.includes('Menu/');
     const pRoot = inSubFolder ? '../' : '';
+
+    // ==============================================================================
+    // BYPASS DE AUTENTICACIÓN (MODIFICACIÓN REALIZADA PARA DESARROLLO LOCAL)
+    // Motivo: Facilita el trabajo de UI/UX del equipo sin requerir que todos tengan 
+    // XAMPP configurado ni acceso constante a la base de datos de Ubuntu.
+    // ==============================================================================
+    
+    // 1. Petición real al backend comentada:
+    /*
+    const sesion = await api('GET', pRoot + 'api/auth/sesion.php');
+    if (!sesion || !sesion.ok) {
+        window.location.href = pRoot + 'login.html';
+        return;
+    }
+    */
+    
+    // 2. Inyección de una sesión simulada en duro:
+    // Permite navegar por todas las páginas del ERP haciéndole creer al sistema 
+    // que el usuario 'admin@taller.com' (Modo Desarrollo) ya ha iniciado sesión.
+    const sesion = { ok: true, usuario: "admin@taller.com", nombre: "Modo", apellidos: "Desarrollo", es_admin: 1 };
+
+    const userName = (sesion.nombre && sesion.nombre.trim() !== '') ? `${sesion.nombre} ${sesion.apellidos}` : sesion.usuario;
+    const userRole = sesion.es_admin ? 'Administrador' : 'Técnico';
+    const avatarLetter = (sesion.nombre && sesion.nombre.trim() !== '') ? sesion.nombre[0].toUpperCase() : sesion.usuario[0].toUpperCase();
+
+    // Topbar simplificado y embellecido
+    const topbarHTML = `
+        <nav class="menu-principal" style="justify-content: space-between;">
+            <a href="${pRoot}inicio.html" class="logo" style="text-decoration: none; cursor: pointer;">
+                <span style="font-size: 1.2em;">⚙️</span> 
+                <span>ERP Mecatrónica</span>
+            </a>
+            <div class="user-profile dropdown-profile" onclick="toggleProfileMenu(event)">
+                <span class="user-name">${userName}</span>
+                <div class="avatar">${avatarLetter}</div>
+                <div id="profileDropdown" class="profile-dropdown">
+                    <div class="dropdown-header">
+                        <strong>${userName}</strong><br>
+                        <small>${userRole}</small>
+                    </div>
+                    <a href="${pRoot}perfil.html" class="dropdown-item">👤 Ver Perfil</a>
+                    <a href="${pRoot}administracionMenu/administracion.html" class="dropdown-item">⚙️ Ajustes</a>
+                    <hr>
+                    <a href="#" class="dropdown-item logout" onclick="logoutApp(event, '${pRoot}')">🚪 Cerrar Sesión</a>
+                </div>
+            </div>
+        </nav>
+    `;
 
     // Sidebar dinámico
     const sidebarHTML = `
@@ -128,4 +160,31 @@ function toggleSubmenu(id, btnElement) {
         submenu.style.display = 'flex';
         btnElement.textContent = '▲';
     }
+}
+
+// Función para abrir/cerrar menú de perfil
+function toggleProfileMenu(e) {
+    const dropdown = document.getElementById('profileDropdown');
+    dropdown.classList.toggle('show');
+    e.stopPropagation();
+}
+
+// Cerrar el menú si se hace clic fuera
+window.onclick = function(event) {
+    if (!event.target.closest('.dropdown-profile')) {
+        const dropdowns = document.getElementsByClassName("profile-dropdown");
+        for (let i = 0; i < dropdowns.length; i++) {
+            const openDropdown = dropdowns[i];
+            if (openDropdown.classList.contains('show')) {
+                openDropdown.classList.remove('show');
+            }
+        }
+    }
+}
+
+// Función para cerrar la sesión de forma segura y redirigir
+async function logoutApp(event, pRoot) {
+    if (event) event.preventDefault();
+    await api('POST', pRoot + 'api/auth/logout.php');
+    window.location.href = pRoot + 'login.html';
 }

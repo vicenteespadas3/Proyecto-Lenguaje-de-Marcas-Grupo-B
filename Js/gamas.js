@@ -12,7 +12,7 @@ async function cargarTabla() {
     const tbody = document.getElementById('cuerpoTablaGamas');
     
     // Petición al PHP (¡Asegúrate de tener el gamas.php creado en tu carpeta api!)
-    const respuesta = await api('GET', '../../api/gamas.php');
+    const respuesta = await api('GET', '../../api/mantenimiento/gamas.php');
 
     if (!respuesta || respuesta.ok === false) {
         tbody.innerHTML = `<tr><td colspan="5" style="color:red; text-align:center;">Error al cargar las gamas</td></tr>`;

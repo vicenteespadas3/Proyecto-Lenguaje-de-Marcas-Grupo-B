@@ -1,5 +1,17 @@
-/* css/estilos.css */
+/* =========================================================================
+    ARCHIVO: CSS/menu.css
+    PROPÓSITO: Contiene los estilos para el Layout principal (TopBar, inicio)
+   ========================================================================= */
 
+/* --- RESET GLOBAL --- 
+    Se aplica a todos los elementos (*) para que los 'padding' y 'border' 
+    no sumen tamaño extra al 'width', evitando el scroll horizontal indeseado. */
+* {
+    box-sizing: border-box;
+}
+
+/* --- ESTILOS DEL BODY --- 
+   Define la fuente base, quita márgenes y pone el color de fondo gris claro. */
 body { 
     font-family: Arial, sans-serif; 
     margin: 0; 
@@ -7,7 +19,12 @@ body {
     background-color: #f4f4f9; 
 }
 
-/* --- ESTILOS DEL MENÚ PRINCIPAL --- */
+/* =========================================================================
+    BLOQUE 1: LA BARRA SUPERIOR (TOPBAR / MENU PRINCIPAL)
+    Se inyecta automáticamente con app.js en todas las páginas.
+   ========================================================================= */
+
+/* Contenedor principal de la barra superior oscura */
 .menu-principal { 
     background: linear-gradient(135deg, #1e293b, #0f172a);
     display: flex; 
@@ -17,9 +34,10 @@ body {
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     border-bottom: 1px solid rgba(255,255,255,0.05);
     position: relative;
-    z-index: 1000;
+    z-index: 1000; /* Asegura que la barra siempre esté por encima de todo */
 }
 
+/* Logotipo y título del ERP a la izquierda de la barra */
 .menu-principal .logo { 
     color: white;
     font-weight: 800; 
@@ -30,6 +48,12 @@ body {
     gap: 12px;
 }
 
+/* =========================================================================
+    BLOQUE 2: MENÚ DE PERFIL DEL USUARIO (AVATAR TOPBAR)
+    Se encuentra en la parte derecha de la barra superior.
+   ========================================================================= */
+
+/* Contenedor del nombre y el círculo del avatar */
 .menu-principal .user-profile {
     display: flex;
     align-items: center;
@@ -39,6 +63,7 @@ body {
     font-weight: 500;
 }
 
+/* El circulito azul con la inicial del usuario */
 .menu-principal .avatar {
     width: 36px;
     height: 36px;
@@ -54,78 +79,136 @@ body {
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-.menu-principal ul { 
-    list-style: none; 
-    margin: 0; 
-    padding: 0; 
+/* Contenedor clicable que envuelve al perfil para que al pasar el ratón se ilumine */
+.dropdown-profile {
+    position: relative;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
 }
 
-.nav-links {
-    display: flex; /* Pone los elementos principales en horizontal */
+.dropdown-profile:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
-.nav-links > li > a { 
-    color: #ecf0f1; 
-    text-decoration: none; 
-    padding: 15px 20px; 
-    display: block; 
-}
-
-.nav-links > li > a:hover { 
-    background-color: #34495e; 
-}
-
-/* --- ESTILOS DE LOS DESPLEGABLES --- */
-.dropdown {
-    position: relative; /* Importante para que el submenú sepa de dónde colgar */
-}
-
-.submenu {
-    display: none; /* Oculto por defecto */
+/* La "cajita" blanca flotante que se abre al hacer clic en el avatar */
+.profile-dropdown {
+    display: none; /* Oculto por defecto, app.js le añade la clase 'show' para mostrarlo */
     position: absolute;
-    top: 100%; /* Justo debajo de su padre */
-    left: 0;
-    background-color: #34495e;
-    min-width: 220px; /* Ancho del desplegable */
-    box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
-    z-index: 1000;
+    top: 60px; /* Se sitúa justo debajo de la barra superior */
+    right: 20px;
+    background-color: #ffffff;
+    min-width: 220px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    border-radius: 8px;
+    z-index: 2000;
+    overflow: hidden;
+    animation: fadeInDropdown 0.2s ease;
+    border: 1px solid #e2e8f0;
 }
 
-/* Cuando pasas el ratón por el padre, muestra el submenú */
-.dropdown:hover .submenu {
+/* Clase dinámica que inyecta JS para mostrar el desplegable de perfil */
+.profile-dropdown.show {
     display: block;
 }
 
-.submenu li a {
-    color: white;
-    padding: 12px 16px;
+/* La zona de arriba del desplegable de perfil (Nombre y Rol) */
+.profile-dropdown .dropdown-header {
+    padding: 15px;
+    background-color: #f8fafc;
+    color: #1e293b;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.profile-dropdown .dropdown-header strong { font-size: 1.05em; }
+.profile-dropdown .dropdown-header small { color: #64748b; }
+
+/* Separador horizontal en el menú de perfil */
+.profile-dropdown hr {
+    margin: 0;
+    border: none;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* Cada uno de los botones (Ver perfil, Ajustes, Cerrar sesión) */
+.profile-dropdown .dropdown-item {
+    color: #334155;
+    padding: 12px 15px;
     text-decoration: none;
     display: block;
-    border-bottom: 1px solid #2c3e50;
+    font-size: 0.95em;
+    transition: background-color 0.2s;
 }
 
-.submenu li a:hover {
-    background-color: #3498db;
+.profile-dropdown .dropdown-item:hover {
+    background-color: #f1f5f9;
+    color: #3b82f6;
 }
 
-/* Estilo para los separadores del submenú (ej: Preventivo vs Día a Día) */
+/* Botón específico de "Cerrar sesión" en color rojo */
+.profile-dropdown .dropdown-item.logout {
+    color: #e74c3c;
+}
+
+.profile-dropdown .dropdown-item.logout:hover {
+    background-color: #fdf2f2;
+}
+
+/* Animación suave para cuando aparece el menú de perfil */
+@keyframes fadeInDropdown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================================================
+    BLOQUE 3: ENLACES DEL MENÚ ANTIGUO (HORIZONTALES)
+    Nota: Estos estilos parecen ser del menú antiguo antes de poner el sidebar.
+    Pueden seguir aquí por compatibilidad si alguna página aún los usa.
+   ========================================================================= */
+
+.menu-principal ul { list-style: none; margin: 0; padding: 0; }
+.nav-links { display: flex; }
+.nav-links > li > a { 
+    color: #ecf0f1; text-decoration: none; padding: 15px 20px; display: block; 
+}
+.nav-links > li > a:hover { background-color: #34495e; }
+
+.dropdown { position: relative; }
+.submenu {
+    display: none; position: absolute; top: 100%; left: 0;
+    background-color: #34495e; min-width: 220px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 1000;
+}
+.dropdown:hover .submenu { display: block; }
+.submenu li a {
+    color: white; padding: 12px 16px; text-decoration: none; display: block; border-bottom: 1px solid #2c3e50;
+}
+.submenu li a:hover { background-color: #3498db; }
+
+/* Etiqueta de texto para separar opciones en un submenú (ej: Preventivo / Correctivo) */
 .seccion-menu {
-    color: #bdc3c7;
-    font-size: 0.8em;
-    padding: 8px 16px;
-    background-color: #22313f;
-    text-align: center;
+    color: #bdc3c7; font-size: 0.8em; padding: 8px 16px; background-color: #22313f; text-align: center;
 }
 
-/* --- ESTILOS DEL DASHBOARD (PANTALLA DE INICIO) --- */
+/* =========================================================================
+    BLOQUE 4: DASHBOARD / PANTALLA DE INICIO (inicio.html)
+    Controla la cuadrícula con las tarjetas grandes para acceder a los módulos.
+   ========================================================================= */
+
+/* Contenedor que agrupa todas las tarjetas. Se usa en inicio.html */
 .dashboard-grid {
     display: grid;
-    /* Esto hace que las tarjetas se adapten solas si encoges la pantalla */
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 25px;
+    /* Comportamiento Responsive: 
+        - auto-fit: Rellena la fila con las tarjetas que quepan.
+        - minmax(200px, 1fr): La tarjeta no será más pequeña de 200px. 
+            Si en la pantalla caben las 5 (1000px+), saldrán en una fila. 
+            Si es móvil o encoges la pantalla, irán cayendo a la fila inferior. */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
     margin-top: 30px;
 }
 
+/* Cada tarjeta blanca individual (Mantenimiento, Activos, etc.) */
 .tarjeta-modulo {
     background-color: white;
     border-radius: 10px;
@@ -133,26 +216,19 @@ body {
     text-align: center;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-top: 5px solid #3498db; /* Una línea azul bonita arriba */
+    border-top: 5px solid #3498db; /* Línea de color superior (se suele sobreescribir en el HTML) */
 }
 
-/* Efecto al pasar el ratón por la tarjeta */
+/* Efecto al pasar el ratón por la tarjeta (se eleva un poco) */
 .tarjeta-modulo:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 16px rgba(0,0,0,0.2);
 }
 
-.tarjeta-modulo h2 {
-    color: #2c3e50;
-    margin-bottom: 10px;
-}
+.tarjeta-modulo h2 { color: #2c3e50; margin-bottom: 10px; }
+.tarjeta-modulo p { color: #7f8c8d; font-size: 0.95em; margin-bottom: 20px; }
 
-.tarjeta-modulo p {
-    color: #7f8c8d;
-    font-size: 0.95em;
-    margin-bottom: 20px;
-}
-
+/* Botón inferior dentro de la tarjeta ("Entrar al Módulo") */
 .btn-entrar {
     display: inline-block;
     background-color: #3498db;
@@ -164,6 +240,4 @@ body {
     transition: background-color 0.3s;
 }
 
-.btn-entrar:hover {
-    background-color: #2980b9;
-}
+.btn-entrar:hover { background-color: #2980b9; }

@@ -36,8 +36,8 @@
 //       -H "Content-Type: application/json" \
 //       -d '{"id":3}'
 // ============================================================
-require_once 'helpers.php';
-require_once 'db_config.php';
+require_once '../config/helpers.php';
+require_once '../config/db_config.php';
 
 $yo   = requireAdmin();
 $conn = conectar();

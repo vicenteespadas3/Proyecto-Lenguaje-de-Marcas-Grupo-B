@@ -40,10 +40,52 @@
 
     <script src="../../Js/app.js"></script>
     <script>
+        async function cargarArchivos() {
+            const tbody = document.getElementById('tabla-archivos-body');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando archivos desde la Base de Datos... 📁</td></tr>';
+            
+            const res = await api('GET', '../../api/activos/archivos.php');
+            
+            if (res && res.ok) {
+                tbody.innerHTML = '';
+                if (res.archivos && res.archivos.length > 0) {
+                    res.archivos.forEach(doc => {
+                        const id = doc.id_archivo || doc.id || 'N/A';
+                        const nombre = doc.nombre_archivo || doc.nombre || 'Documento sin nombre';
+                        const tipo = doc.tipo || doc.extension || 'PDF';
+                        const vinculo = doc.maquina || doc.id_maquina || 'General';
+                        const fecha = doc.fecha_subida || doc.fecha || '01/01/2026';
+                        
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><strong>DOC-${id}</strong></td>
+                                <td>${nombre}</td>
+                                <td><span class="status-badge" style="background:#34495e; color:white;">${tipo}</span></td>
+                                <td>${vinculo}</td>
+                                <td>${fecha}</td>
+                                <td class="action-buttons">
+                                    <button class="btn-icon" title="Descargar" onclick="descargarArchivo(${id})">⬇️</button>
+                                    <button class="btn-icon" title="Eliminar" onclick="eliminarArchivo(${id})">🗑️</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">No hay archivos subidos en la base de datos.</td></tr>';
+                }
+            } else {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">
+                    <strong>⚠️ Error al conectar con la base de datos:</strong><br> ${res.error || 'Verifica que el servidor Ubuntu esté encendido.'}
+                </td></tr>`;
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             renderMenu();
+            cargarArchivos();
         });
     </script>
+    <!-- Si tenías lógica extra en archivos.js, seguirá cargando aquí -->
     <script src="../../Js/archivos.js"></script>
 </body>
 </html>

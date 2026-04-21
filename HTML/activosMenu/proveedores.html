@@ -41,8 +41,51 @@
 
     <script src="../../Js/app.js"></script>
     <script>
+        async function cargarProveedores() {
+            const tbody = document.getElementById('tabla-proveedores-body');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando proveedores desde la Base de Datos... 🚚</td></tr>';
+            
+            const res = await api('GET', '../../api/activos/proveedores.php');
+            
+            if (res && res.ok) {
+                tbody.innerHTML = '';
+                if (res.proveedores && res.proveedores.length > 0) {
+                    res.proveedores.forEach(prov => {
+                        const id = prov.id_proveedor || prov.id || 'N/A';
+                        const empresa = prov.empresa || prov.nombre || 'Desconocida';
+                        const contacto = prov.contacto || prov.persona_contacto || '-';
+                        const email = prov.email || prov.correo || '';
+                        const telefono = prov.telefono || '';
+                        const telEmail = (telefono && email) ? `${telefono} <br> <small>${email}</small>` : (telefono || email || '-');
+                        const equipos = prov.equipos || prov.especialidad || 'Variados';
+                        
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><strong>PRV-${id}</strong></td>
+                                <td>${empresa}</td>
+                                <td>${contacto}</td>
+                                <td>${telEmail}</td>
+                                <td>${equipos}</td>
+                                <td class="action-buttons">
+                                    <button class="btn-icon" title="Ver" onclick="verProveedor(${id})">👁️</button>
+                                    <button class="btn-icon" title="Editar" onclick="editarProveedor(${id})">✏️</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">No hay proveedores registrados en la base de datos.</td></tr>';
+                }
+            } else {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">
+                    <strong>⚠️ Error al conectar con la base de datos:</strong><br> ${res.error || 'Verifica que el servidor Ubuntu esté encendido.'}
+                </td></tr>`;
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             renderMenu(); 
+            cargarProveedores();
         });
     </script>
 </body>

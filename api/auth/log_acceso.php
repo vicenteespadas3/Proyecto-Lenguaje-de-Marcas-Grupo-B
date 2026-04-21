@@ -10,8 +10,8 @@
 //
 //  curl -b cookies.txt "http://localhost/api/log_acceso.php?pagina=1"
 // ============================================================
-require_once 'helpers.php';
-require_once 'db_config.php';
+require_once '../config/helpers.php';
+require_once '../config/db_config.php';
 $usuario = requireAuth();
 
 if($_SERVER['REQUEST_METHOD']==='POST'){

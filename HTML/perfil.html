@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP Mecatrónica - Perfil</title>
+    <link rel="stylesheet" href="../CSS/menu.css">
+    <link rel="stylesheet" href="../CSS/estilos.css">
+    <style>
+        .app-body {
+            /* Ensures space for the sidebar */
+        }
+        .perfil-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            font-family: Arial, sans-serif;
+            animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .perfil-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .perfil-avatar {
+            width: 80px;
+            height: 80px;
+            background-color: #3b82f6;
+            color: white;
+            font-size: 2.5em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+        }
+        .perfil-info h1 {
+            margin: 0;
+            color: #1e293b;
+            font-size: 2em;
+        }
+        .perfil-info p {
+            margin: 5px 0 0;
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+        .perfil-detalles {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .detalle-grupo {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .detalle-grupo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .detalle-grupo label {
+            display: block;
+            font-weight: bold;
+            color: #64748b;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        .detalle-grupo p {
+            margin: 0;
+            color: #334155;
+            font-size: 1.1em;
+        }
+        .perfil-acciones {
+            margin-top: 30px;
+            text-align: right;
+            border-top: 2px solid #f1f5f9;
+            padding-top: 20px;
+        }
+        .btn-editar {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .btn-editar:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-body">
+        <main style="padding: 20px; width: 100%;">
+            <!-- Contenedor principal de la tarjeta de perfil -->
+            <!-- Creado hoy: Implementa diseño con sombras, bordes redondeados y animaciones suaves (fadeIn) -->
+            <div class="perfil-container">
+                
+                <!-- Cabecera del perfil: Contiene el avatar dinámico y el título principal -->
+                <div class="perfil-header">
+                    <div class="perfil-avatar">A</div>
+                    <div class="perfil-info">
+                        <h1>Administrador</h1>
+                        <p>Administrador del Sistema</p>
+                    </div>
+                </div>
+                
+                <!-- Detalles del perfil: Utiliza CSS Grid (grid-template-columns: 1fr 1fr) 
+                     para organizar la información en tarjetas atractivas divididas en 2 columnas -->
+                <div class="perfil-detalles">
+                    <div class="detalle-grupo">
+                        <label>Nombre de Usuario</label>
+                        <p>admin</p>
+                    </div>
+                    <div class="detalle-grupo">
+                        <label>Correo Electrónico</label>
+                        <p>admin@erpmecatronica.com</p>
+                    </div>
+                    <div class="detalle-grupo">
+                        <label>Departamento</label>
+                        <p>Dirección / Informática</p>
+                    </div>
+                    <div class="detalle-grupo">
+                        <label>Fecha de Registro</label>
+                        <p>01/01/2026</p>
+                    </div>
+                    <div class="detalle-grupo">
+                        <label>Último Acceso</label>
+                        <p>Hace unos momentos</p>
+                    </div>
+                    <div class="detalle-grupo">
+                        <label>Estado</label>
+                        <p style="color: #27ae60; font-weight: bold;">Activo</p>
+                    </div>
+                </div>
+
+                <div class="perfil-acciones">
+                    <button class="btn-editar">Editar Perfil</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../Js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu('perfil'); 
+        });
+    </script>
+</body>
+</html>

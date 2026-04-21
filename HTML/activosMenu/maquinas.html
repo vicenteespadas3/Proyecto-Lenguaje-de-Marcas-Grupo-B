@@ -57,8 +57,63 @@
 
         <script src="../../Js/app.js"></script>
         <script>
+            // Función para obtener las máquinas de la BD e inyectarlas en el HTML
+            async function cargarMaquinas() {
+                const tbody = document.getElementById('tabla-maquinas-body');
+                // Mensaje de carga inicial
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando máquinas desde la Base de Datos... ⚙️</td></tr>';
+                
+                // Llamamos a nuestro nuevo archivo PHP
+                const res = await api('GET', '../../api/activos/maquinas.php');
+                
+                if (res && res.ok) {
+                    tbody.innerHTML = ''; // Limpiamos el "Cargando..."
+                    
+                    if (res.maquinas && res.maquinas.length > 0) {
+                        res.maquinas.forEach(maq => {
+                            // Mapeamos los campos (fallback por si las columnas se llaman ligeramente distinto)
+                            const id = maq.id_maquina || maq.id || 'N/A';
+                            const nombre = maq.nombre || maq.descripcion || 'Sin nombre';
+                            const estado = maq.estado || 'Activo';
+                            const ubicacion = maq.ubicacion || maq.sector || 'Taller Principal';
+                            const fecha = maq.ultima_revision || maq.fecha_alta || '12/03/2026';
+                            
+                            // Determinamos el color de la etiqueta ("badge") según el estado
+                            let badgeClass = 'success'; // Verde por defecto
+                            let estadoTexto = estado.toLowerCase();
+                            if (estadoTexto.includes('mant') || estadoTexto.includes('rep')) badgeClass = 'warning'; // Naranja
+                            if (estadoTexto.includes('baja') || estadoTexto.includes('rot')) badgeClass = 'danger'; // Rojo
+                            
+                            // Inyectamos la fila en la tabla
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td><strong>MAQ-${id}</strong></td>
+                                    <td>${nombre}</td>
+                                    <td><span class="status-badge ${badgeClass}">${estado}</span></td>
+                                    <td>${ubicacion}</td>
+                                    <td>${fecha}</td>
+                                    <td class="action-buttons">
+                                        <button class="btn-icon" title="Ver Ficha" onclick="verDetalle(${id})">👁️</button>
+                                        <button class="btn-icon" title="Editar" onclick="editarMaquina(${id})">✏️</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        // Si la tabla está vacía
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">No hay máquinas registradas en la base de datos.</td></tr>';
+                    }
+                } else {
+                    // Si falla (Ubuntu apagado o tabla inexistente)
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">
+                        <strong>⚠️ Error al conectar con la base de datos:</strong><br> ${res.error || 'Verifica que el servidor Ubuntu esté encendido.'}
+                    </td></tr>`;
+                }
+            }
+
             document.addEventListener('DOMContentLoaded', () => {
-                renderMenu();
+                renderMenu(); // Carga el menú lateral
+                cargarMaquinas(); // Ejecuta la llamada a la BD automáticamente
             });
         </script>
     </body>

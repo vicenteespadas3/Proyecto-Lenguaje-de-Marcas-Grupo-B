@@ -1,53 +1,68 @@
+/* =========================================================================
+    ARCHIVO: CSS/estilos.css
+    PROPÓSITO: Contiene los estilos estructurales (Menú Lateral, Tablas, Variables)
+    Se usa en casi TODAS las pantallas del ERP para dar coherencia.
+   ========================================================================= */
+
+/* --- VARIABLES DE COLOR (THEMES) --- 
+   Se usan usando var(--nombre). Permite cambiar de color dinámicamente según el módulo. */
 :root {
-    --primary: #3498db;
-    --primary-hover: #2980b9;
-    --th-bg: #34495e;
-    --nav-active-bg: #ecf0f1;
-    --nav-hover-bg: #f8f9fa;
-    --subnav-hover-bg: #f0f4f8;
+    --primary: #3498db;          /* Azul por defecto (Botones, Iconos, Links activos) */
+    --primary-hover: #2980b9;    /* Azul oscuro para hovers (Al pasar el ratón) */
+    --th-bg: #34495e;            /* Color de la cabecera (thead) de las tablas */
+    --nav-active-bg: #ecf0f1;    /* Fondo gris cuando un enlace del menú está activo */
+    --nav-hover-bg: #f8f9fa;     /* Fondo al pasar el ratón por un enlace del menú */
+    --subnav-hover-bg: #f0f4f8;  /* Fondo para los enlaces hijos (submenú) */
 }
 
-/* Temas de los módulos */
+/* Para activar estos temas, pon la clase en el contenedor principal: <div class="app-body theme-XXXXX"> */
 .theme-activos {
-    --primary: #3498db;
+    --primary: #3498db;          /* Azul */
     --primary-hover: #2980b9;
     --th-bg: #3498db;
 }
 
 .theme-mantenimiento {
-    --primary: #e67e22;
+    --primary: #e67e22;          /* Naranja */
     --primary-hover: #d35400;
     --th-bg: #e67e22;
     --nav-active-bg: #fcf3cf;
 }
 
 .theme-inventario {
-    --primary: #27ae60;
+    --primary: #27ae60;          /* Verde */
     --primary-hover: #2ecc71;
     --th-bg: #27ae60;
     --nav-active-bg: #eafeea;
 }
 
 .theme-incidencias {
-    --primary: #9b59b6;
+    --primary: #9b59b6;          /* Morado */
     --primary-hover: #8e44ad;
     --th-bg: #9b59b6;
     --nav-active-bg: #f4ecf8;
 }
 
 .theme-administracion {
-    --primary: #e74c3c;
+    --primary: #e74c3c;          /* Rojo */
     --primary-hover: #c0392b;
     --th-bg: #e74c3c;
     --nav-active-bg: #fadbd8;
 }
 
-/* --- ESTILOS DE LA APLICACIÓN (PANELES, SIDEBAR, TABLAS) --- */
+/* =========================================================================
+    BLOQUE 1: ESTRUCTURA PRINCIPAL (LAYOUT)
+    Controla la división entre la barra lateral (Sidebar) y el contenido (Main)
+   ========================================================================= */
+
+/* Contenedor Flex que envuelve la barra lateral y la zona de contenido.
+   Debe ir justo después de <body>. Adopta todo el alto de la pantalla restante. */
 .app-body {
     display: flex;
-    min-height: calc(100vh - 54px);
+    min-height: calc(100vh - 65px); /* 65px es lo que mide el TopBar */
 }
 
+/* La columna blanca de la izquierda (Menú lateral / Sidebar) */
 .sidebar {
     width: 250px;
     background-color: #ffffff;
@@ -57,6 +72,7 @@
     box-shadow: 2px 0 5px rgba(0,0,0,0.02);
 }
 
+/* Título de la barra lateral ("GMAO System") */
 .sidebar-header {
     padding: 20px;
     font-weight: bold;
@@ -65,21 +81,26 @@
     border-bottom: 1px solid #ecf0f1;
 }
 
+/* Contenedor que agrupa todos los links del menú lateral con scroll si es muy largo */
 .sidebar-nav {
     display: flex;
     flex-direction: column;
     padding: 15px 0;
-    overflow-y: auto; /* Para pantallas pequeñas */
+    overflow-y: auto; 
 }
 
+/* =========================================================================
+    BLOQUE 2: ELEMENTOS DEL MENÚ LATERAL (SIDEBAR ITEMS)
+   ========================================================================= */
+
+/* Categoría principal desplegable (ej: "Mantenimiento", "Activos Fijos") */
 .sidebar-category {
     display: flex;
     align-items: center;
-    border-left: 3px solid transparent;
+    border-left: 3px solid transparent; /* Reserva el espacio para el borde de color activo */
 }
 
-
-
+/* El texto o link de la categoría principal */
 .category-link {
     flex: 1;
     text-decoration: none;
@@ -87,11 +108,9 @@
     font-weight: bold;
     padding: 12px 20px;
 }
+.category-link:hover { color: var(--primary); }
 
-.category-link:hover {
-    color: var(--primary);
-}
-
+/* La flechita (▼) para abrir/cerrar el acordeón */
 .category-toggle {
     background: none;
     border: none;
@@ -101,31 +120,30 @@
     font-size: 0.9em;
     transition: color 0.3s;
 }
+.category-toggle:hover { color: var(--primary); }
 
-.category-toggle:hover {
-    color: var(--primary);
-}
-
+/* El contenedor "hijo" que guarda los sub-enlaces. Oculto por defecto (display:none) */
 .sidebar-submenu {
-    display: none; /* Oculto inicialmente, se muestra con app.js */
+    display: none; /* App.js cambia esto a 'flex' para mostrarlo al hacer clic */
     flex-direction: column;
     background-color: #fcfcfc;
     border-left: 3px solid #e0e6ed;
     margin-left: 17px;
 }
 
+/* Sub-enlaces de dentro de una categoría (ej: "Máquinas", "Gamas") */
 .sidebar-submenu .nav-link {
-    padding: 10px 20px 10px 15px; /* Más padding para identificar que es sub-elemento */
+    padding: 10px 20px 10px 15px; /* Más padding interno para indentar y simular jerarquía */
     font-size: 0.95em;
     color: #7f8c8d;
     border-left: none !important;
 }
-
 .sidebar-submenu .nav-link:hover {
     color: var(--primary);
     background-color: var(--subnav-hover-bg);
 }
 
+/* Links genéricos o directos del sidebar (ej: "Inicio") */
 .sidebar-nav .nav-link {
     padding: 12px 20px;
     text-decoration: none;
@@ -133,13 +151,13 @@
     transition: all 0.2s ease;
     border-left: 3px solid transparent;
 }
-
 .sidebar-nav .nav-link:hover {
     background-color: var(--nav-hover-bg);
     color: var(--primary);
     border-left: 3px solid var(--primary);
 }
 
+/* El enlace en el que estás actualmente navegando (marcado en color temático) */
 .sidebar-nav .nav-link.active {
     background-color: var(--nav-active-bg);
     color: var(--primary-hover);
@@ -147,31 +165,34 @@
     font-weight: bold;
 }
 
+/* =========================================================================
+    BLOQUE 3: ZONA DE CONTENIDO Y CABECERAS
+    Donde se pintan las tablas, gráficos, contenido principal de los módulos
+   ========================================================================= */
+
+/* Contenedor gigante gris que ocupa toda la parte derecha de la pantalla */
 .main-content {
-    flex: 1;
+    flex: 1; /* Ocupa todo el espacio sobrante después de los 250px del sidebar */
     padding: 30px;
     background-color: #f4f7f6;
 }
 
+/* Cabecera común de cada módulo (Contenedor del Título H1 + Botones de Acción) */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
 }
+.header-info h1 { margin: 0 0 5px 0; color: var(--primary); font-size: 1.8em; }
+.header-info p { margin: 0; color: #7f8c8d; }
 
-.header-info h1 {
-    margin: 0 0 5px 0;
-    color: var(--primary);
-    font-size: 1.8em;
-}
+/* =========================================================================
+    BLOQUE 4: TABLAS Y LISTADOS DE DATOS
+    Se usa para listar máquinas, averías, usuarios en casi todos los HTMLs
+   ========================================================================= */
 
-.header-info p {
-    margin: 0;
-    color: #7f8c8d;
-}
-
-/* -- Tablas -- */
+/* Caja blanca con sombra redonda que envuelve la tabla <table> */
 .table-container {
     background: white;
     border-radius: 8px;
@@ -179,125 +200,65 @@
     overflow: hidden;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+/* La tabla en sí, ocupa el 100% del contenedor blanco */
+table { width: 100%; border-collapse: collapse; }
 
-thead {
-    background-color: var(--th-bg);
-    color: white;
-}
+/* Cabecera de la tabla (Títulos de las columnas) */
+thead { background-color: var(--th-bg); color: white; }
 
-th, td {
-    padding: 15px 20px;
-    text-align: left;
-    border-bottom: 1px solid #ecf0f1;
-}
+/* Celdas de datos (th=cabecera, td=dato normal) */
+th, td { padding: 15px 20px; text-align: left; border-bottom: 1px solid #ecf0f1; }
 
-tbody tr:hover {
-    background-color: #f8f9fa;
-}
+/* Efecto al pasar por encima de una fila de datos de la tabla */
+tbody tr:hover { background-color: #f8f9fa; }
 
+/* =========================================================================
+    BLOQUE 5: ETIQUETAS Y BOTONES (BADGES & BUTTONS)
+   ========================================================================= */
+
+/* Etiqueta redondeada para mostrar "Estado", "Tipo", "Prioridad" dentro de una celda */
 .status-badge {
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 0.85em;
-    font-weight: bold;
+    padding: 5px 10px; border-radius: 20px; font-size: 0.85em; font-weight: bold;
 }
+.status-badge.success { background-color: #d4edda; color: #155724; } /* Verde para "Activa" o "Terminado" */
 
-.status-badge.success {
-    background-color: #d4edda;
-    color: #155724;
-}
-
+/* Botones principales de acción (ej: el botón azul de "+ Nueva Máquina") */
 .btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s, transform 0.1s;
+    padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;
+    font-weight: bold; transition: background-color 0.3s, transform 0.1s;
 }
+.btn:active { transform: scale(0.98); } /* Efecto hundimiento al hacer click */
 
-.btn:active {
-    transform: scale(0.98);
-}
+/* Asigna el color dinámico del módulo al botón */
+.btn-primary { background-color: var(--primary); color: white; }
+.btn-primary:hover { background-color: var(--primary-hover); }
 
-.btn-primary {
-    background-color: var(--primary);
-    color: white;
-}
+/* Caja invisible que envuelve los botoncitos de las acciones (Ojo, Lápiz, Papelera) en una celda */
+.action-buttons { display: flex; gap: 10px; }
 
-.btn-primary:hover {
-    background-color: var(--primary-hover);
-}
-
-.action-buttons {
-    display: flex;
-    gap: 10px;
-}
-
+/* Botones transparentes con iconos (ej: Editar ✏️, Borrar 🗑️ en cada fila) */
 .btn-icon {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.2em;
-    transition: transform 0.2s;
+    background: none; border: none; cursor: pointer; font-size: 1.2em; transition: transform 0.2s;
 }
+.btn-icon:hover { transform: scale(1.2); } /* Efecto aumento al pasar el ratón */
 
-.btn-icon:hover {
-    transform: scale(1.2);
-}
-/* =========================================
-   ESTILOS ESPECÍFICOS: GESTIÓN DE GAMAS
-   ========================================= */
+/* =========================================================================
+    BLOQUE 6: ESTILOS ESPECÍFICOS PARA MÓDULOS (EJ: GAMAS)
+    Estos estilos resuelven problemas concretos de alineación en ciertas páginas.
+   ========================================================================= */
 
-/* Utilidades para centrar columnas en las tablas */
-.col-id {
-    width: 50px;
-    text-align: center;
-    font-weight: bold;
-    color: #7f8c8d;
-}
+/* Utilidades para centrar columnas en las tablas (ej: la columna del ID PRV-001) */
+.col-id { width: 50px; text-align: center; font-weight: bold; color: #7f8c8d; }
+.col-acciones { width: 130px; text-align: center; }
+.justify-center { justify-content: center; }
 
-.col-acciones {
-    width: 130px;
-    text-align: center;
-}
+/* Badges específicos para el módulo de Mantenimiento */
+.badge-preventivo { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.badge-correctivo { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.badge-predictivo { background-color: #e2d9f3; color: #5a32a3; border: 1px solid #d0c1eb; }
 
-.justify-center {
-    justify-content: center;
-}
-
-/* Colores para el Tipo de Mantenimiento */
-.badge-preventivo {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.badge-correctivo {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
-.badge-predictivo {
-    background-color: #e2d9f3;
-    color: #5a32a3;
-    border: 1px solid #d0c1eb;
-}
-
-/* Iconos para el Tipo de Gama */
-.tipo-gama {
-    font-weight: bold;
-    color: #2c3e50;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
+/* Iconitos que se añaden por CSS automáticamente usando clases en gamas.js */
+.tipo-gama { font-weight: bold; color: #2c3e50; display: inline-flex; align-items: center; gap: 5px; }
 .gama-neumatico::before { content: "💨"; }
 .gama-electrico::before { content: "⚡"; }
 .gama-mecanico::before  { content: "⚙️"; }
