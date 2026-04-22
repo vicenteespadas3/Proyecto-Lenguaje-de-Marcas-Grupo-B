@@ -16,7 +16,42 @@
                 <h1>Gestión de Gamas</h1>
                 <p>Configuración de los tipos de mantenimiento preventivos y correctivos.</p>
             </div>
-            <button class="btn btn-primary" id="btnNuevaGama">➕ Nueva Gama</button>
+            <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="inputBuscarGama" placeholder="Buscar por ID o nombre..." class="form-control" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                <button class="btn btn-secondary" id="btnBuscarGama">🔍 Buscar</button>
+                <button class="btn btn-primary" id="btnNuevaGama">➕ Nueva Gama</button>
+            </div>
+        </div>
+
+        <!-- FORMULARIO NUEVA GAMA (Oculto por defecto, se muestra por JS) -->
+        <div id="formularioNuevaGama" style="display: none; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px;">
+            <h3 style="margin-top: 0;">Crear Nueva Gama</h3>
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <label for="nombreGama" style="display: block; margin-bottom: 5px; font-weight: bold;">Nombre</label>
+                    <input type="text" id="nombreGama" class="form-control" placeholder="Ej: Revisión general" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                </div>
+                <div style="flex: 1;">
+                    <label for="tipoMantenimiento" style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de Mantenimiento</label>
+                    <select id="tipoMantenimiento" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        <option value="preventivo">Preventivo</option>
+                        <option value="correctivo">Correctivo</option>
+                        <option value="predictivo">Predictivo</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label for="tipoGama" style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de Gama</label>
+                    <select id="tipoGama" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        <option value="mecanico">Mecanico</option>
+                        <option value="electrico">Electrico</option>
+                        <option value="neumatico">Neumatico</option>
+                    </select>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <button class="btn btn-secondary" id="btnCancelarGama">Cancelar</button>
+                <button class="btn btn-primary" id="btnGuardarGama">Guardar Gama</button>
+            </div>
         </div>
 
         <div class="table-container">
