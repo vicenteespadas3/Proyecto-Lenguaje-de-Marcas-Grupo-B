@@ -188,3 +188,20 @@ async function logoutApp(event, pRoot) {
     await api('POST', pRoot + 'api/auth/logout.php');
     window.location.href = pRoot + 'login.html';
 }
+
+
+
+/* * Inyección dinámica del Favicon
+ * @author: Guadalupe MGM
+ * @date: 2026
+ * @description: Añade un favicon a la pestaña del navegador sin necesidad de modificar los HTML.
+ */
+(function() {
+    const favicon = document.createElement('link');
+    favicon.rel = 'icon';
+    favicon.type = 'image/png'; 
+    favicon.href = '../../img/mantenimiento.png'; // Asegúrate de que esta ruta sea la correcta
+    
+    // Lo añadimos al head del documento
+    document.head.appendChild(favicon);
+})();

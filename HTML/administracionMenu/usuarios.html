@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Guadalupe MGM">
+    <title>ERP - Gestión de Usuarios</title>
+    <link rel="stylesheet" href="../../CSS/estilos.css">
+    <link rel="stylesheet" href="../../CSS/menu.css">
+</head>
+<body>
+    <div class="app-body theme-administracion">
+        <main class="main-content">
+            <header class="header">
+                <div class="header-info">
+                    <h1>Gestión de Usuarios</h1>
+                    <p>Administración de técnicos, operarios y administradores</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="abrirModal()">
+                        + Nuevo Usuario
+                    </button>
+                </div>
+            </header>
+
+            <section class="toolbar" style="display: flex; gap: 10px; margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <input type="text" class="input" placeholder="Buscar usuario..." id="busqueda">
+                <select class="input">
+                    <option>Todos los roles</option>
+                    <option>Administrador</option>
+                    <option>Técnico</option>
+                    <option>Operario</option>
+                </select>
+            </section>
+
+            <section class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Usuario</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaUsuarios">
+                        </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <div id="modalUsuario" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000;">
+        <div style="background:white; width:400px; margin:10% auto; padding:25px; border-radius:12px;">
+            <h3 style="color:var(--primary); margin-top:0;">Nuevo Usuario</h3>
+            <div style="display:flex; flex-direction:column; gap:15px;">
+                <input id="nombre" class="input" placeholder="Nombre Completo">
+                <input id="user" class="input" placeholder="Username">
+                <select id="rol" class="input">
+                    <option value="Administrador">Administrador</option>
+                    <option value="Técnico">Técnico</option>
+                    <option value="Operario">Operario</option>
+                </select>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:20px; justify-content: flex-end;">
+                <button class="btn btn-primary" onclick="guardarUsuario()">Guardar</button>
+                <button class="btn" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../Js/app.js"></script>
+    <script src="../../Js/usuarios.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if(typeof renderMenu === 'function') renderMenu(); 
+        });
+    </script>
+</body>
+</html>

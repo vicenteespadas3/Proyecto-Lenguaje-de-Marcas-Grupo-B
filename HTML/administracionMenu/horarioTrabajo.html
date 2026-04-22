@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Guadalupe MGM">
+    <title>ERP - Horarios</title>
+    <link rel="stylesheet" href="../../CSS/estilos.css">
+    <link rel="stylesheet" href="../../CSS/menu.css">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+</head>
+<body>
+    <div class="app-body theme-administracion">
+        <main class="main-content">
+            <header class="header">
+                <div class="header-info">
+                    <h1>🕒 Horarios de Trabajo</h1>
+                    <p>Asignación de turnos y cuadrante semanal</p>
+                </div>
+            </header>
+
+            <section class="form-horario" style="display: flex; gap: 10px; margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px;">
+                <input class="input" type="text" id="nombreEmpleado" placeholder="Empleado">
+                <select class="input" id="turno">
+                    <option value="Mañana">Mañana</option>
+                    <option value="Tarde">Tarde</option>
+                    <option value="Noche">Noche</option>
+                </select>
+                <input class="input" type="date" id="fechaTurno">
+                <button class="btn btn-primary" onclick="agregarTurno()">+ Asignar</button>
+            </section>
+
+            <section class="table-container" style="padding: 20px;">
+                <div id="calendario"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../../Js/app.js"></script>
+    <script src="../../Js/horarioTrabajo.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if(typeof renderMenu === 'function') renderMenu();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Guadalupe MGM">
+    <title>ERP - Definiciones Maestras</title>
+    <link rel="stylesheet" href="../../CSS/estilos.css">
+    <link rel="stylesheet" href="../../CSS/menu.css">
+    <style>
+        .grid-definiciones {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .card-maestra {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--primary);
+        }
+        .card-maestra h3 { margin-top: 0; color: #2c3e50; display: flex; justify-content: space-between; }
+        .list-items { list-style: none; padding: 0; margin: 15px 0; }
+        .list-items li { 
+            padding: 8px 0; 
+            border-bottom: 1px solid #eee; 
+            display: flex; 
+            justify-content: space-between;
+            font-size: 0.9em;
+        }
+        .btn-add-small {
+            background: none;
+            border: 1px dashed var(--primary);
+            color: var(--primary);
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn-add-small:hover { background: var(--nav-active-bg); }
+    </style>
+</head>
+<body>
+    <div class="app-body theme-administracion">
+        <main class="main-content">
+            <header class="header">
+                <div class="header-info">
+                    <h1>⚙️ Definiciones Maestras</h1>
+                    <p>Configuración global de categorías y parámetros del sistema</p>
+                </div>
+            </header>
+
+            <section class="grid-definiciones">
+                <article class="card-maestra">
+                    <h3><span>📦 Tipos de Activo</span> <small>4</small></h3>
+                    <ul class="list-items">
+                        <li>Motores <span>✏️</span></li>
+                        <li>Herramientas Neumáticas <span>✏️</span></li>
+                        <li>Sistemas Electrónicos <span>✏️</span></li>
+                        <li>Vehículos Industriales <span>✏️</span></li>
+                    </ul>
+                    <button class="btn-add-small">+ Añadir Tipo</button>
+                </article>
+
+                <article class="card-maestra">
+                    <h3><span>⚠️ Prioridades</span> <small>3</small></h3>
+                    <ul class="list-items">
+                        <li><span class="status-badge" style="background:#f8d7da; color:#721c24">Crítica</span> <span>✏️</span></li>
+                        <li><span class="status-badge" style="background:#fff3cd; color:#856404">Preventiva</span> <span>✏️</span></li>
+                        <li><span class="status-badge" style="background:#d4edda; color:#155724">Baja</span> <span>✏️</span></li>
+                    </ul>
+                    <button class="btn-add-small">+ Configurar Niveles</button>
+                </article>
+
+                <article class="card-maestra">
+                    <h3><span>📍 Ubicaciones</span> <small>2</small></h3>
+                    <ul class="list-items">
+                        <li>Nave A - Mecanizado <span>✏️</span></li>
+                        <li>Nave B - Logística <span>✏️</span></li>
+                    </ul>
+                    <button class="btn-add-small">+ Nueva Ubicación</button>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <script src="../../Js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if(typeof renderMenu === 'function') renderMenu();
+        });
+    </script>
+</body>
+</html>
