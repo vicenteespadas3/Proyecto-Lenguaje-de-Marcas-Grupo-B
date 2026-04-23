@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Herramientas - ERP Mecatrónica</title>
+    <link rel="stylesheet" href="../../CSS/estilos.css">
+    <link rel="stylesheet" href="../../CSS/menu.css">
+
+</head>
+<body class="theme-inventario"> <div class="app-body">
+        <main class="main-content">
+
+            <header class="header">
+                <div class="header-info">
+                    <h1>Gestión de Herramientas</h1>
+                    <p>Catálogo técnico, estado y ubicación en taller</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="abrirModalHerramienta()">
+                        + Añadir Nueva Herramienta
+                    </button>
+                </div>
+            </header>
+
+            <section class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-id">ID</th>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Estado</th>
+                            <th>Ubicación</th>
+                            <th class="col-acciones">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-herramientas-body">
+                        </tbody>
+                </table>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="../../Js/app.js"></script>
+    <script>
+        // Función principal para traer los datos del servidor
+        async function cargarHerramientas() {
+            const tbody = document.getElementById('tabla-herramientas-body');
+            
+            // Ponemos un aviso mientras la BBDD responde para que el usuario no vea la tabla vacía
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando herramientas... ⚙️</td></tr>';
+            
+            // Usamos la función api() de nuestro compañero para mantener la consistencia en las peticiones
+            const res = await api('GET', '../../api/inventario/herramientas.php');
+            
+            // Si la respuesta es válida y tiene el array de herramientas
+            if (res && res.herramientas) {
+                tbody.innerHTML = ''; // Limpiamos el mensaje de "Cargando..."
+                
+                if (res.herramientas.length > 0) {
+                    // Recorremos cada herramienta y creamos su fila
+                    res.herramientas.forEach(h => {
+                        // Mapeo de datos básicos
+                        const id = h.id_herramienta || 'N/A';
+                        const nombre = h.nombre || 'Sin nombre';
+                        const categoria = h.categoria || 'General';
+                        const estado = h.estado || 'Disponible';
+                        const ubicacion = h.ubicacion || 'Taller';
+
+                        // Lógica de colores según el estado (Badge dinámico)
+                        let badgeClass = 'success';
+                        if (estado.toLowerCase().includes('mantenimiento')) badgeClass = 'warning';
+                        if (estado.toLowerCase().includes('baja')) badgeClass = 'danger';
+
+                        // Inyectamos la fila en el HTML usando un template string
+                        tbody.innerHTML += `
+                            <tr>
+                                <td class="col-id">${id}</td>
+                                <td><strong>${nombre}</strong></td>
+                                <td><span class="tipo-gama">${categoria}</span></td>
+                                <td><span class="status-badge ${badgeClass}">${estado}</span></td>
+                                <td>${ubicacion}</td>
+                                <td class="action-buttons justify-center">
+                                    <button class="btn-icon" title="Ver" onclick="verDetalle(${id})">👁️</button>
+                                    <button class="btn-icon" title="Editar" onclick="editar(${id})">✏️</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    // Si el array está vacío, avisamos al usuario
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No hay herramientas registradas.</td></tr>';
+                }
+            } else {
+                // Si algo falló (BBDD caída o error de ruta), mostramos error
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">
+                    <strong>⚠️ Error al conectar con la base de datos.</strong>
+                </td></tr>`;
+            }
+        }
+
+        // Al cargar la página, pintamos el menú y lanzamos la carga de datos
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu(); 
+            cargarHerramientas();
+        });
+    </script>
+</body>
+</html>
