@@ -70,6 +70,16 @@
     display: flex;
     flex-direction: column;
     box-shadow: 2px 0 5px rgba(0,0,0,0.02);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 900;
+}
+
+/* Estado contraído (Desktop) o oculto (Móvil) */
+.sidebar.collapsed {
+    width: 0;
+    overflow: hidden;
+    border-right: none;
 }
 
 /* Título de la barra lateral ("GMAO System") */
@@ -103,10 +113,14 @@
 /* El texto o link de la categoría principal */
 .category-link {
     flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     text-decoration: none;
     color: #34495e;
     font-weight: bold;
     padding: 12px 20px;
+    white-space: nowrap;
 }
 .category-link:hover { color: var(--primary); }
 
@@ -150,6 +164,10 @@
     color: #34495e;
     transition: all 0.2s ease;
     border-left: 3px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
 }
 .sidebar-nav .nav-link:hover {
     background-color: var(--nav-hover-bg);
@@ -175,6 +193,7 @@
     flex: 1; /* Ocupa todo el espacio sobrante después de los 250px del sidebar */
     padding: 30px;
     background-color: #f4f7f6;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Cabecera común de cada módulo (Contenedor del Título H1 + Botones de Acción) */
@@ -262,3 +281,237 @@ tbody tr:hover { background-color: #f8f9fa; }
 .gama-neumatico::before { content: "💨"; }
 .gama-electrico::before { content: "⚡"; }
 .gama-mecanico::before  { content: "⚙️"; }
+
+/* =========================================================================
+    BLOQUE 7: RESPONSIVE (MÓVIL Y TABLET)
+   ========================================================================= */
+
+@media (max-width: 768px) {
+    .app-body {
+        position: relative;
+    }
+
+    .sidebar {
+        position: fixed; /* Cambiado a fixed para que cubra toda la pantalla */
+        top: 65px; /* Debajo del TopBar */
+        height: calc(100% - 65px);
+        left: 0;
+        width: 280px;
+        transform: translateX(-100%);
+        box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+        z-index: 999; /* Justo debajo del TopBar (1000) */
+    }
+
+    /* En móvil, la clase 'collapsed' es el estado por defecto */
+    .sidebar.collapsed {
+        transform: translateX(-100%);
+        width: 280px; 
+    }
+
+    /* Cuando NO está colapsado en móvil, lo mostramos deslizándose */
+    .sidebar:not(.collapsed) {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        padding: 15px;
+        width: 100% !important;
+        flex: none;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .header-actions {
+        width: 100%;
+    }
+
+    .header-actions .btn {
+        width: 100%;
+    }
+
+    /* Ajuste de tablas para móvil */
+    .table-container {
+        overflow-x: auto;
+    }
+}
+
+/* =========================================================================
+    BLOQUE 8: MODO OSCURO
+   ========================================================================= */
+body.dark-mode {
+    background-color: #121212 !important;
+    color: #e0e0e0;
+}
+
+body.dark-mode .app-body {
+    background-color: #121212;
+}
+
+body.dark-mode .main-content {
+    background-color: #1e1e1e;
+}
+
+body.dark-mode .sidebar {
+    background-color: #1a1a1a;
+    border-right: 1px solid #333;
+}
+
+body.dark-mode .sidebar-header {
+    color: #e0e0e0;
+    border-bottom: 1px solid #333;
+}
+
+body.dark-mode .category-link,
+body.dark-mode .sidebar-nav .nav-link {
+    color: #b0bec5;
+}
+
+body.dark-mode .category-link:hover,
+body.dark-mode .sidebar-nav .nav-link:hover {
+    color: var(--primary);
+    background-color: #2c2c2c;
+}
+
+body.dark-mode .sidebar-submenu {
+    background-color: #1e1e1e;
+    border-left: 3px solid #333;
+}
+
+body.dark-mode .sidebar-submenu .nav-link {
+    color: #90a4ae;
+}
+
+body.dark-mode .table-container,
+body.dark-mode .tarjeta-modulo,
+body.dark-mode .perfil-container {
+    background-color: #1a1a1a;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    color: #e0e0e0;
+}
+
+body.dark-mode th, 
+body.dark-mode td {
+    border-bottom: 1px solid #333;
+    color: #e0e0e0;
+}
+
+body.dark-mode tbody tr:hover {
+    background-color: #2c2c2c;
+}
+
+body.dark-mode h1, 
+body.dark-mode h2 {
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode p {
+    color: #b0bec5 !important;
+}
+
+/* Modulo Tarjetas h2 and p fixes for dark mode */
+body.dark-mode .tarjeta-modulo p {
+    color: #b0bec5 !important;
+}
+
+/* Dropdown perfil */
+body.dark-mode .profile-dropdown {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+}
+
+body.dark-mode .profile-dropdown .dropdown-header {
+    background-color: #2c2c2c;
+    color: #e0e0e0;
+    border-bottom: 1px solid #333;
+}
+
+body.dark-mode .profile-dropdown .dropdown-header small {
+    color: #b0bec5;
+}
+
+body.dark-mode .profile-dropdown .dropdown-item {
+    color: #e0e0e0;
+}
+
+body.dark-mode .profile-dropdown .dropdown-item:hover {
+    background-color: #333;
+    color: var(--primary);
+}
+
+body.dark-mode .profile-dropdown hr {
+    border-top: 1px solid #333;
+}
+
+body.dark-mode .detalle-grupo {
+    background: #2c2c2c;
+    border: 1px solid #444;
+}
+
+body.dark-mode .detalle-grupo label {
+    color: #90a4ae;
+}
+
+body.dark-mode .detalle-grupo p {
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .btn-sidebar-toggle {
+    color: #e0e0e0;
+}
+
+/* Headers de tablas mantener color si no definidos y titulos modulos */
+body.dark-mode .header-info h1 {
+    color: var(--primary) !important;
+}
+
+/* =========================================================================
+    BLOQUE 9: MODALES (CRUD)
+   ========================================================================= */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); display: none;
+    align-items: center; justify-content: center; z-index: 9999;
+}
+.modal-overlay.show { display: flex; }
+.modal-content {
+    background: white; padding: 30px; border-radius: 8px;
+    width: 500px; max-width: 90%; max-height: 90vh;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    resize: both;
+    overflow: auto;
+    position: relative;
+}
+body.dark-mode .modal-content {
+    background: #1a1a1a; color: #e0e0e0; border: 1px solid #333;
+}
+.modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; border-bottom: 1px solid #ecf0f1; padding-bottom: 10px;
+}
+body.dark-mode .modal-header { border-bottom-color: #333; }
+.modal-header h2 { margin: 0; font-size: 1.5em; color: var(--primary); }
+.btn-close {
+    background: none; border: none; font-size: 1.5em; cursor: pointer; color: #7f8c8d;
+}
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #34495e; }
+body.dark-mode .form-group label { color: #b0bec5; }
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 5px; box-sizing: border-box;
+}
+body.dark-mode .form-group input, body.dark-mode .form-group select, body.dark-mode .form-group textarea,
+body.dark-mode input[type="text"], body.dark-mode input[type="number"], body.dark-mode input[type="email"], body.dark-mode textarea {
+    background: #2c2c2c; color: #e0e0e0; border-color: #444;
+}
+body.dark-mode .header-actions input {
+    background: #2c2c2c; color: #e0e0e0; border: 1px solid #444 !important;
+}
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.btn-secondary { background: #95a5a6; color: white; }
+.btn-secondary:hover { background: #7f8c8d; }
+.btn-danger { background: #e74c3c; color: white; }
+.btn-danger:hover { background: #c0392b; }

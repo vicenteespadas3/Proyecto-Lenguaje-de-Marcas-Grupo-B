@@ -53,12 +53,17 @@ async function renderMenu(activeCategory = null) {
     // Topbar simplificado y embellecido
     const topbarHTML = `
         <nav class="menu-principal" style="justify-content: space-between;">
-            <a href="${pRoot}inicio.html" class="logo" style="text-decoration: none; cursor: pointer;">
-                <span style="font-size: 1.2em;">⚙️</span> 
-                <span>ERP Mecatrónica</span>
-            </a>
-            <div class="user-profile dropdown-profile" onclick="toggleProfileMenu(event)">
-                <span class="user-name">${userName}</span>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button id="sidebarToggle" class="btn-sidebar-toggle" onclick="toggleSidebar()" title="Contraer/Expandir Menú" style="display: none;">☰</button>
+                <a href="${pRoot}inicio.html" class="logo" style="text-decoration: none; cursor: pointer;">
+                    <span style="font-size: 1.2em;">⚙️</span> 
+                    <span>ERP Mecatrónica</span>
+                </a>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button id="darkModeToggle" class="btn-sidebar-toggle" onclick="toggleDarkMode()" title="Cambiar Tema">🌙</button>
+                <div class="user-profile dropdown-profile" onclick="toggleProfileMenu(event)">
+                    <span class="user-name">${userName}</span>
                 <div class="avatar">${avatarLetter}</div>
                 <div id="profileDropdown" class="profile-dropdown">
                     <div class="dropdown-header">
@@ -70,6 +75,7 @@ async function renderMenu(activeCategory = null) {
                     <hr>
                     <a href="#" class="dropdown-item logout" onclick="logoutApp(event, '${pRoot}')">🚪 Cerrar Sesión</a>
                 </div>
+            </div>
             </div>
         </nav>
     `;
@@ -143,10 +149,26 @@ async function renderMenu(activeCategory = null) {
     // Inyectar el topbar al principio del body
     document.body.insertAdjacentHTML('afterbegin', topbarHTML);
     
-    // Inyectar el sidebar al principio del contenedor app-body (si existe)
-    const appBody = document.querySelector('.app-body');
-    if (appBody) {
-        appBody.insertAdjacentHTML('afterbegin', sidebarHTML);
+    // Inyectar el sidebar al principio del contenedor app-body (si existe) y si NO es una pantalla principal
+    const currentPath = window.location.pathname;
+    const isMainScreen = currentPath.endsWith('inicio.html') || 
+                         currentPath.endsWith('administracion.html') || 
+                         currentPath.endsWith('activos.html') || 
+                         currentPath.endsWith('mantenimiento.html') || 
+                         currentPath.endsWith('inventario.html') || 
+                         currentPath.endsWith('incidencias_taller.html') ||
+                         currentPath.endsWith('login.html');
+
+    if (!isMainScreen) {
+        const appBody = document.querySelector('.app-body');
+        if (appBody) {
+            appBody.insertAdjacentHTML('afterbegin', sidebarHTML);
+            // Mostrar el botón de toggle solo si hay sidebar
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            if (sidebarToggle) {
+                sidebarToggle.style.display = 'flex';
+            }
+        }
     }
 }
 
@@ -188,3 +210,52 @@ async function logoutApp(event, pRoot) {
     await api('POST', pRoot + 'api/auth/logout.php');
     window.location.href = pRoot + 'login.html';
 }
+
+// Función para contraer/expandir el sidebar
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        sidebar.classList.toggle('collapsed');
+    }
+    
+    // También guardamos el estado en localStorage para que se mantenga al navegar
+    const isCollapsed = sidebar.classList.contains('collapsed');
+    localStorage.setItem('sidebarCollapsed', isCollapsed ? 'true' : 'false');
+}
+
+// Función para cambiar el modo oscuro
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDark ? 'true' : 'false');
+    
+    // Cambiar icono del botón
+    const btn = document.getElementById('darkModeToggle');
+    if (btn) {
+        btn.textContent = isDark ? '☀️' : '🌙';
+    }
+}
+
+// Al cargar, restaurar el estado del sidebar y modo oscuro
+document.addEventListener('DOMContentLoaded', () => {
+    // Modo oscuro
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+        // Actualizar el icono cuando se renderice el topbar (pequeño retraso por si acaso)
+        setTimeout(() => {
+            const btn = document.getElementById('darkModeToggle');
+            if (btn) btn.textContent = '☀️';
+        }, 50);
+    }
+
+    // Sidebar colapsado
+    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    if (isCollapsed) {
+        // Esperamos un poco a que el menú se renderice
+        setTimeout(() => {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) sidebar.classList.add('collapsed');
+        }, 100);
+    }
+});

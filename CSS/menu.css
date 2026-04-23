@@ -48,6 +48,30 @@ body {
     gap: 12px;
 }
 
+/* Botón para colapsar/expandir el sidebar */
+.btn-sidebar-toggle {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 1.2em;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-sidebar-toggle:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.btn-sidebar-toggle:active {
+    transform: scale(0.95);
+}
+
 /* =========================================================================
     BLOQUE 2: MENÚ DE PERFIL DEL USUARIO (AVATAR TOPBAR)
     Se encuentra en la parte derecha de la barra superior.
@@ -241,3 +265,25 @@ body {
 }
 
 .btn-entrar:hover { background-color: #2980b9; }
+
+/* =========================================================================
+    BLOQUE 5: MODO OSCURO (TOPBAR)
+   ========================================================================= */
+body.dark-mode .menu-principal {
+    background: linear-gradient(135deg, #121212, #1a1a1a);
+    border-bottom: 1px solid #333;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+body.dark-mode .menu-principal .logo {
+    color: var(--primary, #3498db);
+}
+
+body.dark-mode .btn-sidebar-toggle {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .btn-sidebar-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
