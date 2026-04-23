@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Piezas de Repuesto - ERP Mecatrónica</title>
+    <link rel="stylesheet" href="../../CSS/estilos.css">
+    <link rel="stylesheet" href="../../CSS/menu.css">
+</head>
+<body class="theme-inventario">
+    <div class="app-body">
+        <main class="main-content">
+
+            <header class="header">
+                <div class="header-info">
+                    <h1>Gestión de Piezas de Repuesto</h1>
+                    <p>Control de existencias y recambios críticos</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="abrirModalPieza()">
+                        + Registrar Nueva Pieza
+                    </button>
+                </div>
+            </header>
+
+            <section class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-id">ID</th>
+                            <th>Descripción</th>
+                            <th>Categoría</th>
+                            <th>Stock</th>
+                            <th>Estado</th>
+                            <th class="col-acciones">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-piezas-body">
+                        </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <script src="../../Js/app.js"></script>
+    <script>
+        // Función para cargar piezas desde la BBDD
+        async function cargarPiezas() {
+            const tbody = document.getElementById('tabla-piezas-body');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando inventario... 📦</td></tr>';
+
+            // Llamamos a la API (asegúrate de crear el archivo api/piezas.php)
+            const res = await api('GET', '../../api/inventario/piezas.php');
+
+            if (res && res.piezas) {
+                tbody.innerHTML = '';
+                if (res.piezas.length > 0) {
+                    res.piezas.forEach(p => {
+                        // Mapeo de datos
+                        const id = p.id_pieza || 'N/A';
+                        const desc = p.descripcion || 'Sin descripción';
+                        const cat = p.categoria || 'General';
+                        const stock = p.stock || 0;
+                        const min = p.stock_min || 5;
+
+                        // Lógica para el estado del stock (colores)
+                        let badgeClass = 'success'; // Verde
+                        let estadoTexto = 'En Stock';
+                        
+                        if (stock <= 0) {
+                            badgeClass = 'danger'; // Rojo
+                            estadoTexto = 'Agotado';
+                        } else if (stock <= min) {
+                            badgeClass = 'warning'; // Naranja (necesitas esta clase en tu CSS)
+                            estadoTexto = 'Stock Bajo';
+                        }
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td class="col-id">${id}</td>
+                                <td><strong>${desc}</strong></td>
+                                <td><span class="tipo-gama">${cat}</span></td>
+                                <td>${stock} uds.</td>
+                                <td><span class="status-badge ${badgeClass}">${estadoTexto}</span></td>
+                                <td class="action-buttons justify-center">
+                                    <button class="btn-icon" title="Ver" onclick="verPieza(${id})">👁️</button>
+                                    <button class="btn-icon" title="Editar" onclick="editarPieza(${id})">✏️</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No hay piezas registradas.</td></tr>';
+                }
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">Error al conectar con la base de datos.</td></tr>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu();
+            cargarPiezas(); // Lanzamos la carga automática
+        });
+    </script>
+</body>
+</html>
