@@ -48,7 +48,7 @@
             const tbody = document.getElementById('tabla-piezas-body');
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando inventario... 📦</td></tr>';
 
-            // Llamamos a la API (asegúrate de crear el archivo api/piezas.php)
+            // Llamamos a la API
             const res = await api('GET', '../../api/inventario/piezas.php');
 
             if (res && res.piezas) {
@@ -70,7 +70,7 @@
                             badgeClass = 'danger'; // Rojo
                             estadoTexto = 'Agotado';
                         } else if (stock <= min) {
-                            badgeClass = 'warning'; // Naranja (necesitas esta clase en tu CSS)
+                            badgeClass = 'warning';
                             estadoTexto = 'Stock Bajo';
                         }
 

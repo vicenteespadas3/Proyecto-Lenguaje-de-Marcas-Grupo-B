@@ -14,8 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 $conn = conectar(); // Conectamos a la BD usando la configuración central
 
 // Seleccionamos todas las piezas de la tabla
-// Asegúrate de que tu tabla se llame 'piezas'
-$query = "SELECT * FROM piezas ORDER BY id_pieza ASC";
+$query = "SELECT * FROM piezas_repuesto ORDER BY id_pieza ASC";
 $res = $conn->query($query);
 
 if (!$res) {
@@ -33,5 +32,4 @@ while ($fila = $res->fetch_assoc()) {
 $conn->close();
 
 // Devolvemos la respuesta al frontend en formato JSON
-// Nota: 'piezas' debe coincidir con el nombre que buscas en el JavaScript (res.piezas)
 respuestaOk(['piezas' => $piezas]);
