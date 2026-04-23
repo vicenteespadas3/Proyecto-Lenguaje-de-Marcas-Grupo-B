@@ -15,7 +15,7 @@ $conn = conectar(); // Conectamos a la BD usando la configuración central
 
 // Seleccionamos todas las piezas de la tabla
 // Asegúrate de que tu tabla se llame 'piezas'
-$query = "SELECT * FROM piezas ORDER BY id_pieza DESC";
+$query = "SELECT * FROM piezas ORDER BY id_pieza ASC";
 $res = $conn->query($query);
 
 if (!$res) {

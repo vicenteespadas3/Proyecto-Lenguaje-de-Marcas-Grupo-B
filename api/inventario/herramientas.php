@@ -15,7 +15,7 @@ $conn = conectar();
 
 // Consulta para obtener las herramientas
 // Cambia 'herramientas' por el nombre real de tu tabla en la BBDD
-$query = "SELECT * FROM herramientas ORDER BY id_herramienta DESC";
+$query = "SELECT * FROM herramientas ORDER BY id_herramienta ASC";
 $res = $conn->query($query);
 
 if (!$res) {
