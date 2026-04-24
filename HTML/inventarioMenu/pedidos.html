@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP - Pedidos de Compra</title>
+    <link rel="stylesheet" href="../../CSS/menu.css">
+    <link rel="stylesheet" href="../../CSS/estilos.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body class="theme-inventario">
+
+    <div class="app-body">
+        <main class="main-content">
+
+            <a href="inventario.html" style="color: #3498db; text-decoration: none; font-weight: bold;">&larr; Volver a
+                Inventario</a>
+
+            <div style="text-align: center; margin-bottom: 40px; margin-top: 20px;">
+                <h1 style="color: var(--primary); font-size: 2.5em;">🛒 Pedidos de Compra</h1>
+                <p style="color: #7f8c8d; font-size: 1.2em;">Gestión de suministros y pedidos a proveedores.</p>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                <button class="btn-entrar" style="border: none; cursor: pointer; background-color: var(--primary);"
+                    onclick="abrirModalCrear()">
+                    <i class="fas fa-plus"></i> Crear Nuevo Pedido
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Pedido</th>
+                            <th>Fecha</th>
+                            <th>Proveedor</th>
+                            <th>Importe</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaPedidosBody">
+                    <!-- Las filas se rellenarán automáticamente con Js/pedidos.js -->
+                </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <div id="modalNuevoPedido" class="modal"
+        style="display:none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
+        <div class="modal-content"
+            style="background-color: #fff; margin: 5% auto; padding: 25px; border-radius: 8px; width: 50%; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+            <div class="modal-header"
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                <h2 id="modalTitulo" style="color: var(--primary); margin: 0;">Generar Pedido de Compra</h2>
+                <span style="cursor:pointer; font-size: 24px;" onclick="cerrarModal()">&times;</span>
+            </div>
+
+            <form id="formPedido" style="margin-top: 20px;" onsubmit="guardarPedido(event)">
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:bold;">Proveedor:</label>
+                    <select id="id_proveedor" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" required>
+                        <option value="">Cargando proveedores...</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:bold;">Fecha del Pedido:</label>
+                    <input type="date" id="fecha_pedido" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" required>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:bold;">Fecha Prevista de Entrega:</label>
+                    <input type="date" id="fecha_entrega_esperada" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:bold;">Estado:</label>
+                    <select id="id_estado" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">Cargando estados...</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display:block; margin-bottom:5px; font-weight:bold;">Observaciones:</label>
+                    <textarea id="observaciones" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+                        placeholder="Detalles del envío..."></textarea>
+                </div>
+
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn-entrar"
+                        style="background-color: #95a5a6; border:none; margin-right: 10px;"
+                        onclick="cerrarModal()">Cancelar</button>
+                    <button type="submit" class="btn-entrar" style="background-color: #2ecc71; border:none;">Confirmar
+                        Pedido</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="../../Js/app.js"></script>
+    <script src="../../Js/pedidos.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', () => { renderMenu(); });</script>
+</body>
+
+</html>
