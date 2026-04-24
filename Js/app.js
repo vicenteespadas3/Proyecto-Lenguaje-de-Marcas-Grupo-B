@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const favicon = document.createElement('link');
     favicon.rel = 'icon';
     favicon.type = 'image/png'; 
-    favicon.href = '../../img/mantenimiento.png'; // Asegúrate de que esta ruta sea la correcta
+    favicon.href = '../img/mantenimiento.png'; // Asegúrate de que esta ruta sea la correcta
     
     // Lo añadimos al head del documento
     document.head.appendChild(favicon);

@@ -91,14 +91,46 @@ passwordInput.addEventListener("blur", () => {
     });
 });
 
+/* --- EVENTOS --- */
+
+// ... (tus otros eventos de mousemove, input, focus y blur se quedan igual) ...
+
+// Gestión del envío del formulario con validación admin/1234
 loginForm.addEventListener("submit", (e) => {
     e.preventDefault(); 
-    machines.forEach(m => {
-        m.classList.remove("cover-eyes", "peek");
-        m.classList.add("cover-mouth", "shake");
-    });
-    errorMsg.style.display = "block";
-    setTimeout(() => {
-        machines.forEach(m => m.classList.remove("cover-mouth", "shake"));
-    }, 2000);
+    
+    // Capturamos los valores actuales
+    const usuarioIngresado = loginForm.querySelector('input[type="text"]').value;
+    const passwordIngresado = passwordInput.value;
+
+    // VALIDACIÓN LOCAL: admin / 1234
+    if (usuarioIngresado === "admin" && passwordIngresado === "1234") {
+        
+        // ÉXITO: Quitamos estados de alerta y redirigimos
+        errorMsg.style.display = "none";
+        machines.forEach(m => {
+            m.classList.remove("cover-eyes", "peek", "cover-mouth", "shake");
+        });
+
+        // Pequeño retardo para suavizar la transición al inicio.html
+        setTimeout(() => {
+            window.location.href = 'inicio.html';
+        }, 500);
+
+    } else {
+        
+        // ERROR: Los robots reaccionan negativamente
+        errorMsg.style.display = "block";
+        errorMsg.textContent = "❌ Acceso Denegado: Credenciales incorrectas";
+        
+        machines.forEach(m => {
+            m.classList.remove("cover-eyes", "peek");
+            m.classList.add("cover-mouth", "shake");
+        });
+
+        // Limpiamos el efecto de "susto" tras 2 segundos
+        setTimeout(() => {
+            machines.forEach(m => m.classList.remove("cover-mouth", "shake"));
+        }, 2000);
+    }
 });
