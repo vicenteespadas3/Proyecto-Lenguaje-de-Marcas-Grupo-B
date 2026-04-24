@@ -36,10 +36,46 @@
                 </table>
             </section>
         </main>
+
+        <!-- Modal Archivo -->
+        <div id="modalArchivo" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTituloArch">Subir Archivo</h2>
+                    <button class="btn-close" onclick="cerrarModalArch()">×</button>
+                </div>
+                <form id="formArchivo" onsubmit="guardarArchivo(event)">
+                    <input type="hidden" id="arch_id">
+                    <div class="form-group">
+                        <label>Nombre del Documento</label>
+                        <input type="text" id="arch_nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo / Extensión</label>
+                        <select id="arch_tipo">
+                            <option value="PDF">PDF</option>
+                            <option value="Imagen">Imagen</option>
+                            <option value="Manual">Manual</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Vincular a Máquina (ID)</label>
+                        <input type="number" id="arch_maquina" placeholder="ID de Máquina (Opcional)">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="cerrarModalArch()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script src="../../Js/app.js"></script>
     <script>
+        let archivosData = [];
+
         async function cargarArchivos() {
             const tbody = document.getElementById('tabla-archivos-body');
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando archivos desde la Base de Datos... 📁</td></tr>';
@@ -48,14 +84,18 @@
             
             if (res && res.ok) {
                 tbody.innerHTML = '';
-                if (res.archivos && res.archivos.length > 0) {
-                    res.archivos.forEach(doc => {
-                        const id = doc.id_archivo || doc.id || 'N/A';
-                        const nombre = doc.nombre_archivo || doc.nombre || 'Documento sin nombre';
-                        const tipo = doc.tipo || doc.extension || 'PDF';
-                        const vinculo = doc.maquina || doc.id_maquina || 'General';
-                        const fecha = doc.fecha_subida || doc.fecha || '01/01/2026';
+                archivosData = res.archivos || [];
+
+                if (archivosData.length > 0) {
+                    archivosData.forEach(doc => {
+                        const id = doc.id_archivo;
+                        const nombre = doc.nombre_archivo;
+                        const tipo = doc.tipo || 'PDF';
+                        const vinculo = doc.maquina || (doc.id_maquina ? `Máquina ${doc.id_maquina}` : 'General');
                         
+                        let fecha = doc.fecha_subida || '';
+                        if(fecha.includes(' ')) fecha = fecha.split(' ')[0];
+
                         tbody.innerHTML += `
                             <tr>
                                 <td><strong>DOC-${id}</strong></td>
@@ -64,8 +104,8 @@
                                 <td>${vinculo}</td>
                                 <td>${fecha}</td>
                                 <td class="action-buttons">
-                                    <button class="btn-icon" title="Descargar" onclick="descargarArchivo(${id})">⬇️</button>
-                                    <button class="btn-icon" title="Eliminar" onclick="eliminarArchivo(${id})">🗑️</button>
+                                    <button class="btn-icon" title="Editar" onclick="editarArchivo(${id})">✏️</button>
+                                    <button class="btn-icon" title="Eliminar" style="color: #e74c3c;" onclick="eliminarArchivo(${id})">🗑️</button>
                                 </td>
                             </tr>
                         `;
@@ -77,6 +117,62 @@
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">
                     <strong>⚠️ Error al conectar con la base de datos:</strong><br> ${res.error || 'Verifica que el servidor Ubuntu esté encendido.'}
                 </td></tr>`;
+            }
+        }
+
+        function subirArchivo() {
+            document.getElementById('modalTituloArch').textContent = 'Subir Archivo';
+            document.getElementById('formArchivo').reset();
+            document.getElementById('arch_id').value = '';
+            document.getElementById('modalArchivo').classList.add('show');
+        }
+
+        function editarArchivo(id) {
+            const a = archivosData.find(x => x.id_archivo == id);
+            if (!a) return;
+
+            document.getElementById('modalTituloArch').textContent = 'Editar Archivo';
+            document.getElementById('arch_id').value = a.id_archivo;
+            document.getElementById('arch_nombre').value = a.nombre_archivo || '';
+            document.getElementById('arch_tipo').value = a.tipo || 'PDF';
+            document.getElementById('arch_maquina').value = a.id_maquina || '';
+
+            document.getElementById('modalArchivo').classList.add('show');
+        }
+
+        function cerrarModalArch() {
+            document.getElementById('modalArchivo').classList.remove('show');
+        }
+
+        async function guardarArchivo(e) {
+            e.preventDefault();
+            const id = document.getElementById('arch_id').value;
+            const datos = {
+                nombre_archivo: document.getElementById('arch_nombre').value,
+                tipo: document.getElementById('arch_tipo').value,
+                id_maquina: document.getElementById('arch_maquina').value || null
+            };
+
+            const metodo = id ? 'PUT' : 'POST';
+            if (id) datos.id_archivo = id;
+
+            const res = await api(metodo, '../../api/activos/archivos.php', datos);
+            if (res.ok) {
+                cerrarModalArch();
+                cargarArchivos();
+            } else {
+                alert('Error: ' + res.error);
+            }
+        }
+
+        async function eliminarArchivo(id) {
+            if (confirm('¿Estás seguro de eliminar este archivo?')) {
+                const res = await api('DELETE', '../../api/activos/archivos.php', { id_archivo: id });
+                if (res.ok) {
+                    cargarArchivos();
+                } else {
+                    alert('Error: ' + res.error);
+                }
             }
         }
 

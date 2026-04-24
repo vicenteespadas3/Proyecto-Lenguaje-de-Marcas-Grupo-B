@@ -47,7 +47,7 @@ if ($m === 'GET') {
             }
             $s->close();
         } else {
-            $r = $conn->query("SELECT id_gama, nombre, tipo_mantenimiento, tipo_gama FROM gamas_mantenimiento ORDER BY nombre");
+            $r = $conn->query("SELECT id_gama, nombre, tipo_mantenimiento, tipo_gama FROM gamas_mantenimiento ORDER BY id_gama ASC");
             $lista = [];
             if ($r) {
                 while ($f = $r->fetch_assoc()) { 
@@ -107,7 +107,7 @@ if ($m === 'PUT') {
     if (!$nombre) respuestaError('El nombre de la gama es obligatorio.');
 
     //Antes de intentar modificar la gama, verificamos que exista en la base de datos. Si no existe, devolvemos un error 404. Si existe, procedemos a actualizar sus datos.
-    $chk = $conn->prepare("SELECT id_gama FROM gamas_mantenimiento WHERE id_gama=?");
+    $chk = $conn->prepare("SELECT id_gama FROM gamas_mantenimiento WHERE id_gama=? ORDER BY id_gama ASC");
     $chk->bind_param("i", $id_gama); 
     $chk->execute(); 
     $chk->store_result();

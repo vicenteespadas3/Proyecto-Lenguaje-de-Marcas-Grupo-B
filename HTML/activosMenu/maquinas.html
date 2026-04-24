@@ -53,38 +53,78 @@
             </section>
 
         </main>
+
+        <!-- Modal para Crear/Editar Máquina -->
+        <div id="modalMaquina" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitulo">Nueva Máquina</h2>
+                    <button class="btn-close" onclick="cerrarModal()">×</button>
+                </div>
+                <form id="formMaquina" onsubmit="guardarMaquina(event)">
+                    <input type="hidden" id="maq_id">
+                    <div class="form-group">
+                        <label>Nombre del Equipo</label>
+                        <input type="text" id="maq_nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select id="maq_estado">
+                            <option value="Activa">Activa</option>
+                            <option value="En Mantenimiento">En Mantenimiento</option>
+                            <option value="Baja">Baja</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ubicación</label>
+                        <input type="text" id="maq_ubicacion">
+                    </div>
+                    <div class="form-group">
+                        <label>Última Revisión</label>
+                        <input type="date" id="maq_fecha">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </div>
 
         <script src="../../Js/app.js"></script>
         <script>
+            let maquinasData = []; // Para almacenar las máquinas en memoria
+
             // Función para obtener las máquinas de la BD e inyectarlas en el HTML
             async function cargarMaquinas() {
                 const tbody = document.getElementById('tabla-maquinas-body');
-                // Mensaje de carga inicial
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando máquinas desde la Base de Datos... ⚙️</td></tr>';
                 
-                // Llamamos a nuestro nuevo archivo PHP
                 const res = await api('GET', '../../api/activos/maquinas.php');
                 
                 if (res && res.ok) {
-                    tbody.innerHTML = ''; // Limpiamos el "Cargando..."
+                    tbody.innerHTML = '';
+                    maquinasData = res.maquinas || [];
                     
-                    if (res.maquinas && res.maquinas.length > 0) {
-                        res.maquinas.forEach(maq => {
-                            // Mapeamos los campos (fallback por si las columnas se llaman ligeramente distinto)
+                    if (maquinasData.length > 0) {
+                        maquinasData.forEach(maq => {
                             const id = maq.id_maquina || maq.id || 'N/A';
                             const nombre = maq.nombre || maq.descripcion || 'Sin nombre';
                             const estado = maq.estado || 'Activo';
                             const ubicacion = maq.ubicacion || maq.sector || 'Taller Principal';
-                            const fecha = maq.ultima_revision || maq.fecha_alta || '12/03/2026';
                             
+                            // Formatear fecha para mostrar
+                            let fecha = maq.ultima_revision || maq.fecha_alta || '12/03/2026';
+                            if(fecha.includes(' ')) fecha = fecha.split(' ')[0]; // Quitar hora si existe
+
                             // Determinamos el color de la etiqueta ("badge") según el estado
-                            let badgeClass = 'success'; // Verde por defecto
+                            let badgeClass = 'success';
                             let estadoTexto = estado.toLowerCase();
-                            if (estadoTexto.includes('mant') || estadoTexto.includes('rep')) badgeClass = 'warning'; // Naranja
-                            if (estadoTexto.includes('baja') || estadoTexto.includes('rot')) badgeClass = 'danger'; // Rojo
+                            if (estadoTexto.includes('mant') || estadoTexto.includes('rep')) badgeClass = 'warning';
+                            if (estadoTexto.includes('baja') || estadoTexto.includes('rot')) badgeClass = 'danger';
                             
-                            // Inyectamos la fila en la tabla
                             tbody.innerHTML += `
                                 <tr>
                                     <td><strong>MAQ-${id}</strong></td>
@@ -93,27 +133,98 @@
                                     <td>${ubicacion}</td>
                                     <td>${fecha}</td>
                                     <td class="action-buttons">
-                                        <button class="btn-icon" title="Ver Ficha" onclick="verDetalle(${id})">👁️</button>
                                         <button class="btn-icon" title="Editar" onclick="editarMaquina(${id})">✏️</button>
+                                        <button class="btn-icon" title="Eliminar" style="color: #e74c3c;" onclick="borrarMaquina(${id})">🗑️</button>
                                     </td>
                                 </tr>
                             `;
                         });
                     } else {
-                        // Si la tabla está vacía
                         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">No hay máquinas registradas en la base de datos.</td></tr>';
                     }
                 } else {
-                    // Si falla (Ubuntu apagado o tabla inexistente)
                     tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">
                         <strong>⚠️ Error al conectar con la base de datos:</strong><br> ${res.error || 'Verifica que el servidor Ubuntu esté encendido.'}
                     </td></tr>`;
                 }
             }
 
+            function abrirModalAlta() {
+                document.getElementById('modalTitulo').textContent = 'Añadir Nueva Máquina';
+                document.getElementById('formMaquina').reset();
+                document.getElementById('maq_id').value = '';
+                document.getElementById('modalMaquina').classList.add('show');
+            }
+
+            function editarMaquina(id) {
+                const maq = maquinasData.find(m => m.id_maquina == id || m.id == id);
+                if (!maq) return;
+
+                document.getElementById('modalTitulo').textContent = 'Editar Máquina';
+                document.getElementById('maq_id').value = maq.id_maquina || maq.id;
+                document.getElementById('maq_nombre').value = maq.nombre || maq.descripcion || '';
+                
+                // Mapeo básico de estado al select
+                let estadoOption = 'Activa';
+                let st = (maq.estado || '').toLowerCase();
+                if(st.includes('mant')) estadoOption = 'En Mantenimiento';
+                if(st.includes('baja')) estadoOption = 'Baja';
+                document.getElementById('maq_estado').value = estadoOption;
+                
+                document.getElementById('maq_ubicacion').value = maq.ubicacion || maq.sector || '';
+                
+                let fecha = maq.ultima_revision || maq.fecha_alta || '';
+                if(fecha.includes(' ')) fecha = fecha.split(' ')[0];
+                document.getElementById('maq_fecha').value = fecha;
+
+                document.getElementById('modalMaquina').classList.add('show');
+            }
+
+            function cerrarModal() {
+                document.getElementById('modalMaquina').classList.remove('show');
+            }
+
+            async function guardarMaquina(e) {
+                e.preventDefault();
+                
+                const id = document.getElementById('maq_id').value;
+                const datos = {
+                    nombre: document.getElementById('maq_nombre').value,
+                    estado: document.getElementById('maq_estado').value,
+                    ubicacion: document.getElementById('maq_ubicacion').value,
+                    ultima_revision: document.getElementById('maq_fecha').value || new Date().toISOString().split('T')[0]
+                };
+
+                let metodo = 'POST';
+                if (id) {
+                    metodo = 'PUT';
+                    datos.id_maquina = id;
+                }
+
+                const res = await api(metodo, '../../api/activos/maquinas.php', datos);
+                
+                if (res.ok) {
+                    cerrarModal();
+                    cargarMaquinas(); // Recargar la tabla
+                } else {
+                    alert('Error: ' + res.error);
+                }
+            }
+
+            async function borrarMaquina(id) {
+                if (confirm('¿Estás seguro de que deseas eliminar esta máquina? Esta acción no se puede deshacer.')) {
+                    const res = await api('DELETE', '../../api/activos/maquinas.php', { id_maquina: id });
+                    if (res.ok) {
+                        cargarMaquinas();
+                    } else {
+                        alert('Error al eliminar: ' + res.error);
+                    }
+                }
+            }
+
             document.addEventListener('DOMContentLoaded', () => {
-                renderMenu(); // Carga el menú lateral
-                cargarMaquinas(); // Ejecuta la llamada a la BD automáticamente
+                renderMenu(); 
+                cargarMaquinas(); 
             });
         </script>
     </body>

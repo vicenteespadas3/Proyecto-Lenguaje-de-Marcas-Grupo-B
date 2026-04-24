@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Incidencias - ERP Mecatrónica</title>
+    <!-- Estilos comunes -->
+    <link rel="stylesheet" href="../../CSS/menu.css">
+    <link rel="stylesheet" href="../../CSS/estilos.css">
+    <style>
+        /* Estilos específicos para realzar la experiencia de usuario en Incidencias */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 16px;
+            width: 550px;
+            max-width: 90%;
+            max-height: 90vh;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: auto;
+            resize: both;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            background-color: #9b59b6;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 0.95em; }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #f8fafc;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #9b59b6;
+            box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.15);
+            background-color: #fff;
+        }
+
+        .priority-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .priority-Critica { background-color: #fee2e2; color: #991b1b; }
+        .priority-Alta { background-color: #ffedd5; color: #9a3412; }
+        .priority-Media { background-color: #fef9c3; color: #854d0e; }
+        .priority-Baja { background-color: #dcfce7; color: #166534; }
+
+        .btn-close-modal {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .btn-close-modal:hover { opacity: 1; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+        .empty-state .icon { font-size: 4em; margin-bottom: 20px; display: block; }
+        
+        /* Dark mode overrides for incidencias */
+        body.dark-mode .form-control {
+            background-color: #2c2c2c;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+        body.dark-mode .form-control:focus {
+            background-color: #1a1a1a;
+            border-color: #9b59b6;
+        }
+        body.dark-mode .empty-state {
+            color: #90a4ae;
+        }
+        body.dark-mode .modal-content {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+        }
+        body.dark-mode .priority-tag {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+
+<body class="theme-incidencias">
+    <div class="app-body">
+        <!-- Sidebar se inyecta aquí -->
+
+        <main class="main-content">
+            <div class="header">
+                <div class="header-info">
+                    <h1>🚨 Módulo de Incidencias</h1>
+                    <p>Panel de control para el seguimiento y reporte de averías técnicas.</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="abrirModal()">
+                        <span style="margin-right: 8px;">➕</span> Reportar Incidencia
+                    </button>
+                </div>
+            </div>
+
+            <!-- Resumen Rápido -->
+            <div class="dashboard-grid" style="margin-bottom: 30px; grid-template-columns: repeat(4, 1fr);">
+                <div class="tarjeta-modulo" style="padding: 15px; border-top-color: #9b59b6;">
+                    <h3 style="margin: 0; color: #7f8c8d; font-size: 0.9em;">Total Hoy</h3>
+                    <div id="count-total" style="font-size: 2em; font-weight: bold; color: #2c3e50;">0</div>
+                </div>
+                <div class="tarjeta-modulo" style="padding: 15px; border-top-color: #e74c3c;">
+                    <h3 style="margin: 0; color: #7f8c8d; font-size: 0.9em;">Críticas/Altas</h3>
+                    <div id="count-critical" style="font-size: 2em; font-weight: bold; color: #e74c3c;">0</div>
+                </div>
+                <div class="tarjeta-modulo" style="padding: 15px; border-top-color: #f39c12;">
+                    <h3 style="margin: 0; color: #7f8c8d; font-size: 0.9em;">Pendientes</h3>
+                    <div id="count-pending" style="font-size: 2em; font-weight: bold; color: #f39c12;">0</div>
+                </div>
+                <div class="tarjeta-modulo" style="padding: 15px; border-top-color: #27ae60;">
+                    <h3 style="margin: 0; color: #7f8c8d; font-size: 0.9em;">Resueltas (24h)</h3>
+                    <div id="count-resolved" style="font-size: 2em; font-weight: bold; color: #27ae60;">0</div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="tabla-incidencias">
+                    <thead>
+                        <tr>
+                            <th class="col-id">ID</th>
+                            <th>Título de la Incidencia</th>
+                            <th>Equipo / Máquina</th>
+                            <th>Prioridad</th>
+                            <th>Estado</th>
+                            <th>Fecha Reporte</th>
+                            <th class="col-acciones">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-incidencias">
+                        <!-- Cargado dinámicamente -->
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <span class="icon">🔍</span>
+                                <p>Cargando incidencias del sistema...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para Reportar Incidencia -->
+    <div id="modalIncidencia" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 style="margin:0; font-size: 1.2em;">📝 Reportar Nueva Incidencia</h2>
+                <button class="btn-close-modal" onclick="cerrarModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formIncidencia" onsubmit="guardarIncidencia(event)">
+                    <div class="form-group">
+                        <label for="titulo">Título de la incidencia</label>
+                        <input type="text" id="titulo" class="form-control" placeholder="Ej: Ruido excesivo en motor principal" required>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label for="id_maquina">Máquina Afectada</label>
+                            <select id="id_maquina" class="form-control">
+                                <option value="">-- No especificada --</option>
+                                <!-- Se llena dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="prioridad">Nivel de Prioridad</label>
+                            <select id="prioridad" class="form-control" required>
+                                <option value="Baja">🟢 Baja</option>
+                                <option value="Media" selected>🟡 Media</option>
+                                <option value="Alta">🟠 Alta</option>
+                                <option value="Crítica">🔴 Crítica</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="descripcion">Descripción detallada</label>
+                        <textarea id="descripcion" class="form-control" rows="4" placeholder="Describe los síntomas, mensajes de error o circunstancias..." required></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 10px;">
+                        <button type="button" class="btn" onclick="cerrarModal()" style="background:#e2e8f0; color: #475569;">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" style="background-color: #9b59b6; padding: 10px 30px;">
+                            Enviar Reporte
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../Js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicializar menú lateral y topbar
+            renderMenu('taller');
+            
+            // Cargar datos iniciales
+            cargarIncidencias();
+            cargarMaquinas();
+        });
+
+        async function cargarIncidencias() {
+            const res = await api('GET', '../../api/incidencias/incidencias.php');
+            const tbody = document.getElementById('lista-incidencias');
+            
+            if (!res.ok) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><span class="icon">❌</span><p>Error al conectar con el servidor.</p></td></tr>`;
+                return;
+            }
+
+            if (!res.incidencias || res.incidencias.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state"><span class="icon">📭</span><p>No hay incidencias registradas en este momento.</p></td></tr>`;
+                actualizarContadores([]);
+                return;
+            }
+
+            tbody.innerHTML = '';
+            res.incidencias.forEach(inc => {
+                const tr = document.createElement('tr');
+                const fecha = new Date(inc.fecha_reporte).toLocaleDateString('es-ES', {
+                    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+                
+                tr.innerHTML = `
+                    <td class="col-id">${inc.id_incidencia}</td>
+                    <td>
+                        <div style="font-weight: 600; color: #1e293b;">${inc.titulo}</div>
+                        <div style="font-size: 0.85em; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;">
+                            ${inc.descripcion}
+                        </div>
+                    </td>
+                    <td><span style="color: #475569; font-weight: 500;">${inc.nombre_maquina || '—'}</span></td>
+                    <td><span class="priority-tag priority-${inc.prioridad}">${inc.prioridad}</span></td>
+                    <td><span class="status-badge ${inc.estado === 'Abierta' ? 'success' : ''}" style="background-color: ${inc.estado === 'Abierta' ? '#fdf2f2; color: #991b1b; border: 1px solid #fee2e2;' : '#f0fdf4; color: #166534; border: 1px solid #dcfce7;'}">
+                        ${inc.estado}
+                    </span></td>
+                    <td style="color: #64748b; font-size: 0.9em;">${fecha}</td>
+                    <td class="col-acciones">
+                        <div class="action-buttons justify-center">
+                            <button class="btn-icon" onclick="resolverIncidencia(${inc.id_incidencia})" title="Marcar como resuelta">✅</button>
+                            <button class="btn-icon" onclick="eliminarIncidencia(${inc.id_incidencia})" title="Eliminar" style="color:#e74c3c;">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            actualizarContadores(res.incidencias);
+        }
+
+        function actualizarContadores(incidencias) {
+            document.getElementById('count-total').textContent = incidencias.length;
+            const criticas = incidencias.filter(i => i.prioridad === 'Crítica' || i.prioridad === 'Alta').length;
+            const pendientes = incidencias.filter(i => i.estado === 'Abierta').length;
+            
+            document.getElementById('count-critical').textContent = criticas;
+            document.getElementById('count-pending').textContent = pendientes;
+            document.getElementById('count-resolved').textContent = incidencias.length - pendientes;
+        }
+
+        async function cargarMaquinas() {
+            const res = await api('GET', '../../api/activos/maquinas.php');
+            const select = document.getElementById('id_maquina');
+            if (res.ok && res.maquinas) {
+                res.maquinas.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id_maquina;
+                    opt.textContent = m.nombre;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        function abrirModal() {
+            document.getElementById('modalIncidencia').style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Evitar scroll al fondo
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalIncidencia').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        async function guardarIncidencia(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+
+            const data = {
+                titulo: document.getElementById('titulo').value,
+                id_maquina: document.getElementById('id_maquina').value,
+                prioridad: document.getElementById('prioridad').value,
+                descripcion: document.getElementById('descripcion').value,
+                usuario: 'Técnico Guardia' // Simulado
+            };
+
+            try {
+                const res = await api('POST', '../../api/incidencias/incidencias.php', data);
+                if (res.ok) {
+                    cerrarModal();
+                    document.getElementById('formIncidencia').reset();
+                    await cargarIncidencias();
+                    // Feedback visual suave
+                    const header = document.querySelector('.header-info h1');
+                    header.style.color = '#27ae60';
+                    setTimeout(() => header.style.color = '', 3000);
+                } else {
+                    alert('No se pudo guardar: ' + res.error);
+                }
+            } catch (err) {
+                alert('Error de conexión');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Enviar Reporte';
+            }
+        }
+
+        async function resolverIncidencia(id) {
+            if(confirm('¿Deseas marcar esta incidencia como resuelta?')) {
+                const res = await api('PUT', '../../api/incidencias/incidencias.php', { id_incidencia: id, estado: 'Resuelta' });
+                if (res.ok) {
+                    cargarIncidencias();
+                } else {
+                    alert('Error: ' + res.error);
+                }
+            }
+        }
+
+        async function eliminarIncidencia(id) {
+            if(confirm('¿Estás seguro de eliminar esta incidencia de la base de datos?')) {
+                const res = await api('DELETE', '../../api/incidencias/incidencias.php', { id_incidencia: id });
+                if (res.ok) {
+                    cargarIncidencias();
+                } else {
+                    alert('Error: ' + res.error);
+                }
+            }
+        }
+
+        // Cerrar modal si se clica fuera del contenido
+        window.onclick = function(event) {
+            const modal = document.getElementById('modalIncidencia');
+            if (event.target == modal) cerrarModal();
+        }
+    </script>
+</body>
+
+</html>
