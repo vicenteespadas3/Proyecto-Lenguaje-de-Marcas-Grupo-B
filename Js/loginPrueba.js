@@ -95,42 +95,62 @@ passwordInput.addEventListener("blur", () => {
 
 // ... (tus otros eventos de mousemove, input, focus y blur se quedan igual) ...
 
-// Gestión del envío del formulario con validación admin/1234
-loginForm.addEventListener("submit", (e) => {
+// Gestión del envío del formulario con conexión a la API
+loginForm.addEventListener("submit", async (e) => {
     e.preventDefault(); 
     
     // Capturamos los valores actuales
     const usuarioIngresado = loginForm.querySelector('input[type="text"]').value;
     const passwordIngresado = passwordInput.value;
 
-    // VALIDACIÓN LOCAL: admin / 1234
-    if (usuarioIngresado === "admin" && passwordIngresado === "1234") {
-        
-        // ÉXITO: Quitamos estados de alerta y redirigimos
-        errorMsg.style.display = "none";
-        machines.forEach(m => {
-            m.classList.remove("cover-eyes", "peek", "cover-mouth", "shake");
+    try {
+        const response = await fetch('../api/auth/login.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                usuario: usuarioIngresado,
+                password: passwordIngresado,
+                metodo: 'v1'
+            })
         });
 
-        // Pequeño retardo para suavizar la transición al inicio.html
-        setTimeout(() => {
-            window.location.href = 'inicio.html';
-        }, 500);
+        const data = await response.json();
 
-    } else {
-        
-        // ERROR: Los robots reaccionan negativamente
+        if (response.ok && data.ok) {
+            
+            // ÉXITO: Quitamos estados de alerta y redirigimos
+            errorMsg.style.display = "none";
+            machines.forEach(m => {
+                m.classList.remove("cover-eyes", "peek", "cover-mouth", "shake");
+            });
+
+            // Pequeño retardo para suavizar la transición al inicio.html
+            setTimeout(() => {
+                window.location.href = 'inicio.html';
+            }, 500);
+
+        } else {
+            
+            // ERROR: Los robots reaccionan negativamente
+            errorMsg.style.display = "block";
+            errorMsg.textContent = "❌ Acceso Denegado: " + (data.error || "Credenciales incorrectas");
+            
+            machines.forEach(m => {
+                m.classList.remove("cover-eyes", "peek");
+                m.classList.add("cover-mouth", "shake");
+            });
+
+            // Limpiamos el efecto de "susto" tras 2 segundos
+            setTimeout(() => {
+                machines.forEach(m => m.classList.remove("cover-mouth", "shake"));
+            }, 2000);
+        }
+    } catch (error) {
+        console.error("Error en el login:", error);
         errorMsg.style.display = "block";
-        errorMsg.textContent = "❌ Acceso Denegado: Credenciales incorrectas";
-        
-        machines.forEach(m => {
-            m.classList.remove("cover-eyes", "peek");
-            m.classList.add("cover-mouth", "shake");
-        });
-
-        // Limpiamos el efecto de "susto" tras 2 segundos
-        setTimeout(() => {
-            machines.forEach(m => m.classList.remove("cover-mouth", "shake"));
-        }, 2000);
+        errorMsg.textContent = "❌ Error de conexión al servidor";
     }
 });

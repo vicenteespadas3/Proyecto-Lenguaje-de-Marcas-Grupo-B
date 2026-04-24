@@ -11,6 +11,9 @@ async function api(metodo, url, cuerpo = null) {
         opciones.body = JSON.stringify(cuerpo);
     }
     
+    // IMPORTANTE: Enviar siempre las cookies de sesión
+    opciones.credentials = 'include';
+    
     try {
         const respuesta = await fetch(url, opciones);
         return await respuesta.json(); // Convierte el texto de PHP a un objeto JS
@@ -32,19 +35,12 @@ async function renderMenu(activeCategory = null) {
     // XAMPP configurado ni acceso constante a la base de datos de Ubuntu.
     // ==============================================================================
     
-    // 1. Petición real al backend comentada:
-    /*
-    const sesion = await api('GET', pRoot + 'api/auth/sesion.php');
+    // 1. Petición real al backend:
+    const sesion = await api('GET', pRoot + '../api/auth/sesion.php');
     if (!sesion || !sesion.ok) {
         window.location.href = pRoot + 'login.html';
         return;
     }
-    */
-    
-    // 2. Inyección de una sesión simulada en duro:
-    // Permite navegar por todas las páginas del ERP haciéndole creer al sistema 
-    // que el usuario 'admin@taller.com' (Modo Desarrollo) ya ha iniciado sesión.
-    const sesion = { ok: true, usuario: "admin@taller.com", nombre: "Modo", apellidos: "Desarrollo", es_admin: 1 };
 
     const userName = (sesion.nombre && sesion.nombre.trim() !== '') ? `${sesion.nombre} ${sesion.apellidos}` : sesion.usuario;
     const userRole = sesion.es_admin ? 'Administrador' : 'Técnico';
@@ -207,7 +203,7 @@ window.onclick = function(event) {
 // Función para cerrar la sesión de forma segura y redirigir
 async function logoutApp(event, pRoot) {
     if (event) event.preventDefault();
-    await api('POST', pRoot + 'api/auth/logout.php');
+    await api('POST', pRoot + '../api/auth/logout.php');
     window.location.href = pRoot + 'login.html';
 }
 

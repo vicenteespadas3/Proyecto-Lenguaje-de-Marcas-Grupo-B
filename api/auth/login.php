@@ -35,8 +35,8 @@ if ($metodo === 'v1') {
         $stmt = $conn->prepare("SELECT id_usuario AS id, email AS usuario, nombre, apellidos, rol, password_hash, activo FROM usuarios WHERE id_usuario=?");
         $stmt->bind_param("i", $usuario);
     } else {
-        $stmt = $conn->prepare("SELECT id_usuario AS id, email AS usuario, nombre, apellidos, rol, password_hash, activo FROM usuarios WHERE email=?");
-        $stmt->bind_param("s", $usuario);
+        $stmt = $conn->prepare("SELECT id_usuario AS id, email AS usuario, nombre, apellidos, rol, password_hash, activo FROM usuarios WHERE email=? OR nombre=?");
+        $stmt->bind_param("ss", $usuario, $usuario);
     }
     $stmt->execute();
     $fila_bd = $stmt->get_result()->fetch_assoc();
@@ -56,7 +56,7 @@ if ($metodo === 'v1') {
         $idNum = (int)$usuario;
         $res = $conn->query("SELECT id_usuario AS id, email AS usuario, nombre, apellidos, rol, password_hash, activo FROM usuarios WHERE id_usuario=$idNum");
     } else {
-        $res = $conn->query("SELECT id_usuario AS id, email AS usuario, nombre, apellidos, rol, password_hash, activo FROM usuarios WHERE email='$ue'");
+        $res = $conn->query("SELECT id_usuario AS id, email AS usuario, nombre, apellidos, rol, password_hash, activo FROM usuarios WHERE email='$ue' OR nombre='$ue'");
     }
     if ($res && $res->num_rows > 0) {
         $fila_bd = $res->fetch_assoc();
