@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Herramientas - ERP Mecatrónica</title>
     <link rel="stylesheet" href="../../CSS/estilos.css">
     <link rel="stylesheet" href="../../CSS/menu.css">
-
 </head>
-<body class="theme-inventario"> <div class="app-body">
+
+<body class="theme-inventario">
+    <div class="app-body">
         <main class="main-content">
 
             <header class="header">
@@ -15,7 +17,13 @@
                     <h1>Gestión de Herramientas</h1>
                     <p>Catálogo técnico, estado y ubicación en taller</p>
                 </div>
-                <div class="header-actions">
+                <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
+                    <div class="search-bar" style="display: flex; gap: 5px;">
+                        <input type="text" id="busquedaHerramienta" placeholder="Buscar por ID o Nombre..." 
+                               onkeyup="filtrarHerramientas()"
+                               style="padding: 10px; border: 1px solid #bdc3c7; border-radius: 5px; min-width: 250px;">
+                        <button class="btn btn-primary" onclick="filtrarHerramientas()">Buscar</button>
+                    </div>
                     <button class="btn btn-primary" onclick="abrirModalHerramienta()">
                         + Añadir Nueva Herramienta
                     </button>
@@ -23,88 +31,68 @@
             </header>
 
             <section class="table-container">
-                <table>
+                <table id="tabla-herramientas">
                     <thead>
                         <tr>
                             <th class="col-id">ID</th>
+                            <th>Código Interno</th>
                             <th>Nombre</th>
-                            <th>Categoría</th>
+                            <th>Tipo</th>
                             <th>Estado</th>
                             <th>Ubicación</th>
                             <th class="col-acciones">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-herramientas-body">
-                        </tbody>
+                    </tbody>
                 </table>
             </section>
-
         </main>
+
+        <!-- Modal para Crear/Editar Herramienta -->
+        <div id="modalHerramienta" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitulo">Nueva Herramienta</h2>
+                    <button class="btn-close" onclick="cerrarModal()">×</button>
+                </div>
+                <form id="formHerramienta" onsubmit="guardarHerramienta(event)">
+                    <input type="hidden" id="herr_id">
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" id="herr_nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Código Interno</label>
+                        <input type="text" id="herr_cod_int">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo</label>
+                        <input type="text" id="herr_tipo" value="General">
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select id="herr_estado">
+                            <option value="disponible">Disponible</option>
+                            <option value="en_uso">En Uso</option>
+                            <option value="en_reparacion">En Reparación</option>
+                            <option value="no_disponible">No Disponible</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ubicación</label>
+                        <input type="text" id="herr_ubicacion" value="Taller">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-
     <script src="../../Js/app.js"></script>
-    <script>
-        // Función principal para traer los datos del servidor
-        async function cargarHerramientas() {
-            const tbody = document.getElementById('tabla-herramientas-body');
-            
-            // Ponemos un aviso mientras la BBDD responde para que el usuario no vea la tabla vacía
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando herramientas... ⚙️</td></tr>';
-            
-            // Usamos la función api() de nuestro compañero para mantener la consistencia en las peticiones
-            const res = await api('GET', '../../api/inventario/herramientas.php');
-            
-            // Si la respuesta es válida y tiene el array de herramientas
-            if (res && res.herramientas) {
-                tbody.innerHTML = ''; // Limpiamos el mensaje de "Cargando..."
-                
-                if (res.herramientas.length > 0) {
-                    // Recorremos cada herramienta y creamos su fila
-                    res.herramientas.forEach(h => {
-                        // Mapeo de datos básicos
-                        const id = h.id_herramienta || 'N/A';
-                        const nombre = h.nombre || 'Sin nombre';
-                        const categoria = h.categoria || 'General';
-                        const estado = h.estado || 'Disponible';
-                        const ubicacion = h.ubicacion || 'Taller';
-
-                        // Lógica de colores según el estado (Badge dinámico)
-                        let badgeClass = 'success';
-                        if (estado.toLowerCase().includes('mantenimiento')) badgeClass = 'warning';
-                        if (estado.toLowerCase().includes('baja')) badgeClass = 'danger';
-
-                        // Inyectamos la fila en el HTML usando un template string
-                        tbody.innerHTML += `
-                            <tr>
-                                <td class="col-id">${id}</td>
-                                <td><strong>${nombre}</strong></td>
-                                <td><span class="tipo-gama">${categoria}</span></td>
-                                <td><span class="status-badge ${badgeClass}">${estado}</span></td>
-                                <td>${ubicacion}</td>
-                                <td class="action-buttons justify-center">
-                                    <button class="btn-icon" title="Ver" onclick="verDetalle(${id})">👁️</button>
-                                    <button class="btn-icon" title="Editar" onclick="editar(${id})">✏️</button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                } else {
-                    // Si el array está vacío, avisamos al usuario
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No hay herramientas registradas.</td></tr>';
-                }
-            } else {
-                // Si algo falló (BBDD caída o error de ruta), mostramos error
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">
-                    <strong>⚠️ Error al conectar con la base de datos.</strong>
-                </td></tr>`;
-            }
-        }
-
-        // Al cargar la página, pintamos el menú y lanzamos la carga de datos
-        document.addEventListener('DOMContentLoaded', () => {
-            renderMenu(); 
-            cargarHerramientas();
-        });
-    </script>
+    <script src="../../Js/herramientas.js"></script>
 </body>
+
 </html>
