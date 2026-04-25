@@ -4,142 +4,192 @@
     <meta charset="UTF-8">
     <meta name="author" content="Guadalupe MGM">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP Mecatrónica - Login</title>
-    <link rel="stylesheet" href="../CSS/menu.css">
+    <title>Login ERP - Robots</title>
     <style>
-        .login-body {
-            /* Inherits the gradient from menu.css main menu */
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            color: #333;
+        /* --- CSS UNIFICADO --- */
+        body { margin: 0; font-family: sans-serif; background: #0f172a; color: white; overflow: hidden; }
+        .login-container { display: flex; height: 100vh; }
+        .login-visual { flex: 1.2; display: flex; justify-content: center; align-items: center; }
+        .machines { display: flex; gap: 60px; }
+        .machine { display: flex; flex-direction: column; align-items: center; width: 150px; }
+
+        .head { width: 110px; height: 90px; background: #34495e; border: 4px solid #2c3e50; border-radius: 15px; position: relative; z-index: 10; }
+        .torso { width: 130px; height: 85px; background: #2c3e50; border: 4px solid #1a252f; border-radius: 10px 10px 30px 30px; margin-top: -5px; display: flex; justify-content: center; align-items: center; }
+        .panel { width: 50px; height: 30px; background: #1a252f; border-radius: 5px; display: flex; justify-content: space-around; align-items: center; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; animation: blink-light 0.8s infinite alternate; }
+        @keyframes blink-light { from { opacity: 1; } to { opacity: 0.3; } }
+        .red { background: #ff4757; } .yellow { background: #ffa502; } .blue { background: #1e90ff; }
+
+        .hand {
+            position: absolute;
+            width: 45px;
+            height: 45px;
+            top: 35px; 
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 20;
+            pointer-events: none;
         }
-        .login-container {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-            animation: formFadeIn 0.5s ease;
-        }
-        @keyframes formFadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .login-container h1 {
-            color: #1e293b;
-            margin-bottom: 10px;
-            font-size: 1.8em;
-        }
-        .login-container p {
-            color: #7f8c8d;
-            margin-bottom: 30px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #2c3e50;
-            font-weight: bold;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 1em;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-        .form-group input:focus {
-            border-color: #3b82f6;
-            outline: none;
-            box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
-        }
-        .btn-login {
-            background-color: #3b82f6;
-            color: white;
-            border: none;
-            padding: 12px;
-            width: 100%;
-            border-radius: 6px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
-            margin-top: 10px;
-        }
-        .btn-login:hover {
-            background-color: #2563eb;
-        }
-        .btn-login:active {
-            transform: scale(0.98);
-        }
-        .login-logo {
-            font-size: 4em;
-            margin-bottom: 10px;
-        }
+        .left-hand { left: -30px; transform: rotate(-20deg); }
+        .right-hand { right: -30px; transform: rotate(20deg); }
+
+        .eye { transition: transform 0.2s ease; transform-origin: center; }
+        .blink .eye { transform: scaleY(0.1) !important; }
+
+        /* TAPAR OJOS */
+        .cover-eyes .left-hand { opacity: 1; transform: translateX(45px) rotate(0deg); }
+        .cover-eyes .right-hand { opacity: 1; transform: translateX(-45px) rotate(0deg); }
+
+        /* ESPÍA INTERMEDIO */
+        .spy.peek .right-hand { transform: translateX(-25px) translateY(-2px) rotate(10deg); }
+
+        /* ERROR */
+        .cover-mouth .left-hand { opacity: 1; transform: translateY(35px) translateX(35px) scale(0.8); }
+        .cover-mouth .right-hand { opacity: 1; transform: translateY(35px) translateX(-35px) scale(0.8); }
+
+        .shake { animation: shakeAnim 0.3s ease-in-out; }
+        @keyframes shakeAnim { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+
+        .login-box { flex: 0.8; background: white; color: #2c3e50; display: flex; flex-direction: column; justify-content: center; padding: 60px; }
+        .input { width: 100%; margin-bottom: 20px; padding: 15px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+        .btn-login { width: 100%; padding: 15px; background: #3498db; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #error-msg { color: #e74c3c; display: none; text-align: center; margin-top: 15px; font-weight: bold; }
     </style>
 </head>
-<body class="login-body">
-    <div class="login-container">
-        <div class="login-logo">⚙️</div>
-        <h1>ERP Mecatrónica</h1>
-        <p>Inicia sesión para continuar</p>
-        <form id="formLogin">
-            <div class="form-group">
-                <label for="username">Correo o ID de Usuario</label>
-                <input type="text" id="username" name="username" placeholder="Ingresa tu correo o ID numérico">
+<body>
+
+<div class="login-container">
+    <div class="login-visual">
+        <div class="machines">
+            <div class="machine" id="bot-normal">
+                <div class="antenna"></div>
+                <div class="head">
+                    <svg viewBox="0 0 100 100">
+                        <circle cx="35" cy="45" r="12" fill="#1a1a1a"/>
+                        <circle cx="65" cy="45" r="12" fill="#1a1a1a"/>
+                        <circle cx="35" cy="45" r="5" class="eye" fill="#00ff00"/>
+                        <circle cx="65" cy="45" r="5" class="eye" fill="#00ff00"/>
+                        <rect x="35" y="75" width="30" height="4" fill="#ecf0f1"/>
+                    </svg>
+                    <svg class="hand left-hand" viewBox="0 0 100 100"><path d="M50 80 Q 20 50, 50 20 L 70 20 Q 90 50, 70 80 Z" fill="#3498db" stroke="#2c3e50" stroke-width="5"/></svg>
+                    <svg class="hand right-hand" viewBox="0 0 100 100"><path d="M50 80 Q 80 50, 50 20 L 30 20 Q 10 50, 30 80 Z" fill="#3498db" stroke="#2c3e50" stroke-width="5"/></svg>
+                </div>
+                <div class="torso"><div class="panel"><div class="dot red"></div><div class="dot yellow"></div></div></div>
             </div>
-            <div class="form-group">
-                <label for="password">Contraseña</label>
-                <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña">
+
+            <div class="machine spy" id="bot-spy">
+                <div class="antenna"></div>
+                <div class="head">
+                    <svg viewBox="0 0 100 100">
+                        <circle cx="35" cy="45" r="12" fill="#1a1a1a"/>
+                        <circle cx="65" cy="45" r="12" fill="#1a1a1a"/>
+                        <circle cx="35" cy="45" r="5" class="eye" fill="#00ff00"/>
+                        <circle cx="65" cy="45" r="5" class="eye" fill="#00ff00"/>
+                        <rect x="35" y="75" width="30" height="4" fill="#ecf0f1"/>
+                    </svg>
+                    <svg class="hand left-hand" viewBox="0 0 100 100"><path d="M50 80 Q 20 50, 50 20 L 70 20 Q 90 50, 70 80 Z" fill="#3498db" stroke="#2c3e50" stroke-width="5"/></svg>
+                    <svg class="hand right-hand" viewBox="0 0 100 100"><path d="M50 80 Q 80 50, 50 20 L 30 20 Q 10 50, 30 80 Z" fill="#3498db" stroke="#2c3e50" stroke-width="5"/></svg>
+                </div>
+                <div class="torso"><div class="panel"><div class="dot blue"></div><div class="dot red"></div></div></div>
             </div>
-            <div id="error-msg" style="color: #e74c3c; margin-bottom: 10px; font-weight: bold; display: none;"></div>
-            <button type="submit" class="btn-login">Ingresar al Sistema</button>
-        </form>
+        </div>
     </div>
 
-    <script src="../Js/app.js"></script>
-    <script>
-        document.getElementById('formLogin').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            // ====================================================================
-            // BYPASS DE LOGIN (MODIFICACIÓN PARA DESARROLLO)
-            // Motivo: Al igual que en app.js, se salta la comprobación real con el 
-            // servidor (login.php). Al hacer clic en "Ingresar", te lleva directo a inicio.html.
-            // Esto evita errores de red ("Failed to fetch") si el servidor no está corriendo.
-            // ====================================================================
-            window.location.href = 'inicio.html';
-            
-            // CÓDIGO REAL DE AUTENTICACIÓN (Comentado temporalmente):
-            /* 
-            const usuario = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const errMsg = document.getElementById('error-msg');
-            errMsg.style.display = 'none';
+    <div class="login-box">
+        <h1>🔐 ERP Login</h1>
+        <form id="loginForm">
+            <input type="text" placeholder="Usuario" required class="input">
+            <input type="password" id="password" placeholder="Contraseña" required class="input">
+            <button type="submit" class="btn-login">Entrar</button>
+        </form>
+        <p id="error-msg">❌ Acceso Denegado</p>
+    </div>
+</div>
 
-            // Petición a la API PHP conectada a MySQL
-            const resp = await api('POST', '../api/auth/login.php', {usuario, password});
-            
-            if (resp.ok) {
-                window.location.href = 'inicio.html';
-            } else {
-                errMsg.textContent = resp.error || 'Credenciales incorrectas';
-                errMsg.style.display = 'block';
-            }
-            */
+<script>
+    const passwordInput = document.getElementById("password");
+    const loginForm = document.getElementById("loginForm");
+    const machines = document.querySelectorAll(".machine");
+    const spyBot = document.querySelector(".machine.spy");
+    const errorMsg = document.getElementById("error-msg");
+
+    function actualizarMirada(machine, objetivoX, objetivoY) {
+        const pupilas = machine.querySelectorAll(".eye");
+        const esEspiaAsomado = machine.classList.contains("spy") && machine.classList.contains("peek");
+
+        if (machine.classList.contains("cover-eyes") && !esEspiaAsomado) {
+            pupilas.forEach(p => p.style.transform = `translate(0px, 0px)`);
+            return;
+        }
+
+        if (esEspiaAsomado) {
+            pupilas.forEach((pupila, index) => {
+                if (index === 1) { moverPupilaHacia(pupila, objetivoX, objetivoY); } 
+                else { pupila.style.transform = `translate(0px, 0px)`; }
+            });
+            return;
+        }
+
+        pupilas.forEach(p => moverPupilaHacia(p, objetivoX, objetivoY));
+    }
+
+    function moverPupilaHacia(pupila, x, y) {
+        const rect = pupila.getBoundingClientRect();
+        const ojoX = rect.left + rect.width / 2;
+        const ojoY = rect.top + rect.height / 2;
+        const angulo = Math.atan2(y - ojoY, x - ojoX);
+        const dist = 5;
+        pupila.style.transform = `translate(${Math.cos(angulo) * dist}px, ${Math.sin(angulo) * dist}px)`;
+    }
+
+    document.addEventListener("mousemove", (e) => {
+        machines.forEach(m => actualizarMirada(m, e.clientX, e.clientY));
+    });
+
+    passwordInput.addEventListener("input", (e) => {
+        const inputRect = passwordInput.getBoundingClientRect();
+        const targetX = inputRect.left + inputRect.width / 2;
+        const targetY = inputRect.top + inputRect.height / 2;
+
+        if (e.target.value.length >= 2) {
+            spyBot.classList.add("peek");
+            actualizarMirada(spyBot, targetX, targetY);
+        } else {
+            spyBot.classList.remove("peek");
+            actualizarMirada(spyBot, targetX, targetY);
+        }
+    });
+
+    passwordInput.addEventListener("focus", () => {
+        machines.forEach(m => {
+            m.classList.add("cover-eyes");
+            m.querySelectorAll(".eye").forEach(p => p.style.transform = "translate(0,0)");
         });
-    </script>
+    });
+
+    passwordInput.addEventListener("blur", () => {
+        machines.forEach(m => m.classList.remove("cover-eyes", "peek"));
+    });
+
+    loginForm.addEventListener("submit", (e) => {
+        e.preventDefault(); 
+        machines.forEach(m => {
+            m.classList.remove("cover-eyes", "peek");
+            m.classList.add("cover-mouth", "shake");
+        });
+        errorMsg.style.display = "block";
+        setTimeout(() => {
+            machines.forEach(m => m.classList.remove("cover-mouth", "shake"));
+        }, 2000);
+    });
+
+    setInterval(() => {
+        machines.forEach(m => {
+            m.classList.add("blink");
+            setTimeout(() => m.classList.remove("blink"), 150);
+        });
+    }, 4000);
+</script>
+
 </body>
 </html>
