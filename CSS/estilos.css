@@ -516,7 +516,11 @@ body.dark-mode .header-actions input {
 .btn-danger { background: #e74c3c; color: white; }
 .btn-danger:hover { background: #c0392b; }
 
+.modal-divider { margin: 20px 0; border: 0; border-top: 1px solid #ecf0f1; }
+body.dark-mode .modal-divider { border-top-color: #333; }
 
+.detalle-fila { background: #f9f9f9; padding: 10px; border-radius: 4px; border: 1px solid #ecf0f1; }
+body.dark-mode .detalle-fila { background: #2c2c2c; border-color: #444; }
 
 /* =========================================================================
    ========================= AJUSTES SOLO HORARIO =========================

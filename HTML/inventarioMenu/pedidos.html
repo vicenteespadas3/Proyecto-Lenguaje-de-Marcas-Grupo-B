@@ -36,7 +36,9 @@
                         <tr>
                             <th>ID Pedido</th>
                             <th>Fecha</th>
+                            <th>F. Entrega</th>
                             <th>Proveedor</th>
+                            <th>Pieza(s)</th>
                             <th>Importe</th>
                             <th>Estado</th>
                             <th>Acciones</th>
@@ -53,7 +55,7 @@
     <div id="modalNuevoPedido" class="modal"
         style="display:none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
         <div class="modal-content"
-            style="background-color: #fff; margin: 5% auto; padding: 25px; border-radius: 8px; width: 50%; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+            style="margin: 5% auto; padding: 25px; border-radius: 8px; width: 50%; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
             <div class="modal-header"
                 style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px;">
                 <h2 id="modalTitulo" style="color: var(--primary); margin: 0;">Generar Pedido de Compra</h2>
@@ -84,6 +86,18 @@
                         <option value="">Cargando estados...</option>
                     </select>
                 </div>
+                
+                <hr class="modal-divider">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="color: var(--primary); margin: 0;">Detalles del Pedido</h3>
+                    <button type="button" onclick="agregarFilaDetalle()" style="background-color: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                        <i class="fas fa-plus"></i> Añadir Pieza
+                    </button>
+                </div>
+
+                <div id="contenedor-detalles">
+                    <!-- Las filas de detalle se insertarán aquí dinámicamente -->
+                </div>
 
                 <div class="form-group" style="margin-bottom: 15px;">
                     <label style="display:block; margin-bottom:5px; font-weight:bold;">Observaciones:</label>
@@ -99,6 +113,34 @@
                         Pedido</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Desglose -->
+    <div id="modalDesglose" class="modal" style="display:none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
+        <div class="modal-content" style="margin: 5% auto; padding: 25px; border-radius: 8px; width: 50%; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px;">
+                <h2 id="modalDesgloseTitulo" style="color: var(--primary); margin: 0;">Desglose del Pedido</h2>
+                <span style="cursor:pointer; font-size: 24px;" onclick="cerrarModalDesglose()">&times;</span>
+            </div>
+            <div style="margin-top: 20px;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr>
+                            <th>Pieza</th>
+                            <th style="text-align: center;">Solicitadas</th>
+                            <th style="text-align: center;">Recibidas</th>
+                            <th style="text-align: right;">Precio Ud.</th>
+                            <th style="text-align: right;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaDesgloseBody">
+                    </tbody>
+                </table>
+            </div>
+            <div style="text-align: right; margin-top: 20px;">
+                <button type="button" class="btn-entrar" style="background-color: #3498db; border:none;" onclick="cerrarModalDesglose()">Cerrar</button>
+            </div>
         </div>
     </div>
     <script src="../../Js/app.js"></script>

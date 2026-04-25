@@ -31,9 +31,19 @@ if ($res_est) {
     }
 }
 
+// Obtener piezas
+$res_piezas = $conn->query("SELECT id_pieza, nombre, precio_unitario FROM piezas_repuesto ORDER BY nombre ASC");
+$piezas = [];
+if ($res_piezas) {
+    while ($f = $res_piezas->fetch_assoc()) {
+        $piezas[] = $f;
+    }
+}
+
 $conn->close();
 
 respuestaOk([
     'proveedores' => $proveedores,
-    'estados' => $estados
+    'estados' => $estados,
+    'piezas' => $piezas
 ]);
