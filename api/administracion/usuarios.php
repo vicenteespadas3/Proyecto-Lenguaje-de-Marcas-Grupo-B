@@ -1,147 +1,109 @@
 <?php
+/**
+ * PROYECTO: ERP Robots - Sistema de Gestión
+ * AUTORA: Guadalupe MGM
+ * DESCRIPCIÓN: CRUD completo de usuarios (Altas, Bajas, Modificaciones y Listados).
+ * * USO TÉCNICO:
+ * - Endpoints: GET (listar), POST (crear), PUT (editar), DELETE (borrar).
+ */
+
 // ============================================================
-//  api/usuarios.php  —  CRUD completo (solo admins)
-// ============================================================
-//  GET           → listar todos
-//  GET ?id=N     → obtener uno
-//  POST          → alta
-//  PUT           → modificación
-//  DELETE        → baja
-//
-//  cURL (requiere cookie de sesión admin):
-//
-//  # Login previo:
-//  curl -c cookies.txt -X POST http://localhost/api/login.php \
-//       -H "Content-Type: application/json" \
-//       -d '{"usuario":"admin","password":"1234","metodo":"v1"}'
-//
-//  # Listar:
-//  curl -b cookies.txt http://localhost/api/usuarios.php
-//
-//  # Obtener uno:
-//  curl -b cookies.txt "http://localhost/api/usuarios.php?id=2"
-//
-//  # Alta:
-//  curl -b cookies.txt -X POST http://localhost/api/usuarios.php \
-//       -H "Content-Type: application/json" \
-//       -d '{"usuario":"marta","password":"1234","nombre":"Marta","apellidos":"Ruiz","es_admin":0}'
-//
-//  # Modificar:
-//  curl -b cookies.txt -X PUT http://localhost/api/usuarios.php \
-//       -H "Content-Type: application/json" \
-//       -d '{"id":3,"usuario":"marta","nombre":"Marta","apellidos":"Lopez","es_admin":1}'
-//
-//  # Baja:
-//  curl -b cookies.txt -X DELETE http://localhost/api/usuarios.php \
-//       -H "Content-Type: application/json" \
-//       -d '{"id":3}'
+//  api/usuarios.php  —  CRUD adaptado a la BBDD oficial
 // ============================================================
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 
-// Comentamos la seguridad estricta para desarrollo local
-// $yo   = requireAdmin();
-$yo = 'admin';
+$yo = 'admin'; // Para pruebas, luego se controlaría por sesión
 $conn = conectar();
-$m    = $_SERVER['REQUEST_METHOD'];
+$m = $_SERVER['REQUEST_METHOD'];
 
-// ── GET ───────────────────────────────────────────────────────
+// ── GET (Listar o uno solo) ───────────────────────────────────
 if ($m === 'GET') {
     if (isset($_GET['id'])) {
         $id = (int)$_GET['id'];
-        $s  = $conn->prepare("SELECT id,usuario,nombre,apellidos,es_admin FROM usuarios WHERE id=?");
-        $s->bind_param("i",$id); $s->execute();
-        $f  = $s->get_result()->fetch_assoc(); $s->close(); $conn->close();
-        if (!$f) respuestaError('No encontrado.',404);
-        $f['es_admin'] = (int)$f['es_admin'];
-        respuestaOk(['usuario'=>$f]);
+        // Adaptado: id_usuario, password_hash, rol
+        $s = $conn->prepare("SELECT id_usuario, email, nombre, apellidos, rol, activo FROM usuarios WHERE id_usuario=?");
+        $s->bind_param("i", $id); $s->execute();
+        $f = $s->get_result()->fetch_assoc(); $s->close(); $conn->close();
+        if (!$f) respuestaError('No encontrado.', 404);
+        respuestaOk(['usuario' => $f]);
     } else {
-        $r = $conn->query("SELECT id,usuario,nombre,apellidos,es_admin FROM usuarios ORDER BY apellidos,nombre");
+        // Listado general
+        $r = $conn->query("SELECT id_usuario, email, nombre, apellidos, rol, activo FROM usuarios ORDER BY apellidos, nombre");
         $lista = [];
-        while ($f = $r->fetch_assoc()) { $f['es_admin']=(int)$f['es_admin']; $lista[]=$f; }
+        while ($f = $r->fetch_assoc()) { $lista[] = $f; }
         $conn->close();
-        respuestaOk(['usuarios'=>$lista,'total'=>count($lista)]);
+        respuestaOk(['usuarios' => $lista, 'total' => count($lista)]);
     }
 }
 
-// ── POST (alta) ───────────────────────────────────────────────
+// ── POST (Alta de usuario) ────────────────────────────────────
 if ($m === 'POST') {
-    $b         = json_decode(file_get_contents('php://input'),true)??[];
-    $usuario   = trim($b['usuario']   ?? '');
-    $password  = trim($b['password']  ?? '');
-    $nombre    = trim($b['nombre']    ?? '');
+    $b = json_decode(file_get_contents('php://input'), true) ?? [];
+    $email     = trim($b['email'] ?? ''); // Usamos email según tu BBDD
+    $password  = trim($b['password'] ?? '');
+    $nombre    = trim($b['nombre'] ?? '');
     $apellidos = trim($b['apellidos'] ?? '');
-    $es_admin  = isset($b['es_admin']) ? (int)$b['es_admin'] : 0;
+    $rol       = trim($b['rol'] ?? 'tecnico');
 
-    if (!$usuario)  respuestaError('El usuario es obligatorio.');
-    if (!$password) respuestaError('La contraseña es obligatoria.');
-    if (strlen($usuario)<3) respuestaError('El usuario necesita al menos 3 caracteres.');
+    if (!$email || !$password) respuestaError('Email y contraseña obligatorios.');
 
-    $chk = $conn->prepare("SELECT id FROM usuarios WHERE usuario=?");
-    $chk->bind_param("s",$usuario); $chk->execute(); $chk->store_result();
-    if ($chk->num_rows>0) { $chk->close();$conn->close(); respuestaError('Usuario ya existe.'); }
+    // Verificar si el email ya existe
+    $chk = $conn->prepare("SELECT id_usuario FROM usuarios WHERE email=?");
+    $chk->bind_param("s", $email); $chk->execute(); $chk->store_result();
+    if ($chk->num_rows > 0) { $chk->close(); $conn->close(); respuestaError('El email ya está registrado.'); }
     $chk->close();
 
-    $s = $conn->prepare("INSERT INTO usuarios (usuario,password,nombre,apellidos,es_admin) VALUES (?,?,?,?,?)");
-    $s->bind_param("ssssi",$usuario,$password,$nombre,$apellidos,$es_admin);
+    // Insertar con password_hash (columna oficial)
+    $s = $conn->prepare("INSERT INTO usuarios (email, password_hash, nombre, apellidos, rol, activo, fecha_creacion) VALUES (?, ?, ?, ?, ?, 1, NOW())");
+    $s->bind_param("sssss", $email, $password, $nombre, $apellidos, $rol);
     $ok = $s->execute(); $nid = $conn->insert_id; $s->close(); $conn->close();
-    if (!$ok) respuestaError('Error al crear.',500);
-    respuestaOk(['msg'=>"Usuario '$usuario' creado.",'id'=>$nid]);
+
+    if (!$ok) respuestaError('Error al crear el usuario.', 500);
+    respuestaOk(['msg' => "Usuario '$email' creado correctamente.", 'id' => $nid]);
 }
 
-// ── PUT (modificación) ────────────────────────────────────────
+// ── PUT (Modificación) ────────────────────────────────────────
 if ($m === 'PUT') {
-    $b         = json_decode(file_get_contents('php://input'),true)??[];
-    $id        = (int)($b['id']       ?? 0);
-    $usuario   = trim($b['usuario']   ?? '');
-    $nombre    = trim($b['nombre']    ?? '');
+    $b = json_decode(file_get_contents('php://input'), true) ?? [];
+    $id = (int)($b['id_usuario'] ?? 0);
+    $email     = trim($b['email'] ?? '');
+    $nombre    = trim($b['nombre'] ?? '');
     $apellidos = trim($b['apellidos'] ?? '');
-    $es_admin  = isset($b['es_admin']) ? (int)$b['es_admin'] : 0;
-    $newpass   = trim($b['password']  ?? '');
+    $rol       = trim($b['rol'] ?? '');
+    $newpass   = trim($b['password'] ?? '');
 
-    if ($id<=0)    respuestaError('ID no válido.');
-    if (!$usuario) respuestaError('El usuario es obligatorio.');
-
-    // Existe?
-    $chk = $conn->prepare("SELECT id FROM usuarios WHERE id=?");
-    $chk->bind_param("i",$id); $chk->execute(); $chk->store_result();
-    if ($chk->num_rows===0) { $chk->close();$conn->close(); respuestaError('No encontrado.',404); }
-    $chk->close();
-
-    // Nombre duplicado?
-    $chk2 = $conn->prepare("SELECT id FROM usuarios WHERE usuario=? AND id!=?");
-    $chk2->bind_param("si",$usuario,$id); $chk2->execute(); $chk2->store_result();
-    if ($chk2->num_rows>0) { $chk2->close();$conn->close(); respuestaError('Ese usuario ya lo usa otro.'); }
-    $chk2->close();
+    if ($id <= 0) respuestaError('ID no válido.');
 
     if ($newpass !== '') {
-        $s = $conn->prepare("UPDATE usuarios SET usuario=?,password=?,nombre=?,apellidos=?,es_admin=? WHERE id=?");
-        $s->bind_param("ssssii",$usuario,$newpass,$nombre,$apellidos,$es_admin,$id);
+        $s = $conn->prepare("UPDATE usuarios SET email=?, password_hash=?, nombre=?, apellidos=?, rol=? WHERE id_usuario=?");
+        $s->bind_param("sssssi", $email, $newpass, $nombre, $apellidos, $rol, $id);
     } else {
-        $s = $conn->prepare("UPDATE usuarios SET usuario=?,nombre=?,apellidos=?,es_admin=? WHERE id=?");
-        $s->bind_param("sssii",$usuario,$nombre,$apellidos,$es_admin,$id);
+        $s = $conn->prepare("UPDATE usuarios SET email=?, nombre=?, apellidos=?, rol=? WHERE id_usuario=?");
+        $s->bind_param("ssssi", $email, $nombre, $apellidos, $rol, $id);
     }
+    
     $ok = $s->execute(); $s->close(); $conn->close();
-    if (!$ok) respuestaError('Error al modificar.',500);
-    respuestaOk(['msg'=>'Usuario actualizado.']);
+    if (!$ok) respuestaError('Error al actualizar.', 500);
+    respuestaOk(['msg' => 'Usuario actualizado correctamente.']);
 }
 
-// ── DELETE (baja) ─────────────────────────────────────────────
+// ── DELETE (Baja) ─────────────────────────────────────────────
 if ($m === 'DELETE') {
-    $b  = json_decode(file_get_contents('php://input'),true)??[];
-    $id = (int)($b['id']??0);
-    if ($id<=0) respuestaError('ID no válido.');
+    $b = json_decode(file_get_contents('php://input'), true) ?? [];
+    $id = (int)($b['id_usuario'] ?? 0);
 
-    $chk = $conn->prepare("SELECT usuario FROM usuarios WHERE id=?");
-    $chk->bind_param("i",$id); $chk->execute();
+    $chk = $conn->prepare("SELECT email FROM usuarios WHERE id_usuario=?");
+    $chk->bind_param("i", $id); $chk->execute();
     $f = $chk->get_result()->fetch_assoc(); $chk->close();
-    if (!$f)                   { $conn->close(); respuestaError('No encontrado.',404); }
-    if ($f['usuario']===$yo)   { $conn->close(); respuestaError('No puedes eliminarte.'); }
 
-    $s = $conn->prepare("DELETE FROM usuarios WHERE id=?");
-    $s->bind_param("i",$id); $ok=$s->execute(); $s->close(); $conn->close();
-    if (!$ok) respuestaError('Error al eliminar.',500);
-    respuestaOk(['msg'=>"Usuario '{$f['usuario']}' eliminado."]);
+    if (!$f) { $conn->close(); respuestaError('Usuario no encontrado.', 404); }
+
+    $s = $conn->prepare("DELETE FROM usuarios WHERE id_usuario=?");
+    $s->bind_param("i", $id); $ok = $s->execute(); $s->close(); $conn->close();
+    
+    if (!$ok) respuestaError('Error al eliminar.', 500);
+    respuestaOk(['msg' => "Usuario '{$f['email']}' eliminado."]);
 }
 
-respuestaError('Método no soportado.',405);
+respuestaError('Método no soportado.', 405);
