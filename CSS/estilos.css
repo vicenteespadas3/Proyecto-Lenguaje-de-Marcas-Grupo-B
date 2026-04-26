@@ -216,7 +216,7 @@
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    overflow: hidden;
+    overflow-x: auto; /* Permite scroll horizontal en lugar de aplastar la tabla */
 }
 
 /* La tabla en sí, ocupa el 100% del contenedor blanco */
@@ -253,7 +253,8 @@ tbody tr:hover { background-color: #f8f9fa; }
 .btn-primary:hover { background-color: var(--primary-hover); }
 
 /* Caja invisible que envuelve los botoncitos de las acciones (Ojo, Lápiz, Papelera) en una celda */
-.action-buttons { display: flex; gap: 10px; }
+.action-buttons { white-space: nowrap; }
+.action-buttons button { margin-right: 8px; }
 
 /* Botones transparentes con iconos (ej: Editar ✏️, Borrar 🗑️ en cada fila) */
 .btn-icon {
