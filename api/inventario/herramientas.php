@@ -69,13 +69,13 @@ switch ($metodo) {
         break;
 
     case 'DELETE':
-        // Borrado lógico de herramienta (activa = 0)
+        // Borrado físico de la herramienta
         $b = json_decode(file_get_contents('php://input'), true) ?? [];
         $id = (int)($b['id_herramienta'] ?? 0);
 
         if ($id <= 0) respuestaError('ID no válido.');
 
-        $stmt = $conn->prepare("UPDATE herramientas SET activa = 0 WHERE id_herramienta=?");
+        $stmt = $conn->prepare("DELETE FROM herramientas WHERE id_herramienta=?");
         $stmt->bind_param("i", $id);
 
         if ($stmt->execute()) respuestaOk(['msg' => 'Herramienta eliminada.']);
