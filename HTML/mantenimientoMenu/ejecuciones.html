@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ejecuciones - ERP Mecatrónica</title>
+    <link rel="stylesheet" href="../../CSS/estilos.css">
+    <link rel="stylesheet" href="../../CSS/menu.css">
+</head>
+
+<body class="theme-mantenimiento">
+    <div class="app-body">
+        <main class="main-content">
+            <header class="header">
+                <div class="header-info">
+                    <h1>Ejecuciones de Mantenimiento</h1>
+                    <p>Registro de intervenciones y tiempos de parada.</p>
+                </div>
+            </header>
+
+            <section class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Ejec.</th>
+                            <th>ID Orden</th>
+                            <th>Tipo</th>
+                            <th>Inicio</th>
+                            <th>Fin</th>
+                            <th>Tiempo (h)</th>
+                            <th>Parada (min)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-ejecuciones-body">
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <script src="../../Js/app.js"></script>
+    <script>
+        async function cargarEjecuciones() {
+            const tbody = document.getElementById('tabla-ejecuciones-body');
+            const res = await api('GET', '../../api/mantenimiento/ejecuciones.php');
+
+            if (res && res.ejecuciones) {
+                tbody.innerHTML = '';
+                res.ejecuciones.forEach(e => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${e.id_ejecucion}</strong></td>
+                            <td>${e.id_orden}</td>
+                            <td><span class="tipo-gama">${e.tipo}</span></td>
+                            <td>${e.fecha_inicio}</td>
+                            <td>${e.fecha_fin}</td>
+                            <td>${e.tiempo_h} h</td>
+                            <td>${e.parada_min} min</td>
+                        </tr>`;
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu();
+            cargarEjecuciones();
+        });
+    </script>
+</body>
+
+</html>
