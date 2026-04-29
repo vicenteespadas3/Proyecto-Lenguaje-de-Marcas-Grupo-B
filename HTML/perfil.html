@@ -106,18 +106,22 @@
     </style>
 </head>
 <body>
-    <div class="app-body">
-        <main style="padding: 20px; width: 100%;">
-            <!-- Contenedor principal de la tarjeta de perfil -->
-            <!-- Creado hoy: Implementa diseño con sombras, bordes redondeados y animaciones suaves (fadeIn) -->
+    <div class="app-body theme-administracion">
+        <main class="main-content">
+            <header class="header">
+                <div class="header-info">
+                    <h1>Mi Perfil</h1>
+                    <p>Gestiona tu información personal y credenciales de acceso</p>
+                </div>
+            </header>
+
             <div class="perfil-container">
-                
                 <!-- Cabecera del perfil -->
                 <div class="perfil-header">
                     <div class="perfil-avatar" id="perf-avatar">?</div>
                     <div class="perfil-info">
                         <h1 id="perf-nombre-completo">Cargando...</h1>
-                        <p id="perf-rol">Puesto / Rol</p>
+                        <p id="perf-rol" class="status-badge info" style="display:inline-block; margin-top:5px;">Puesto / Rol</p>
                     </div>
                 </div>
                 
@@ -133,11 +137,11 @@
                     </div>
                     <div class="detalle-grupo">
                         <label>Correo Electrónico</label>
-                        <p id="perf-email">-</p>
+                        <p id="perf-email" style="font-weight: bold; color: var(--primary);">-</p>
                     </div>
                     <div class="detalle-grupo">
                         <label>Rol en el Sistema</label>
-                        <p id="perf-rol-detalle">-</p>
+                        <p id="perf-rol-detalle" style="text-transform: uppercase; font-size: 0.9em; letter-spacing: 1px;">-</p>
                     </div>
                     <div class="detalle-grupo">
                         <label>Fecha de Registro</label>
@@ -150,17 +154,19 @@
                 </div>
 
                 <div class="perfil-acciones">
-                    <button class="btn-editar" onclick="abrirModalPerfil()">Editar Mi Perfil</button>
+                    <button class="btn btn-primary" onclick="abrirModalPerfil()">✏️ Editar Perfil</button>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Modal para editar perfil -->
-    <div id="modalPerfil" class="modal">
+    <!-- Modal para editar perfil (Usando clases estándar de estilos.css) -->
+    <div id="modalPerfil" class="modal-overlay">
         <div class="modal-content">
-            <span class="close" onclick="cerrarModalPerfil()">&times;</span>
-            <h2 id="modalTitle">Editar Perfil</h2>
+            <div class="modal-header">
+                <h2 id="modalTitle">Editar Mi Perfil</h2>
+                <button class="btn-close" onclick="cerrarModalPerfil()">&times;</button>
+            </div>
             <form id="formPerfil" onsubmit="guardarPerfil(event)">
                 <div class="form-group">
                     <label>Nombre</label>
@@ -176,9 +182,9 @@
                 </div>
                 <div class="form-group">
                     <label>Nueva Contraseña (dejar en blanco para no cambiar)</label>
-                    <input type="password" id="editPassword">
+                    <input type="password" id="editPassword" placeholder="Mínimo 4 caracteres si cambias">
                 </div>
-                <div class="modal-footer">
+                <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="cerrarModalPerfil()">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                 </div>
@@ -196,13 +202,14 @@
                 userData = res.usuario;
                 renderPerfil();
             } else {
-                alert('No se pudo cargar la información del perfil.');
+                console.error('Error al cargar perfil:', res);
             }
         }
 
         function renderPerfil() {
             const u = userData;
-            document.getElementById('perf-avatar').textContent = u.nombre ? u.nombre[0].toUpperCase() : u.email[0].toUpperCase();
+            const letra = u.nombre ? u.nombre[0].toUpperCase() : u.email[0].toUpperCase();
+            document.getElementById('perf-avatar').textContent = letra;
             document.getElementById('perf-nombre-completo').textContent = `${u.nombre} ${u.apellidos}`.trim();
             document.getElementById('perf-rol').textContent = u.rol.charAt(0).toUpperCase() + u.rol.slice(1);
             
@@ -215,15 +222,16 @@
         }
 
         function abrirModalPerfil() {
-            document.getElementById('editNombre').value = userData.nombre;
-            document.getElementById('editApellidos').value = userData.apellidos;
-            document.getElementById('editEmail').value = userData.email;
+            if (!userData) return;
+            document.getElementById('editNombre').value = userData.nombre || '';
+            document.getElementById('editApellidos').value = userData.apellidos || '';
+            document.getElementById('editEmail').value = userData.email || '';
             document.getElementById('editPassword').value = '';
-            document.getElementById('modalPerfil').style.display = 'block';
+            document.getElementById('modalPerfil').classList.add('show');
         }
 
         function cerrarModalPerfil() {
-            document.getElementById('modalPerfil').style.display = 'none';
+            document.getElementById('modalPerfil').classList.remove('show');
         }
 
         async function guardarPerfil(e) {
@@ -239,8 +247,8 @@
             if (res && res.ok) {
                 alert(res.msg || 'Perfil actualizado correctamente.');
                 cerrarModalPerfil();
-                cargarPerfil(); // Recargar datos
-                // Opcional: Actualizar topbar (refrescar página para simplificar)
+                await cargarPerfil(); 
+                // Recargamos para que el topbar se actualice
                 location.reload();
             } else {
                 alert('Error: ' + (res.error || 'No se pudo actualizar el perfil.'));

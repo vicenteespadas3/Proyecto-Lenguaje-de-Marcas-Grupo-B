@@ -19,19 +19,50 @@
                 </div>
             </header>
 
-            <!-- Barra de Búsqueda y Filtros -->
-            <div class="search-filters-bar">
-                <div class="search-input-wrapper">
-                    <input type="text" id="searchArchivo" placeholder="Buscar por nombre, máquina o ID..." oninput="filtrarArchivos()">
+            <!-- Barra de Búsqueda y Filtros Avanzada -->
+            <div class="search-filters-container">
+                <div class="search-filters-bar">
+                    <div class="search-group">
+                        <div class="search-input-wrapper">
+                            <input type="text" id="searchArchivo" placeholder="Buscar por nombre, máquina o ID...">
+                        </div>
+                        <button class="btn btn-primary btn-search" onclick="filtrarArchivos()">
+                            🔍 Buscar
+                        </button>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-secondary" onclick="togglePanelFiltros()">
+                            ➕ Filtros
+                        </button>
+                        <button class="btn btn-secondary" onclick="toggleOrden()">
+                            ⇅ Ordenar
+                        </button>
+                    </div>
                 </div>
-                <select id="filtroTipo" class="filter-select" onchange="filtrarArchivos()">
-                    <option value="">Todos los tipos</option>
-                    <option value="PDF">PDF</option>
-                    <option value="Imagen">Imagen</option>
-                    <option value="Manual">Manual</option>
-                    <option value="Otro">Otro</option>
-                </select>
-                <span id="contadorArchivos" class="search-results-count">0 resultados</span>
+
+                <!-- Panel de Filtros (Expandible) -->
+                <div id="panelFiltros" class="filter-panel" style="display: none;">
+                    <div class="filter-grid">
+                        <div class="filter-item">
+                            <label>Tipo de Documento</label>
+                            <select id="filtroTipo" class="filter-select">
+                                <option value="">Todos los tipos</option>
+                                <option value="PDF">PDF</option>
+                                <option value="Imagen">Imagen</option>
+                                <option value="Manual">Manual</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="filter-panel-actions">
+                        <button class="btn btn-secondary btn-small" onclick="limpiarFiltros()">Limpiar</button>
+                        <button class="btn btn-primary btn-small" onclick="filtrarArchivos()">Aplicar</button>
+                    </div>
+                </div>
+                
+                <div class="results-info">
+                    <span id="contadorArchivos" class="search-results-count">0 archivos encontrados</span>
+                </div>
             </div>
 
             <section class="table-container">
@@ -61,26 +92,28 @@
                 </div>
                 <form id="formArchivo" onsubmit="guardarArchivo(event)">
                     <input type="hidden" id="arch_id">
-                    <div class="form-group">
-                        <label>Nombre del Documento</label>
-                        <input type="text" id="arch_nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Tipo / Extensión</label>
-                        <select id="arch_tipo">
-                            <option value="PDF">PDF</option>
-                            <option value="Imagen">Imagen</option>
-                            <option value="Manual">Manual</option>
-                            <option value="Otro">Otro</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Vincular a Máquina (ID)</label>
-                        <input type="number" id="arch_maquina" placeholder="ID de Máquina (Opcional)">
+                    <div class="form-grid">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Nombre del Documento</label>
+                            <input type="text" id="arch_nombre" required placeholder="Ej: Manual de Usuario - Torno Alpha">
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo / Extensión</label>
+                            <select id="arch_tipo">
+                                <option value="PDF">PDF</option>
+                                <option value="Imagen">Imagen</option>
+                                <option value="Manual">Manual</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Vincular a Máquina (ID)</label>
+                            <input type="number" id="arch_maquina" placeholder="ID de Máquina (Opcional)">
+                        </div>
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn btn-secondary" onclick="cerrarModalArch()">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Documento</button>
                     </div>
                 </form>
             </div>
@@ -90,66 +123,104 @@
     <script src="../../Js/app.js"></script>
     <script>
         let archivosData = [];
+        let ordenAsc = true;
+        let criterioOrden = 'nombre'; // 'nombre' o 'id'
 
         async function cargarArchivos() {
             const tbody = document.getElementById('tabla-archivos-body');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando archivos desde la Base de Datos... 📁</td></tr>';
-            
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando archivos... 📁</td></tr>';
             const res = await api('GET', '../../api/activos/archivos.php');
-            
             if (res && res.ok) {
                 archivosData = res.archivos || [];
-                filtrarArchivos(); // Delegamos el renderizado al filtro
+                aplicarOrden();
+                filtrarArchivos();
             } else {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">
-                    <strong>⚠️ Error al conectar con la base de datos:</strong><br> ${res.error || 'Verifica que el servidor Ubuntu esté encendido.'}
-                </td></tr>`;
+                tbody.innerHTML = '<tr><td colspan="6" class="error-msg">Error al conectar con la base de datos.</td></tr>';
             }
         }
 
-        // ── Función de filtrado en cliente ──
+        function togglePanelFiltros() {
+            const p = document.getElementById('panelFiltros');
+            p.style.display = p.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleOrden() {
+            if (criterioOrden === 'nombre') {
+                if (ordenAsc) {
+                    ordenAsc = false;
+                } else {
+                    criterioOrden = 'id';
+                    ordenAsc = true;
+                }
+            } else {
+                if (ordenAsc) {
+                    ordenAsc = false;
+                } else {
+                    criterioOrden = 'nombre';
+                    ordenAsc = true;
+                }
+            }
+            aplicarOrden();
+            filtrarArchivos();
+        }
+
+        function aplicarOrden() {
+            archivosData.sort((a, b) => {
+                let valA, valB;
+                if (criterioOrden === 'nombre') {
+                    valA = (a.nombre_archivo || '').toLowerCase();
+                    valB = (b.nombre_archivo || '').toLowerCase();
+                    return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else {
+                    valA = parseInt(a.id_archivo);
+                    valB = parseInt(b.id_archivo);
+                    return ordenAsc ? valA - valB : valB - valA;
+                }
+            });
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('searchArchivo').value = '';
+            document.getElementById('filtroTipo').value = '';
+            filtrarArchivos();
+        }
+
         function filtrarArchivos() {
-            const texto = document.getElementById('searchArchivo').value.toLowerCase().trim();
-            const tipoFiltro = document.getElementById('filtroTipo').value;
+            const search = document.getElementById('searchArchivo').value.toLowerCase().trim();
+            const tipoF = document.getElementById('filtroTipo').value;
             const tbody = document.getElementById('tabla-archivos-body');
 
             const filtrados = archivosData.filter(doc => {
-                const nombre = (doc.nombre_archivo || '').toLowerCase();
-                const tipo = doc.tipo || '';
-                const vinculo = (doc.maquina || '').toLowerCase();
-                const id = String(doc.id_archivo || '');
-
-                const coincideTexto = !texto || nombre.includes(texto) || vinculo.includes(texto) || id.includes(texto);
-                const coincideTipo = !tipoFiltro || tipo === tipoFiltro;
-                return coincideTexto && coincideTipo;
+                const matchSearch = !search || 
+                    (doc.nombre_archivo || '').toLowerCase().includes(search) || 
+                    (doc.maquina || '').toLowerCase().includes(search);
+                const matchTipo = !tipoF || doc.tipo === tipoF;
+                return matchSearch && matchTipo;
             });
 
-            document.getElementById('contadorArchivos').textContent = filtrados.length + ' resultado' + (filtrados.length !== 1 ? 's' : '');
+            document.getElementById('contadorArchivos').textContent = `${filtrados.length} archivos encontrados`;
 
             tbody.innerHTML = '';
             if (filtrados.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">No se encontraron archivos con esos criterios.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No se encontraron resultados.</td></tr>';
                 return;
             }
+
             filtrados.forEach(doc => {
-                const id = doc.id_archivo;
-                const nombre = doc.nombre_archivo;
-                const tipo = doc.tipo || 'PDF';
                 const vinculo = doc.maquina || (doc.id_maquina ? `Máquina ${doc.id_maquina}` : 'General');
-                
                 let fecha = doc.fecha_subida || '';
                 if(fecha.includes(' ')) fecha = fecha.split(' ')[0];
 
                 tbody.innerHTML += `
                     <tr>
-                        <td><strong>DOC-${id}</strong></td>
-                        <td>${nombre}</td>
-                        <td><span class="status-badge" style="background:#34495e; color:white;">${tipo}</span></td>
+                        <td><strong>DOC-${doc.id_archivo}</strong></td>
+                        <td>${doc.nombre_archivo}</td>
+                        <td><span class="status-badge" style="background:#34495e; color:white;">${doc.tipo || 'PDF'}</span></td>
                         <td>${vinculo}</td>
                         <td>${fecha}</td>
                         <td class="action-buttons">
-                            <button class="btn-icon" title="Editar" onclick="editarArchivo(${id})">✏️</button>
-                            <button class="btn-icon" title="Eliminar" style="color: #e74c3c;" onclick="eliminarArchivo(${id})">🗑️</button>
+                            <button class="btn-icon" title="Editar" onclick="editarArchivo(${doc.id_archivo})">✏️</button>
+                            <button class="btn-icon" title="Eliminar" style="color: #e74c3c;" onclick="eliminarArchivo(${doc.id_archivo})">🗑️</button>
                         </td>
                     </tr>
                 `;
@@ -166,13 +237,11 @@
         function editarArchivo(id) {
             const a = archivosData.find(x => x.id_archivo == id);
             if (!a) return;
-
             document.getElementById('modalTituloArch').textContent = 'Editar Archivo';
             document.getElementById('arch_id').value = a.id_archivo;
             document.getElementById('arch_nombre').value = a.nombre_archivo || '';
             document.getElementById('arch_tipo').value = a.tipo || 'PDF';
             document.getElementById('arch_maquina').value = a.id_maquina || '';
-
             document.getElementById('modalArchivo').classList.add('show');
         }
 
@@ -188,36 +257,22 @@
                 tipo: document.getElementById('arch_tipo').value,
                 id_maquina: document.getElementById('arch_maquina').value || null
             };
-
-            const metodo = id ? 'PUT' : 'POST';
-            if (id) datos.id_archivo = id;
-
-            const res = await api(metodo, '../../api/activos/archivos.php', datos);
-            if (res.ok) {
-                cerrarModalArch();
-                cargarArchivos();
-            } else {
-                alert('Error: ' + res.error);
-            }
+            const res = await api(id ? 'PUT' : 'POST', '../../api/activos/archivos.php', id ? {...datos, id_archivo: id} : datos);
+            if (res.ok) { cerrarModalArch(); cargarArchivos(); }
+            else alert('Error: ' + res.error);
         }
 
         async function eliminarArchivo(id) {
-            if (confirm('¿Estás seguro de eliminar este archivo?')) {
-                const res = await api('DELETE', '../../api/activos/archivos.php', { id_archivo: id });
-                if (res.ok) {
-                    cargarArchivos();
-                } else {
-                    alert('Error: ' + res.error);
-                }
-            }
+            if (!confirm('¿Seguro?')) return;
+            const res = await api('DELETE', '../../api/activos/archivos.php', { id_archivo: id });
+            if (res.ok) cargarArchivos();
+            else alert('Error: ' + res.error);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            renderMenu();
+            renderMenu('activos');
             cargarArchivos();
         });
     </script>
-    <!-- Si tenías lógica extra en archivos.js, seguirá cargando aquí -->
-    <script src="../../Js/archivos.js"></script>
 </body>
 </html>
