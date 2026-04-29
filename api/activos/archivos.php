@@ -17,7 +17,12 @@ if ($metodo === 'GET') {
         if ($archivo) respuestaOk(['archivo' => $archivo]);
         else respuestaError('Archivo no encontrado.', 404);
     } else {
-        $res = $conn->query("SELECT a.id_archivo, a.nombre_archivo, a.ruta_archivo as tipo, a.id_referencia as id_maquina, a.fecha_subida, m.nombre as maquina FROM archivos_adjuntos a LEFT JOIN maquinas m ON a.id_referencia = m.id_maquina ORDER BY a.id_archivo DESC");
+        /**
+         * Obtiene todos los archivos adjuntos ordenados por ID de forma descendente.
+         * Realiza un LEFT JOIN con la tabla maquinas para incluir el nombre de la máquina asociada a cada archivo.
+         */
+        $res = $conn->query("SELECT a.id_archivo, a.nombre_archivo, a.ruta_archivo as tipo, a.id_referencia 
+        as id_maquina, a.fecha_subida, m.nombre as maquina FROM archivos_adjuntos a LEFT JOIN maquinas m ON a.id_referencia = m.id_maquina ORDER BY a.id_archivo DESC");
         if (!$res) respuestaError('Error BD: ' . $conn->error, 500);
         $archivos = [];
         while ($f = $res->fetch_assoc()) $archivos[] = $f;
@@ -34,6 +39,16 @@ if ($metodo === 'POST') {
 
     if (!$nombre) respuestaError('El nombre del archivo es obligatorio.');
 
+    // Verificar si ya existe un archivo con el mismo nombre
+    $chk = $conn->prepare("SELECT id_archivo FROM archivos_adjuntos WHERE nombre_archivo=?");
+    $chk->bind_param("s", $nombre); $chk->execute(); $chk->store_result();
+    if ($chk->num_rows > 0) { $chk->close(); $conn->close(); respuestaError('Ya existe un archivo con ese nombre.'); }
+    $chk->close();
+
+    /**
+     * Inserta un nuevo registro de archivo en la base de datos.
+     * Se asume que el tipo de referencia siempre es 'maquina'.
+     */
     $stmt = $conn->prepare("INSERT INTO archivos_adjuntos (nombre_archivo, ruta_archivo, id_referencia, tipo_referencia, fecha_subida) VALUES (?, ?, ?, 'maquina', ?)");
     $stmt->bind_param("ssis", $nombre, $tipo, $id_maquina, $fecha);
     
@@ -56,6 +71,16 @@ if ($metodo === 'PUT') {
     if ($id <= 0) respuestaError('ID no válido.');
     if (!$nombre) respuestaError('El nombre del archivo es obligatorio.');
 
+    // Verificar si ya existe otro archivo con el mismo nombre (excluyendo el actual)
+    $chk = $conn->prepare("SELECT id_archivo FROM archivos_adjuntos WHERE nombre_archivo=? AND id_archivo!=?");
+    $chk->bind_param("si", $nombre, $id); $chk->execute(); $chk->store_result();
+    if ($chk->num_rows > 0) { $chk->close(); $conn->close(); respuestaError('Ya existe otro archivo con ese nombre.'); }
+    $chk->close();
+
+    /**
+     * Actualiza los datos de un archivo existente identificado por su id_archivo.
+     * Modifica el nombre, la ruta (tipo) y la referencia a la máquina.
+     */
     $stmt = $conn->prepare("UPDATE archivos_adjuntos SET nombre_archivo=?, ruta_archivo=?, id_referencia=? WHERE id_archivo=?");
     $stmt->bind_param("ssii", $nombre, $tipo, $id_maquina, $id);
     
@@ -73,6 +98,9 @@ if ($metodo === 'DELETE') {
 
     if ($id <= 0) respuestaError('ID no válido.');
 
+    /**
+     * Elimina un archivo de la base de datos basándose en su id_archivo.
+     */
     $stmt = $conn->prepare("DELETE FROM archivos_adjuntos WHERE id_archivo=?");
     $stmt->bind_param("i", $id);
     

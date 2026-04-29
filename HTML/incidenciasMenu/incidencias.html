@@ -23,6 +23,26 @@
                 </div>
             </header>
 
+            <!-- Barra de Búsqueda y Filtros -->
+            <div class="search-filters-bar">
+                <div class="search-input-wrapper">
+                    <input type="text" id="searchIncidencia" placeholder="Buscar por descripción, ID, máquina o técnico..." oninput="filtrarIncidencias()">
+                </div>
+                <select id="filtroPrioridad" class="filter-select" onchange="filtrarIncidencias()">
+                    <option value="">Todas las prioridades</option>
+                    <option value="ALTA">Alta</option>
+                    <option value="MEDIA">Media</option>
+                    <option value="BAJA">Baja</option>
+                </select>
+                <select id="filtroEstado" class="filter-select" onchange="filtrarIncidencias()">
+                    <option value="">Todos los estados</option>
+                    <option value="Abierto">Abierto</option>
+                    <option value="En Proceso">En Proceso</option>
+                    <option value="Cerrado">Cerrado</option>
+                </select>
+                <span id="contadorIncidencias" class="search-results-count">0 resultados</span>
+            </div>
+
             <section class="table-container">
                 <table>
                     <thead>
@@ -46,6 +66,8 @@
 
     <script src="../../Js/app.js"></script>
     <script>
+        let incidenciasData = [];
+
         async function cargarIncidencias() {
             const tbody = document.getElementById('tabla-incidencias-body');
             tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">Cargando incidencias... ⚙️</td></tr>';
@@ -53,30 +75,60 @@
             const res = await api('GET', '../../api/incidencias/incidencias.php');
 
             if (res && res.incidencias) {
-                tbody.innerHTML = '';
-                if (res.incidencias.length > 0) {
-                    res.incidencias.forEach(i => {
-                        const pClass = i.prioridad === 'ALTA' ? 'danger' : (i.prioridad === 'MEDIA' ? 'warning' : 'success');
-                        const sClass = i.estado === 'Abierto' ? 'danger' : 'warning';
-
-                        tbody.innerHTML += `
-                            <tr>
-                                <td><strong>${i.id_orden}</strong></td>
-                                <td>${i.id_maquina}</td>
-                                <td>${i.fecha_apertura}</td>
-                                <td><span class="status-badge ${pClass}">${i.prioridad}</span></td>
-                                <td>${i.descripcion}</td>
-                                <td>${i.tecnico_asignado || 'Sin asignar'}</td>
-                                <td><span class="status-badge ${sClass}">${i.estado}</span></td>
-                                <td class="action-buttons">
-                                    <button class="btn-icon" onclick="ver(${i.id_orden})">👁️</button>
-                                </td>
-                            </tr>`;
-                    });
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No hay incidencias.</td></tr>';
-                }
+                incidenciasData = res.incidencias;
+                filtrarIncidencias(); // Delegamos el renderizado al filtro
+            } else {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #e74c3c;">Error al cargar las incidencias.</td></tr>';
             }
+        }
+
+        function filtrarIncidencias() {
+            const texto = document.getElementById('searchIncidencia').value.toLowerCase().trim();
+            const prioridad = document.getElementById('filtroPrioridad').value;
+            const estado = document.getElementById('filtroEstado').value;
+            const tbody = document.getElementById('tabla-incidencias-body');
+
+            const filtradas = incidenciasData.filter(i => {
+                const desc = (i.descripcion || '').toLowerCase();
+                const id = String(i.id_orden || '');
+                const maq = (i.id_maquina || '').toLowerCase();
+                const tec = (i.tecnico_asignado || '').toLowerCase();
+                
+                const coincideTexto = !texto || desc.includes(texto) || id.includes(texto) || maq.includes(texto) || tec.includes(texto);
+                const coincidePrioridad = !prioridad || i.prioridad === prioridad;
+                const coincideEstado = !estado || i.estado === estado;
+
+                return coincideTexto && coincidePrioridad && coincideEstado;
+            });
+
+            document.getElementById('contadorIncidencias').textContent = filtradas.length + ' resultado' + (filtradas.length !== 1 ? 's' : '');
+
+            tbody.innerHTML = '';
+            if (filtradas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #7f8c8d;">No se encontraron incidencias con esos criterios.</td></tr>';
+                return;
+            }
+
+            filtradas.forEach(i => {
+                const pClass = i.prioridad === 'ALTA' ? 'danger' : (i.prioridad === 'MEDIA' ? 'warning' : 'success');
+                let sClass = 'warning';
+                if (i.estado === 'Abierto') sClass = 'danger';
+                if (i.estado === 'Cerrado') sClass = 'success';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${i.id_orden}</strong></td>
+                        <td>${i.id_maquina}</td>
+                        <td>${i.fecha_apertura}</td>
+                        <td><span class="status-badge ${pClass}">${i.prioridad}</span></td>
+                        <td>${i.descripcion}</td>
+                        <td>${i.tecnico_asignado || 'Sin asignar'}</td>
+                        <td><span class="status-badge ${sClass}">${i.estado}</span></td>
+                        <td class="action-buttons">
+                            <button class="btn-icon" onclick="ver(${i.id_orden})">👁️</button>
+                        </td>
+                    </tr>`;
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {

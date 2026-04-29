@@ -15,10 +15,17 @@
                 <p>Gestión de empresas suministradoras y contactos técnicos</p>
             </div>
             <div class="header-actions">
-                <input type="text" id="searchProveedor" placeholder="Buscar proveedor..." style="padding: 10px; border-radius: 6px; border: 1px solid var(--border); margin-right: 10px;">
                 <button class="btn btn-primary" onclick="nuevoProveedor()">+ Nuevo Proveedor</button>
             </div>
         </header>
+
+        <!-- Barra de Búsqueda y Filtros -->
+        <div class="search-filters-bar">
+            <div class="search-input-wrapper">
+                <input type="text" id="searchProveedor" placeholder="Buscar por empresa, contacto, teléfono o email..." oninput="filtrarProveedores()">
+            </div>
+            <span id="contadorProveedores" class="search-results-count">0 resultados</span>
+        </div>
 
         <section class="table-container">
             <table>
@@ -87,41 +94,61 @@
             const res = await api('GET', '../../api/activos/proveedores.php');
             
             if (res && res.ok) {
-                tbody.innerHTML = '';
                 proveedoresData = res.proveedores || [];
-                
-                if (proveedoresData.length > 0) {
-                    proveedoresData.forEach(prov => {
-                        const id = prov.id_proveedor;
-                        const empresa = prov.empresa;
-                        const contacto = prov.contacto || '-';
-                        const email = prov.email || '';
-                        const telefono = prov.telefono || '';
-                        const telEmail = (telefono && email) ? `${telefono} <br> <small>${email}</small>` : (telefono || email || '-');
-                        const equipos = prov.equipos || 'Variados';
-                        
-                        tbody.innerHTML += `
-                            <tr>
-                                <td><strong>PRV-${id}</strong></td>
-                                <td>${empresa}</td>
-                                <td>${contacto}</td>
-                                <td>${telEmail}</td>
-                                <td>${equipos}</td>
-                                <td class="action-buttons">
-                                    <button class="btn-icon" title="Editar" onclick="editarProveedor(${id})">✏️</button>
-                                    <button class="btn-icon" title="Eliminar" style="color: #e74c3c;" onclick="borrarProveedor(${id})">🗑️</button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">No hay proveedores registrados en la base de datos.</td></tr>';
-                }
+                filtrarProveedores(); // Delegamos el renderizado al filtro
             } else {
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">
                     <strong>⚠️ Error al conectar con la base de datos:</strong><br> ${res.error || 'Verifica que el servidor Ubuntu esté encendido.'}
                 </td></tr>`;
             }
+        }
+
+        // ── Función de filtrado en cliente ──
+        function filtrarProveedores() {
+            const texto = document.getElementById('searchProveedor').value.toLowerCase().trim();
+            const tbody = document.getElementById('tabla-proveedores-body');
+
+            const filtrados = proveedoresData.filter(prov => {
+                const empresa = (prov.empresa || '').toLowerCase();
+                const contacto = (prov.contacto || '').toLowerCase();
+                const telefono = (prov.telefono || '').toLowerCase();
+                const email = (prov.email || '').toLowerCase();
+                const equipos = (prov.equipos || '').toLowerCase();
+                const id = String(prov.id_proveedor || '');
+
+                return !texto || empresa.includes(texto) || contacto.includes(texto) || telefono.includes(texto) || email.includes(texto) || equipos.includes(texto) || id.includes(texto);
+            });
+
+            document.getElementById('contadorProveedores').textContent = filtrados.length + ' resultado' + (filtrados.length !== 1 ? 's' : '');
+
+            tbody.innerHTML = '';
+            if (filtrados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">No se encontraron proveedores con esos criterios.</td></tr>';
+                return;
+            }
+            filtrados.forEach(prov => {
+                const id = prov.id_proveedor;
+                const empresa = prov.empresa;
+                const contacto = prov.contacto || '-';
+                const email = prov.email || '';
+                const telefono = prov.telefono || '';
+                const telEmail = (telefono && email) ? `${telefono} <br> <small>${email}</small>` : (telefono || email || '-');
+                const equipos = prov.equipos || 'Variados';
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>PRV-${id}</strong></td>
+                        <td>${empresa}</td>
+                        <td>${contacto}</td>
+                        <td>${telEmail}</td>
+                        <td>${equipos}</td>
+                        <td class="action-buttons">
+                            <button class="btn-icon" title="Editar" onclick="editarProveedor(${id})">✏️</button>
+                            <button class="btn-icon" title="Eliminar" style="color: #e74c3c;" onclick="borrarProveedor(${id})">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
         }
 
         function nuevoProveedor() {

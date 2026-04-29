@@ -7,6 +7,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 $conn = conectar();
+/**
+ * Obtiene todas las incidencias de la tabla 'incidencias'.
+ * Los resultados se ordenan por 'fecha_apertura' de forma descendente, mostrando primero las más recientes.
+ */
 $query = "SELECT * FROM incidencias ORDER BY fecha_apertura DESC";
 $res = $conn->query($query);
 

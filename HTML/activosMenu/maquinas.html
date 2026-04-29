@@ -24,6 +24,20 @@
                 </div>
             </header>
 
+            <!-- Barra de Búsqueda y Filtros -->
+            <div class="search-filters-bar">
+                <div class="search-input-wrapper">
+                    <input type="text" id="searchMaquina" placeholder="Buscar por nombre, ID o ubicación..." oninput="filtrarMaquinas()">
+                </div>
+                <select id="filtroEstado" class="filter-select" onchange="filtrarMaquinas()">
+                    <option value="">Todos los estados</option>
+                    <option value="Activa">Activa</option>
+                    <option value="En Mantenimiento">En Mantenimiento</option>
+                    <option value="Baja">Baja</option>
+                </select>
+                <span id="contadorMaquinas" class="search-results-count">0 resultados</span>
+            </div>
+
             <section class="table-container">
                 <table>
                     <thead>
@@ -144,44 +158,8 @@
             const res = await api('GET', '../../api/activos/maquinas.php');
 
             if (res && res.ok) {
-                tbody.innerHTML = '';
                 maquinasData = res.maquinas || [];
-
-                if (maquinasData.length > 0) {
-                    maquinasData.forEach(maq => {
-                        const id = maq.id_maquina || maq.id || 'N/A';
-                        const nombre = maq.nombre || maq.descripcion || 'Sin nombre';
-                        const estado = maq.estado || 'Activo';
-                        const ubicacion = maq.ubicacion || maq.sector || 'Taller Principal';
-
-                        // Formatear fecha para mostrar
-                        let fecha = maq.ultima_revision || maq.fecha_alta || '12/03/2026';
-                        if (fecha.includes(' ')) fecha = fecha.split(' ')[0]; // Quitar hora si existe
-
-                        // Determinamos el color de la etiqueta ("badge") según el estado
-                        let badgeClass = 'success';
-                        let estadoTexto = estado.toLowerCase();
-                        if (estadoTexto.includes('mant') || estadoTexto.includes('rep')) badgeClass = 'warning';
-                        if (estadoTexto.includes('baja') || estadoTexto.includes('rot')) badgeClass = 'danger';
-
-                        tbody.innerHTML += `
-                                <tr>
-                                    <td><strong>MAQ-${id}</strong></td>
-                                    <td>${nombre}</td>
-                                    <td><span class="status-badge ${badgeClass}">${estado}</span></td>
-                                    <td>${ubicacion}</td>
-                                    <td>${fecha}</td>
-                                    <td class="action-buttons">
-                                        <button class="btn-icon" title="Ver Piezas" onclick="abrirModalPiezas(${id})">📦</button>
-                                        <button class="btn-icon" title="Editar" onclick="editarMaquina(${id})">✏️</button>
-                                        <button class="btn-icon" title="Eliminar" style="color: #e74c3c;" onclick="borrarMaquina(${id})">🗑️</button>
-                                    </td>
-                                </tr>
-                            `;
-                    });
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">No hay máquinas registradas en la base de datos.</td></tr>';
-                }
+                filtrarMaquinas(); // Delegamos el renderizado al filtro
             } else {
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">
                         <strong>⚠️ Error al conectar con la base de datos:</strong><br> ${res.error || 'Verifica que el servidor Ubuntu esté encendido.'}
@@ -380,6 +358,60 @@
                     alert('Error al eliminar: ' + res.error);
                 }
             }
+        }
+
+        // ── Función de filtrado en cliente ──
+        function filtrarMaquinas() {
+            const texto = document.getElementById('searchMaquina').value.toLowerCase().trim();
+            const estado = document.getElementById('filtroEstado').value;
+            const tbody = document.getElementById('tabla-maquinas-body');
+
+            const filtradas = maquinasData.filter(maq => {
+                const id = String(maq.id_maquina || maq.id || '');
+                const nombre = (maq.nombre || '').toLowerCase();
+                const ubicacion = (maq.ubicacion || '').toLowerCase();
+                const estadoMaq = maq.estado || '';
+
+                const coincideTexto = !texto || nombre.includes(texto) || id.includes(texto) || ubicacion.includes(texto);
+                const coincideEstado = !estado || estadoMaq === estado;
+                return coincideTexto && coincideEstado;
+            });
+
+            document.getElementById('contadorMaquinas').textContent = filtradas.length + ' resultado' + (filtradas.length !== 1 ? 's' : '');
+
+            tbody.innerHTML = '';
+            if (filtradas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">No se encontraron máquinas con esos criterios.</td></tr>';
+                return;
+            }
+            filtradas.forEach(maq => {
+                const id = maq.id_maquina || maq.id || 'N/A';
+                const nombre = maq.nombre || 'Sin nombre';
+                const estadoM = maq.estado || 'Activo';
+                const ubicacion = maq.ubicacion || 'Taller Principal';
+                let fecha = maq.ultima_revision || '';
+                if (fecha.includes(' ')) fecha = fecha.split(' ')[0];
+
+                let badgeClass = 'success';
+                let estadoTexto = estadoM.toLowerCase();
+                if (estadoTexto.includes('mant') || estadoTexto.includes('rep')) badgeClass = 'warning';
+                if (estadoTexto.includes('baja') || estadoTexto.includes('rot')) badgeClass = 'danger';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>MAQ-${id}</strong></td>
+                        <td>${nombre}</td>
+                        <td><span class="status-badge ${badgeClass}">${estadoM}</span></td>
+                        <td>${ubicacion}</td>
+                        <td>${fecha}</td>
+                        <td class="action-buttons">
+                            <button class="btn-icon" title="Ver Piezas" onclick="abrirModalPiezas(${id})">📦</button>
+                            <button class="btn-icon" title="Editar" onclick="editarMaquina(${id})">✏️</button>
+                            <button class="btn-icon" title="Eliminar" style="color: #e74c3c;" onclick="borrarMaquina(${id})">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
