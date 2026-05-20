@@ -133,10 +133,12 @@ if ($m === 'PUT') {
 
     //Preparamos la consulta SQL para actualizar la gama en la base de datos. La consulta se prepara con marcadores de posición (?) para evitar inyecciones SQL. Luego, se vinculan los 
     //parámetros con los valores proporcionados por el cliente y se ejecuta la consulta.
-    $s = $conn->prepare("UPDATE gamas_mantenimiento SET nombre=?, tipo_mantenimiento=?, tipo_gama=? WHERE id_gama=?");
-    $s->bind_param("sssi", $nombre, $tipo_mantenimiento, $tipo_gama, $id_gama);
-    $ok = $s->execute(); 
-    $s->close(); 
+    $descripcion        = isset($b['descripcion']) && $b['descripcion'] !== null ? trim($b['descripcion']) : null;
+
+    $s = $conn->prepare("UPDATE gamas_mantenimiento SET nombre=?, tipo_mantenimiento=?, tipo_gama=?, descripcion=? WHERE id_gama=?");
+    $s->bind_param("ssssi", $nombre, $tipo_mantenimiento, $tipo_gama, $descripcion, $id_gama);
+    $ok = $s->execute();
+    $s->close();
     $conn->close();
     if (!$ok) respuestaError('Error al modificar la gama.', 500);
     respuestaOk(['msg' => 'Gama actualizada correctamente.']);

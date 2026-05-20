@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planes de Mantenimiento - ERP</title>
+    <meta name="description" content="Gestión de planes de mantenimiento preventivo asignados a las máquinas del taller.">
+
+    <link rel="stylesheet" href="../../CSS/estilos.css">
+    <link rel="stylesheet" href="../../CSS/menu.css">
+
+    <style>
+        /* Hover en filas de plan */
+        tr.fila-plan:hover td { background-color: #fef9f5; }
+        body.dark-mode tr.fila-plan:hover td { background-color: #2a2218; }
+        tr.fila-plan td:first-child { border-left: 3px solid transparent; transition: border-color 0.15s; }
+        tr.fila-plan:hover td:first-child { border-left-color: var(--primary); }
+
+        /* Indicador de expansión */
+        .plan-expand-icon { transition: color 0.2s; cursor: default; }
+        tr.fila-plan:hover .plan-expand-icon { color: var(--primary) !important; }
+
+        /* Panel de tareas expandido */
+        .tareas-plan-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 14px 20px;
+            background: #fafafa;
+            animation: slidePlan 0.18s ease-out;
+        }
+        body.dark-mode .tareas-plan-panel { background: #1c1c1c; }
+
+        @keyframes slidePlan {
+            from { opacity: 0; transform: translateY(-5px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mini-tarjeta de tarea */
+        .tarea-mini-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: white;
+            border: 1px solid #edf2f7;
+            border-radius: 8px;
+            padding: 10px 14px;
+            min-width: 240px;
+            max-width: 320px;
+            flex: 1;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+        body.dark-mode .tarea-mini-card { background: #252525; border-color: #383838; }
+
+        .tarea-mini-paso {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            font-size: 0.85em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+            margin-top: 1px;
+        }
+
+        .tarea-mini-body { font-size: 0.88em; line-height: 1.4; }
+
+        /* Chips (reutilizados de tareas_mant) */
+        .chip { display:inline-block; padding:2px 7px; border-radius:12px; font-size:0.75em; font-weight:600; margin-right:3px; }
+        .chip-epi       { background:#fce4d6; color:#c0392b; border:1px solid #f5a982; }
+        .chip-seguridad { background:#fff3cd; color:#856404; border:1px solid #ffd666; }
+        .chip-medamb    { background:#d4edda; color:#155724; border:1px solid #b8dacc; }
+    </style>
+</head>
+<body>
+    <div class="app-body theme-mantenimiento">
+        <main class="main-content">
+
+            <!-- CABECERA -->
+            <div class="header">
+                <div class="header-info">
+                    <h1>📅 Planes de Mantenimiento</h1>
+                    <p>Planificación de intervenciones preventivas asignadas a las máquinas.</p>
+                </div>
+                <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="inputBuscarPlan" placeholder="Buscar por ID, máquina o gama..." class="form-control" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 270px;">
+                    <button class="btn btn-secondary" id="btnBuscarPlan">🔍 Buscar</button>
+                    <button class="btn btn-primary" id="btnNuevoPlan">➕ Nuevo Plan</button>
+                </div>
+            </div>
+
+            <!-- TABLA DE PLANES -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-id">ID</th>
+                            <th>Máquina</th>
+                            <th>Gama</th>
+                            <th>Frecuencia</th>
+                            <th>Horas Intervalo</th>
+                            <th>Dificultad</th>
+                            <th>Duración Est.</th>
+                            <th>Estado</th>
+                            <th class="col-acciones">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTablaPlanes">
+                        <tr><td colspan="9" style="text-align: center;">Cargando datos desde la base de datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ===== MODAL CREAR / EDITAR PLAN ===== -->
+    <div id="modalPlan" class="modal-overlay">
+        <div class="modal-content" style="width: 640px; max-width: 96vw;">
+            <div class="modal-header">
+                <h2 id="modalPlanTitulo">Nuevo Plan de Mantenimiento</h2>
+                <button class="btn-close" onclick="cerrarModalPlan()" title="Cerrar">✕</button>
+            </div>
+
+            <form id="formPlan" onsubmit="guardarPlan(event)" style="padding: 0;">
+                <input type="hidden" id="plan_id">
+
+                <!-- ── SECCIÓN 1: Asignación ───────────────────────── -->
+                <div class="modal-section">
+                    <div class="modal-section-header">
+                        <span class="modal-section-icon">🏭</span>
+                        <span>Asignación</span>
+                    </div>
+                    <div class="modal-section-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label for="plan_id_maquina">Máquina <span class="required">*</span></label>
+                            <select id="plan_id_maquina" required>
+                                <option value="">-- Selecciona una máquina --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="plan_id_gama">Gama de Mantenimiento <span class="required">*</span></label>
+                            <select id="plan_id_gama" required>
+                                <option value="">-- Selecciona una gama --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SECCIÓN 2: Planificación temporal ─────────────── -->
+                <div class="modal-section">
+                    <div class="modal-section-header">
+                        <span class="modal-section-icon">🔁</span>
+                        <span>Planificación Temporal</span>
+                    </div>
+                    <div class="modal-section-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label for="plan_id_frecuencia">Frecuencia <span class="required">*</span></label>
+                            <select id="plan_id_frecuencia" required>
+                                <option value="">-- Selecciona frecuencia --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="plan_horas_intervalo">
+                                Horas de intervalo
+                                <span class="campo-opcional">solo si frecuencia = Por Horas</span>
+                            </label>
+                            <input type="number" id="plan_horas_intervalo" min="1" max="99999" placeholder="Ej: 500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SECCIÓN 3: Configuración ───────────────────────── -->
+                <div class="modal-section" style="border-bottom: none;">
+                    <div class="modal-section-header">
+                        <span class="modal-section-icon">⚙️</span>
+                        <span>Configuración de la Intervención</span>
+                    </div>
+                    <div class="modal-section-body" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label for="plan_id_dificultad">Dificultad <span class="required">*</span></label>
+                            <select id="plan_id_dificultad" required>
+                                <option value="">-- Selecciona --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="plan_duracion_estimada">
+                                Duración estimada
+                                <span class="campo-opcional">minutos</span>
+                            </label>
+                            <input type="number" id="plan_duracion_estimada" min="1" max="99999" placeholder="Ej: 120">
+                        </div>
+                        <div class="form-group">
+                            <label for="plan_activo">Estado</label>
+                            <select id="plan_activo">
+                                <option value="1">✅ Activo</option>
+                                <option value="0">⏸️ Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="padding: 16px 24px; border-top: 1px solid #edf2f7; margin: 0;">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalPlan()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnGuardarPlan">💾 Guardar Plan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script src="../../Js/app.js"></script>
+    <script src="../../Js/planes.js"></script>
+</body>
+</html>
