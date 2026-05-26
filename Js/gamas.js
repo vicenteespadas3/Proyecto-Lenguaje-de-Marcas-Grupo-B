@@ -1,22 +1,17 @@
-<<<<<<< HEAD
-// Js/gamas.js
-// CRUD completo para Gamas de Mantenimiento
-
-let gamasData = []; // Array global para poder editar sin volver a llamar a la API
-=======
 // =========================================================================
 // ARCHIVO: Js/gamas.js
 // PROPÓSITO: Gestión de gamas de mantenimiento (Planes maestros).
 // REFERENCIA WEB: HTML/mantenimientoMenu/gamas.html
 // =========================================================================
->>>>>>> e233ee8207e4e1f79743112ac960dcf90e3fb126
+
+let gamasData = []; // Array global para poder editar sin volver a llamar a la API            
 
 document.addEventListener('DOMContentLoaded', async () => {
     renderMenu();
     await cargarTabla();
 
     // --- BÚSQUEDA ---
-    const btnBuscarGama   = document.getElementById('btnBuscarGama');
+    const btnBuscarGama = document.getElementById('btnBuscarGama');
     const inputBuscarGama = document.getElementById('inputBuscarGama');
 
     if (btnBuscarGama && inputBuscarGama) {
@@ -33,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // --- CERRAR MODAL AL CLIC FUERA ---
-    document.getElementById('modalGama').addEventListener('click', function(e) {
+    document.getElementById('modalGama').addEventListener('click', function (e) {
         if (e.target === this) cerrarModalGama();
     });
 });
@@ -68,7 +63,7 @@ async function cargarTabla(query = '') {
         const fila = document.createElement('tr');
         fila.innerHTML = `
             <td class="col-id">${gama.id_gama}</td>
-            <td><strong>${gama.nombre}</strong>${gama.descripcion ? `<br><small style="color:#95a5a6">${gama.descripcion.substring(0,60)}${gama.descripcion.length > 60 ? '…' : ''}</small>` : ''}</td>
+            <td><strong>${gama.nombre}</strong>${gama.descripcion ? `<br><small style="color:#95a5a6">${gama.descripcion.substring(0, 60)}${gama.descripcion.length > 60 ? '…' : ''}</small>` : ''}</td>
             <td>
                 <span class="status-badge badge-${gama.tipo_mantenimiento}">
                     ${gama.tipo_mantenimiento.toUpperCase()}
@@ -103,12 +98,12 @@ function editarGama(id) {
     const gama = gamasData.find(g => g.id_gama == id);
     if (!gama) { alert('No se encontraron los datos de la gama. Recarga la página.'); return; }
 
-    document.getElementById('modalGamaTitulo').textContent    = '✏️ Editar Gama de Mantenimiento';
-    document.getElementById('gama_id').value                  = gama.id_gama;
-    document.getElementById('gama_nombre').value              = gama.nombre           || '';
-    document.getElementById('gama_tipo_mantenimiento').value  = gama.tipo_mantenimiento || 'preventivo';
-    document.getElementById('gama_tipo_gama').value           = gama.tipo_gama        || 'mecanico';
-    document.getElementById('gama_descripcion').value         = gama.descripcion      || '';
+    document.getElementById('modalGamaTitulo').textContent = '✏️ Editar Gama de Mantenimiento';
+    document.getElementById('gama_id').value = gama.id_gama;
+    document.getElementById('gama_nombre').value = gama.nombre || '';
+    document.getElementById('gama_tipo_mantenimiento').value = gama.tipo_mantenimiento || 'preventivo';
+    document.getElementById('gama_tipo_gama').value = gama.tipo_gama || 'mecanico';
+    document.getElementById('gama_descripcion').value = gama.descripcion || '';
 
     document.getElementById('modalGama').classList.add('show');
 }
@@ -124,11 +119,11 @@ function cerrarModalGama() {
 async function guardarGama(evento) {
     evento.preventDefault();
 
-    const id                 = document.getElementById('gama_id').value;
-    const nombre             = document.getElementById('gama_nombre').value.trim();
+    const id = document.getElementById('gama_id').value;
+    const nombre = document.getElementById('gama_nombre').value.trim();
     const tipo_mantenimiento = document.getElementById('gama_tipo_mantenimiento').value;
-    const tipo_gama          = document.getElementById('gama_tipo_gama').value;
-    const descripcion        = document.getElementById('gama_descripcion').value.trim();
+    const tipo_gama = document.getElementById('gama_tipo_gama').value;
+    const descripcion = document.getElementById('gama_descripcion').value.trim();
 
     if (!nombre) { alert('El nombre de la gama es obligatorio.'); return; }
 
@@ -138,12 +133,12 @@ async function guardarGama(evento) {
     if (id !== '') { metodo = 'PUT'; datos.id_gama = parseInt(id); }
 
     const btnGuardar = document.getElementById('btnGuardarGamaModal');
-    btnGuardar.disabled    = true;
+    btnGuardar.disabled = true;
     btnGuardar.textContent = 'Guardando...';
 
     const respuesta = await api(metodo, '../../api/mantenimiento/gamas.php', datos);
 
-    btnGuardar.disabled    = false;
+    btnGuardar.disabled = false;
     btnGuardar.textContent = '💾 Guardar Gama';
 
     if (respuesta && respuesta.ok !== false) {

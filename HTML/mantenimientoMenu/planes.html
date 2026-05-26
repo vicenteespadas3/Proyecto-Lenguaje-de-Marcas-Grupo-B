@@ -1,82 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planes de Mantenimiento - ERP</title>
-    <meta name="description" content="Gestión de planes de mantenimiento preventivo asignados a las máquinas del taller.">
+    <meta name="description"
+        content="Gestión de planes de mantenimiento preventivo asignados a las máquinas del taller.">
 
     <link rel="stylesheet" href="../../CSS/estilos.css">
     <link rel="stylesheet" href="../../CSS/menu.css">
-
-    <style>
-        /* Hover en filas de plan */
-        tr.fila-plan:hover td { background-color: #fef9f5; }
-        body.dark-mode tr.fila-plan:hover td { background-color: #2a2218; }
-        tr.fila-plan td:first-child { border-left: 3px solid transparent; transition: border-color 0.15s; }
-        tr.fila-plan:hover td:first-child { border-left-color: var(--primary); }
-
-        /* Indicador de expansión */
-        .plan-expand-icon { transition: color 0.2s; cursor: default; }
-        tr.fila-plan:hover .plan-expand-icon { color: var(--primary) !important; }
-
-        /* Panel de tareas expandido */
-        .tareas-plan-panel {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding: 14px 20px;
-            background: #fafafa;
-            animation: slidePlan 0.18s ease-out;
-        }
-        body.dark-mode .tareas-plan-panel { background: #1c1c1c; }
-
-        @keyframes slidePlan {
-            from { opacity: 0; transform: translateY(-5px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Mini-tarjeta de tarea */
-        .tarea-mini-card {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            background: white;
-            border: 1px solid #edf2f7;
-            border-radius: 8px;
-            padding: 10px 14px;
-            min-width: 240px;
-            max-width: 320px;
-            flex: 1;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-        }
-        body.dark-mode .tarea-mini-card { background: #252525; border-color: #383838; }
-
-        .tarea-mini-paso {
-            width: 28px;
-            height: 28px;
-            min-width: 28px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: white;
-            font-weight: bold;
-            font-size: 0.85em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-            margin-top: 1px;
-        }
-
-        .tarea-mini-body { font-size: 0.88em; line-height: 1.4; }
-
-        /* Chips (reutilizados de tareas_mant) */
-        .chip { display:inline-block; padding:2px 7px; border-radius:12px; font-size:0.75em; font-weight:600; margin-right:3px; }
-        .chip-epi       { background:#fce4d6; color:#c0392b; border:1px solid #f5a982; }
-        .chip-seguridad { background:#fff3cd; color:#856404; border:1px solid #ffd666; }
-        .chip-medamb    { background:#d4edda; color:#155724; border:1px solid #b8dacc; }
-    </style>
+    <link rel="stylesheet" href="../../CSS/mantenimiento.css">
 </head>
+
 <body>
     <div class="app-body theme-mantenimiento">
         <main class="main-content">
@@ -88,7 +24,9 @@
                     <p>Planificación de intervenciones preventivas asignadas a las máquinas.</p>
                 </div>
                 <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
-                    <input type="text" id="inputBuscarPlan" placeholder="Buscar por ID, máquina o gama..." class="form-control" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 270px;">
+                    <input type="text" id="inputBuscarPlan" placeholder="Buscar por ID, máquina o gama..."
+                        class="form-control"
+                        style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 270px;">
                     <button class="btn btn-secondary" id="btnBuscarPlan">🔍 Buscar</button>
                     <button class="btn btn-primary" id="btnNuevoPlan">➕ Nuevo Plan</button>
                 </div>
@@ -111,7 +49,9 @@
                         </tr>
                     </thead>
                     <tbody id="cuerpoTablaPlanes">
-                        <tr><td colspan="9" style="text-align: center;">Cargando datos desde la base de datos...</td></tr>
+                        <tr>
+                            <td colspan="9" style="text-align: center;">Cargando datos desde la base de datos...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -181,7 +121,8 @@
                         <span class="modal-section-icon">⚙️</span>
                         <span>Configuración de la Intervención</span>
                     </div>
-                    <div class="modal-section-body" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                    <div class="modal-section-body"
+                        style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
                         <div class="form-group">
                             <label for="plan_id_dificultad">Dificultad <span class="required">*</span></label>
                             <select id="plan_id_dificultad" required>
@@ -217,4 +158,5 @@
     <script src="../../Js/app.js"></script>
     <script src="../../Js/planes.js"></script>
 </body>
+
 </html>
