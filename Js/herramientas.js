@@ -140,7 +140,7 @@ function cargarFiltrosHerramientas() {
  * Filtra las herramientas mostradas en la tabla según la opción del desplegable único.
  */
 function filtrarHerramientas() {
-    // 1. LEER EL INPUT DE TEXTO (Esto es lo que faltaba)
+    // 1. LEER EL INPUT DE TEXTO
     const input = document.getElementById("busquedaHerramienta");
     const textoBuscado = input.value.toUpperCase();
 
@@ -154,7 +154,7 @@ function filtrarHerramientas() {
         // Omitimos filas especiales que no contienen datos
         if (fila.cells.length === 1) continue;
 
-        // 2. COMPROBAR SI EL TEXTO COINCIDE (Igual que en piezas)
+        // 2. COMPROBAR SI EL TEXTO COINCIDE
         const textoFila = fila.textContent || fila.innerText;
         const coincideTexto = textoFila.toUpperCase().includes(textoBuscado);
 
