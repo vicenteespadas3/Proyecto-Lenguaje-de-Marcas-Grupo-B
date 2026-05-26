@@ -2,6 +2,8 @@
 // ============================================================
 //  api/herramientas.php — CRUD completo para Herramientas
 // ============================================================
+// Referencia en la web:
+//   - Pantalla "Gestión de Herramientas" (HTML/inventarioMenu/herramientas.html)
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 

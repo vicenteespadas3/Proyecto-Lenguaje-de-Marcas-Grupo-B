@@ -8,6 +8,9 @@
  *   adjuntos de la aplicación. Estos archivos suelen ser manuales, fichas técnicas,
  *   garantías u otros documentos asociados a las máquinas del taller.
  *
+ * Referencia en la web:
+ *   - Pantalla "Archivos" (HTML/activosMenu/archivos.html).
+ *   - Podría ser usado también en modales de detalles de máquina.
  * Funciones Principales:
  *   - GET: Obtener un archivo por ID o listar todos los archivos ordenados de forma descendente.
  *   - POST: Registrar un nuevo archivo y asociarlo a una máquina.

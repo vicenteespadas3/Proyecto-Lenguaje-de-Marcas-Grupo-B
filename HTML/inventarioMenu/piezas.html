@@ -30,6 +30,11 @@
                 </div>
             </header>
 
+            <!-- ==================================================================
+                 TABLA DE DATOS
+                 Se rellena dinámicamente desde Js/piezas.js -> cargarPiezas()
+                 Interactúa con api/inventario/piezas.php
+                 ================================================================== -->
             <section class="table-container">
                 <table>
                     <thead>
@@ -50,7 +55,9 @@
         </main>
     </div>
 
-    <!-- Modal para Añadir / Editar Pieza -->
+    <!-- ==================================================================
+         MODAL PARA AÑADIR / EDITAR PIEZA
+         ================================================================== -->
     <div id="modalPieza" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -99,6 +106,7 @@
     </div>
 
     <script src="../../Js/app.js"></script>
+    <!-- Controlador específico de Piezas -->
     <script src="../../Js/piezas.js"></script>
 </body>
 

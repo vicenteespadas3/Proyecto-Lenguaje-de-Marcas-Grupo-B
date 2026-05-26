@@ -1,4 +1,9 @@
 <?php
+// ============================================================
+//  api/dashboard/resumen.php
+// ============================================================
+// Referencia en la web:
+//   - Pantalla "Panel de Control" (HTML/inicio.html)
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 

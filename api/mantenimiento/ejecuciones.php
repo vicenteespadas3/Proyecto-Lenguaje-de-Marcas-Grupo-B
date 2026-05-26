@@ -2,6 +2,8 @@
 // ============================================================
 //  api/mantenimiento/ejecuciones.php  —  CRUD para Ejecuciones
 // ============================================================
+// Referencia en la web:
+//   - Pantalla "Historial de Ejecuciones" (HTML/mantenimientoMenu/ejecuciones.html)
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 

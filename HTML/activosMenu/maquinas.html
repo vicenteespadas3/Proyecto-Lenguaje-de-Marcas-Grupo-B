@@ -205,10 +205,17 @@
 
     <script src="../../Js/app.js"></script>
     <script>
-        let maquinasData = [];
-        let ordenAsc = true;
-        let criterioOrden = 'id'; // Por defecto ordenado por id
+        /* ==========================================================================
+          LÓGICA JAVASCRIPT (Controlador del Frontend)
+          Interactúa con: ../../api/activos/maquinas.php y ../../api/inventario/piezas.php
+        =========================================================================== */
+        let maquinasData = []; // Array temporal para guardar los datos cargados desde PHP
+        let ordenAsc = true;   // Estado de la dirección de la ordenación
+        let criterioOrden = 'id'; // Columna por la cual se está ordenando
 
+        /**
+         * Petición principal (GET) para traer la lista de máquinas desde la base de datos
+         */
         async function cargarMaquinas() {
             const tbody = document.getElementById('tabla-maquinas-body');
             tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">Cargando inventario... ⚙️</td></tr>';
@@ -319,6 +326,10 @@
             filtrarMaquinas();
         }
 
+        /**
+         * Aplica los valores de los inputs de búsqueda y filtros al array `maquinasData`.
+         * Renderiza el HTML de la tabla con los resultados obtenidos.
+         */
         function filtrarMaquinas() {
             const search = document.getElementById('searchMaquina').value.toLowerCase();
             const estadoF = document.getElementById('filtroEstado').value;
@@ -375,6 +386,9 @@
             });
         }
 
+        /**
+         * Abre el modal preparado para registrar una NUEVA máquina.
+         */
         function abrirModalAlta() {
             document.getElementById('modalTitulo').textContent = 'Añadir Nueva Máquina';
             document.getElementById('formMaquina').reset();
@@ -382,6 +396,10 @@
             document.getElementById('modalMaquina').classList.add('show');
         }
 
+        /**
+         * Abre el modal cargando los datos de una máquina existente para editarla.
+         * @param {number} id - El identificador de la máquina
+         */
         function editarMaquina(id) {
             const m = maquinasData.find(x => x.id_maquina == id);
             if (!m) return;
@@ -400,6 +418,10 @@
             document.getElementById(id).classList.remove('show');
         }
 
+        /**
+         * Maneja el envío (submit) del formulario de crear/editar máquina.
+         * Llama a: api/activos/maquinas.php (POST o PUT)
+         */
         async function guardarMaquina(e) {
             e.preventDefault();
             const id = document.getElementById('maq_id').value;
@@ -416,6 +438,10 @@
             else alert(res.error || 'Error al guardar');
         }
 
+        /**
+         * Elimina una máquina tras solicitar confirmación al usuario.
+         * Llama a: api/activos/maquinas.php (DELETE)
+         */
         async function borrarMaquina(id) {
             if (!confirm('¿Seguro?')) return;
             const res = await api('DELETE', '../../api/activos/maquinas.php', { id_maquina: id });
@@ -423,7 +449,9 @@
             else alert(res.error || 'No se puede eliminar');
         }
 
-        // --- Lógica de piezas (Sara) ---
+        // ========================================================================
+        // Lógica para asociar PIEZAS a la máquina (Modal de Piezas) - Autor: Sara
+        // ========================================================================
         let maquinaActual = null;
         async function abrirModalPiezas(id) {
             maquinaActual = id;

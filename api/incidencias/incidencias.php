@@ -7,6 +7,8 @@
  *   Servicio RESTful para la gestión (CRUD) de incidencias reportadas sobre
  *   las máquinas del taller.
  *
+ * Referencia en la web:
+ *   - Pantalla "Incidencias" (HTML/incidenciasMenu/incidencias.html).
  * Lógica de negocio adicional:
  *   - POST: Al registrar una incidencia, actualiza automáticamente el estado
  *           de la máquina afectada según el tipo de incidencia:

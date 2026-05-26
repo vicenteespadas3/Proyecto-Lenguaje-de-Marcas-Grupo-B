@@ -1,10 +1,22 @@
 <?php
-// api/logout.php  —  POST /api/logout.php
-// cURL: curl -b cookies.txt -X POST http://localhost/api/logout.php
+/**
+ * ============================================================================
+ * Archivo: api/auth/logout.php
+ * ============================================================================
+ * Propósito:
+ *   Cierra la sesión actual del usuario tanto en PHP como dejando un registro
+ *   en la base de datos de auditoría.
+ *
+ * Referencia en la web:
+ *   - Botón "Cerrar sesión" en el menú superior derecho (perfil del usuario).
+ *   - Manejado por la función `cerrarSesion()` en Js/app.js o Js/login.js.
+ * ============================================================================
+ */
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
-iniciarSesion();
 
+// Asegurarse de que hay una sesión iniciada antes de intentar destruirla
+iniciarSesion();
 // Si existe una sesión activa, dejamos constancia de la salida en el registro (log) de la BD
 if (!empty($_SESSION['usuario'])) {
     $conn = conectar();

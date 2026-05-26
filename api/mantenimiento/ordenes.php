@@ -1,6 +1,7 @@
 <?php
 // API interna para listar y crear ordenes de trabajo con PDO.
-
+// Referencia en la web:
+//   - Pantalla "Órdenes de Trabajo" (HTML/mantenimientoMenu/ordenes.html)
 require_once '../config/db_config.php';
 
 header('Content-Type: application/json; charset=utf-8');

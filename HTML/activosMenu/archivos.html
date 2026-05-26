@@ -142,10 +142,18 @@
 
     <script src="../../Js/app.js"></script>
     <script>
-        let archivosData = [];
-        let ordenAsc = true;
+        /* ==========================================================================
+          LÓGICA JAVASCRIPT (Controlador del Frontend)
+          Interactúa con: ../../api/activos/archivos.php
+        =========================================================================== */
+        let archivosData = []; // Almacena temporalmente los datos traídos de la API
+        let ordenAsc = true;   // Controla la dirección del ordenamiento
         let criterioOrden = 'id'; // Por defecto ordenado por id
 
+        /**
+         * Llama a la API (GET) para obtener la lista de archivos.
+         * Actualiza el DOM (tabla) al recibir la respuesta.
+         */
         async function cargarArchivos() {
             const tbody = document.getElementById('tabla-archivos-body');
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando archivos... 📁</td></tr>';
@@ -243,6 +251,10 @@
             filtrarArchivos();
         }
 
+        /**
+         * Aplica los filtros de búsqueda y tipo a la variable `archivosData` 
+         * y dibuja los resultados en la tabla HTML (tbody).
+         */
         function filtrarArchivos() {
             const search = document.getElementById('searchArchivo').value.toLowerCase().trim();
             const tipoF = document.getElementById('filtroTipo').value;
@@ -285,6 +297,9 @@
             });
         }
 
+        /**
+         * Abre el modal (formulario emergente) vacío para registrar un nuevo archivo.
+         */
         function subirArchivo() {
             document.getElementById('modalTituloArch').textContent = 'Subir Archivo';
             document.getElementById('formArchivo').reset();
@@ -292,6 +307,10 @@
             document.getElementById('modalArchivo').classList.add('show');
         }
 
+        /**
+         * Abre el modal cargando los datos de un archivo existente (para edición).
+         * @param {number} id - Identificador del archivo a editar
+         */
         function editarArchivo(id) {
             const a = archivosData.find(x => x.id_archivo == id);
             if (!a) return;
@@ -307,6 +326,11 @@
             document.getElementById('modalArchivo').classList.remove('show');
         }
 
+        /**
+         * Gestiona el envío del formulario del modal (Submit).
+         * Realiza POST si es un nuevo archivo o PUT si se está editando uno existente.
+         * Llama a: api/activos/archivos.php
+         */
         async function guardarArchivo(e) {
             e.preventDefault();
             const id = document.getElementById('arch_id').value;
@@ -320,6 +344,10 @@
             else alert('Error: ' + res.error);
         }
 
+        /**
+         * Elimina un archivo pidiendo confirmación primero.
+         * Llama a: api/activos/archivos.php (DELETE)
+         */
         async function eliminarArchivo(id) {
             if (!confirm('¿Seguro?')) return;
             const res = await api('DELETE', '../../api/activos/archivos.php', { id_archivo: id });

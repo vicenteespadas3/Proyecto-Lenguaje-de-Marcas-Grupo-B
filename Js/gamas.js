@@ -1,4 +1,8 @@
-// Js/gamas.js
+// =========================================================================
+// ARCHIVO: Js/gamas.js
+// PROPÓSITO: Gestión de gamas de mantenimiento (Planes maestros).
+// REFERENCIA WEB: HTML/mantenimientoMenu/gamas.html
+// =========================================================================
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Dibujamos el menú superior

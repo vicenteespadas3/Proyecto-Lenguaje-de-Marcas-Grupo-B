@@ -1,4 +1,9 @@
 <!DOCTYPE html>
+<!-- ==================================================================
+     HTML/inicio.html
+     Página principal (Dashboard general) del ERP.
+     Carga el resumen de incidencias y tareas usando api/dashboard/resumen.php
+     ================================================================== -->
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -16,7 +21,10 @@
                 <p style="color: #7f8c8d; font-size: 1.2em;">Selecciona el módulo en el que deseas trabajar hoy.</p>
             </div>
 
-            <!-- Resumen Dashboard (Incidencias y Tareas) -->
+            <!-- ==================================================================
+                 RESUMEN DASHBOARD (INCIDENCIAS Y TAREAS)
+                 Se rellena dinámicamente con la función cargarResumenDashboard()
+                 ================================================================== -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 40px;">
                 
                 <!-- Panel de Incidencias -->

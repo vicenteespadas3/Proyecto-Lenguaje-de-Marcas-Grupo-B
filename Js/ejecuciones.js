@@ -1,4 +1,8 @@
-// ejecuciones.js - CRUD completo de ejecuciones de mantenimiento.
+// =========================================================================
+// ARCHIVO: Js/ejecuciones.js
+// PROPÓSITO: CRUD completo de ejecuciones de mantenimiento.
+// REFERENCIA WEB: HTML/mantenimientoMenu/ejecuciones.html
+// =========================================================================
 
 const API_EJECUCIONES_URL = '../../api/mantenimiento/ejecuciones.php';
 let ejecucionesCache = [];

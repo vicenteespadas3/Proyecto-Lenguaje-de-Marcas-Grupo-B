@@ -3,6 +3,8 @@
 //  api/inventario/pedidos_opciones.php
 //  Obtiene listas para selects (proveedores y estados)
 // ============================================================
+// Referencia en la web:
+//   - Pantalla "Gestión de Pedidos" (HTML/inventarioMenu/pedidos.html) -> modal de creación
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 

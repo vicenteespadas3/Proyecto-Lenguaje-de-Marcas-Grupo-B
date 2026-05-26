@@ -9,6 +9,8 @@
  *   de variables (presión, temperatura, vibración, etc.), consultarlas,
  *   editarlas y eliminarlas.
  *
+ * Referencia en la web:
+ *   - Pantalla "Análisis de Máquinas" (HTML/incidenciasMenu/analisis.html).
  * Estructura de la tabla `analisis_maquinas`:
  *   - id_analisis     (int, PK, AUTO_INCREMENT)
  *   - id_maquina      (int, FK → maquinas.id_maquina)

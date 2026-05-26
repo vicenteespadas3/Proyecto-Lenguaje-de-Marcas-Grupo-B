@@ -1,4 +1,8 @@
-// incidencias.js - Gestión de incidencias (Búsqueda, Filtros, Ordenación y CRUD)
+// =========================================================================
+// ARCHIVO: Js/incidencias.js
+// PROPÓSITO: Gestión de incidencias (Búsqueda, Filtros, Ordenación y CRUD)
+// REFERENCIA WEB: HTML/incidenciasMenu/incidencias.html y HTML/incidenciasMenu/incidencias_taller.html
+// =========================================================================
 
 let incidenciasData = [];
 let ordenAsc = true;

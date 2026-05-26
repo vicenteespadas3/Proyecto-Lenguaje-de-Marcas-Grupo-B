@@ -43,6 +43,11 @@
                 </div>
             </div>
 
+            <!-- ==================================================================
+                 TABLA DE DATOS
+                 Se rellena dinámicamente desde Js/ejecuciones.js -> cargarEjecuciones()
+                 Interactúa con api/mantenimiento/ejecuciones.php
+                 ================================================================== -->
             <div class="table-container">
                 <table>
                     <thead>
@@ -67,7 +72,9 @@
         </main>
     </div>
 
-    <!-- MODAL NUEVA / EDITAR EJECUCIÓN -->
+    <!-- ==================================================================
+         MODAL NUEVA / EDITAR EJECUCIÓN
+         ================================================================== -->
     <div id="modalEjecucion" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -119,7 +126,9 @@
         </div>
     </div>
 
-    <!-- MODAL DETALLE EJECUCIÓN -->
+    <!-- ==================================================================
+         MODAL DETALLE EJECUCIÓN
+         ================================================================== -->
     <div id="modalDetalleEjecucion" class="modal-overlay">
         <div class="modal-content" style="width: 600px; max-width: 90%;">
             <div class="modal-header">
@@ -135,7 +144,9 @@
         </div>
     </div>
 
-    <!-- MODAL VER TAREAS DE EJECUCIÓN -->
+    <!-- ==================================================================
+         MODAL VER TAREAS DE EJECUCIÓN
+         ================================================================== -->
     <div id="modalTareas" class="modal-overlay">
         <div class="modal-content" style="max-width: 820px; width: 95%;">
             <div class="modal-header">
@@ -156,6 +167,7 @@
     </div>
 
     <script src="../../Js/app.js"></script>
+    <!-- Controlador específico de Ejecuciones -->
     <script src="../../Js/ejecuciones.js"></script>
 </body>
 </html>

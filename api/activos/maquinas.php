@@ -9,6 +9,9 @@
  *   actualizar sus estados u otros campos, y eliminarlas controlando la integridad
  *   referencial en la base de datos.
  *
+ * Referencia en la web:
+ *   - Pantalla "Máquinas" (HTML/activosMenu/maquinas.html).
+ *   - Funciones llamadas mediante fetch() en Js/maquinas.js (si existe) o en la propia vista.
  * Funciones Principales:
  *   - GET: Obtener una máquina por ID o listar todas las máquinas de forma descendente.
  *   - POST: Registrar una nueva máquina con validación de número de serie único.

@@ -1,4 +1,9 @@
 <!DOCTYPE html>
+<!-- ==================================================================
+     HTML/administracionMenu/usuarios.html
+     Interfaz para gestionar usuarios del sistema.
+     Interactúa con api/administracion/usuarios.php a través de Js/usuarios.js
+     ================================================================== -->
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -33,6 +38,10 @@
                 </select>
             </section>
 
+            <!-- ==================================================================
+                 TABLA DE USUARIOS
+                 Se rellena dinámicamente desde Js/usuarios.js -> cargarUsuarios()
+                 ================================================================== -->
             <section class="table-container">
                 <table>
                     <thead>
@@ -51,6 +60,9 @@
         </main>
     </div>
 
+    <!-- ==================================================================
+         MODAL CREAR / EDITAR USUARIO
+         ================================================================== -->
     <div id="modalUsuario" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000;">
         <div style="background:white; width:400px; margin:10% auto; padding:25px; border-radius:12px;">
             <h3 style="color:var(--primary); margin-top:0;">Nuevo Usuario</h3>

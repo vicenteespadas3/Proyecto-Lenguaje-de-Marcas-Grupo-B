@@ -1,4 +1,8 @@
-// Gestion asincrona de la pantalla de Ordenes de Trabajo.
+// =========================================================================
+// ARCHIVO: Js/ordenes.js
+// PROPÓSITO: Gestión asíncrona de la pantalla de Órdenes de Trabajo.
+// REFERENCIA WEB: HTML/mantenimientoMenu/ordenes.html
+// =========================================================================
 
 const API_ORDENES_URL = '../../api/mantenimiento/ordenes.php';
 let ordenesCache = [];

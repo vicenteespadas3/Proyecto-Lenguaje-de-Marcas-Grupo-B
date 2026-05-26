@@ -23,7 +23,11 @@
             </div>
         </div>
 
-        <!-- FORMULARIO NUEVA GAMA (Oculto por defecto, se muestra por JS) -->
+        <!-- ==================================================================
+             FORMULARIO NUEVA GAMA
+             Oculto por defecto, se muestra mediante JS al hacer click en "Nueva Gama"
+             Interactúa con api/mantenimiento/gamas.php vía Js/gamas.js
+             ================================================================== -->
         <div id="formularioNuevaGama" style="display: none; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px;">
             <h3 style="margin-top: 0;">Crear Nueva Gama</h3>
             <div style="display: flex; gap: 15px; margin-bottom: 15px;">
@@ -54,6 +58,10 @@
             </div>
         </div>
 
+        <!-- ==================================================================
+             TABLA DE DATOS
+             Se rellena dinámicamente desde Js/gamas.js -> cargarGamas()
+             ================================================================== -->
         <div class="table-container">
             <table>
                 <thead>
@@ -74,6 +82,7 @@
     </div>
 
     <script src="../../Js/app.js"></script>
+    <!-- Controlador específico de Gamas -->
     <script src="../../Js/gamas.js"></script>
     
 </body>

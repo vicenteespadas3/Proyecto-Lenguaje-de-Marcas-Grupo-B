@@ -9,6 +9,8 @@
  *   proveedores de empresas externas, actualizar su información de contacto,
  *   o eliminarlos del sistema.
  *
+ * Referencia en la web:
+ *   - Pantalla "Proveedores" (HTML/activosMenu/proveedores.html).
  * Mapeo de Campos / Alias en Consultas (Crítico para compatibilidad frontend):
  *   - 'nombre' en la base de datos se expone como 'empresa' en la API.
  *   - 'direccion' en la base de datos se expone como 'equipos' en la API.

@@ -1,9 +1,9 @@
 /**
- * @project ERP Industrial - CMMS
- * @module  Administración
- * @author  Guadalupe MGM
- * @date    2026
- * @description Lógica para la gestión de Usuarios en el módulo de Administración del ERP.
+ * =========================================================================
+ * ARCHIVO: Js/usuarios.js
+ * PROPÓSITO: Lógica para la gestión de Usuarios en el módulo de Administración del ERP.
+ * REFERENCIA WEB: HTML/administracionMenu/usuarios.html
+ * =========================================================================
  */
 
 

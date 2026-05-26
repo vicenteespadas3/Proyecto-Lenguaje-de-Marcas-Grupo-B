@@ -1,4 +1,8 @@
-// Js/piezas.js
+// =========================================================================
+// ARCHIVO: Js/piezas.js
+// PROPÓSITO: Gestión del inventario de repuestos (CRUD, búsqueda y control de stock).
+// REFERENCIA WEB: HTML/inventarioMenu/piezas.html
+// =========================================================================
 
 let piezasData = []; // Array global para almacenar los datos cargados y poder buscar/editar en memoria
 

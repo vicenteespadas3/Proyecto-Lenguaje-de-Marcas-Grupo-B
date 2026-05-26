@@ -2,6 +2,8 @@
 // ============================================================
 //  api/gamas.php  —  CRUD para Gamas de Mantenimiento
 // ============================================================
+// Referencia en la web:
+//   - Pantalla "Gamas de Mantenimiento" (HTML/mantenimientoMenu/gamas.html)
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 

@@ -1,6 +1,8 @@
-// ============================================================
-//  Js/pedidos.js - Lógica para el módulo de Pedidos de Compra
-// ============================================================
+// =========================================================================
+// ARCHIVO: Js/pedidos.js
+// PROPÓSITO: Lógica para el módulo de Pedidos de Compra.
+// REFERENCIA WEB: HTML/inventarioMenu/pedidos.html
+// =========================================================================
 
 let currentIdPedido = null;
 let piezasGlobal = [];
