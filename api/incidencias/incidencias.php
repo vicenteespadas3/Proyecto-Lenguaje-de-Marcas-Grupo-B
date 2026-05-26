@@ -1,23 +1,146 @@
 <?php
+// ============================================================
+//  api/incidencias/incidencias.php  —  CRUD para Incidencias
+// ============================================================
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    respuestaError('Método no permitido', 405);
-}
-
 $conn = conectar();
-$query = "SELECT * FROM incidencias ORDER BY fecha_apertura DESC";
-$res = $conn->query($query);
+$m = $_SERVER['REQUEST_METHOD'];
 
-if (!$res) {
-    respuestaError('Error en BD: ' . $conn->error, 500);
+// ── GET ───────────────────────────────────────────────────────
+if ($m === 'GET') {
+    if (isset($_GET['id'])) {
+        $id = (int)$_GET['id'];
+        $s = $conn->prepare("SELECT i.*, m.nombre as maquina_nombre 
+                             FROM incidencias i 
+                             JOIN maquinas m ON i.id_maquina = m.id_maquina 
+                             WHERE i.id_incidencia = ?");
+        $s->bind_param("i", $id);
+        $s->execute();
+        $f = $s->get_result()->fetch_assoc();
+        $s->close();
+        $conn->close();
+        if (!$f) respuestaError('Incidencia no encontrada.', 404);
+        respuestaOk(['incidencia' => $f]);
+    } else {
+        $buscar = isset($_GET['buscar']) ? trim($_GET['buscar']) : '';
+        
+        if ($buscar !== '') {
+            $s = $conn->prepare("SELECT i.id_incidencia, m.nombre as id_maquina, i.fecha_reporte, i.prioridad, i.descripcion as descripcion_problema, i.estado 
+                                 FROM incidencias i 
+                                 JOIN maquinas m ON i.id_maquina = m.id_maquina 
+                                 WHERE i.descripcion LIKE ? OR m.nombre LIKE ? 
+                                 ORDER BY i.id_incidencia DESC");
+            $like = "%" . $buscar . "%";
+            $s->bind_param("ss", $like, $like);
+            $s->execute();
+            $r = $s->get_result();
+            $lista = [];
+            while ($f = $r->fetch_assoc()) $lista[] = $f;
+            $s->close();
+        } else {
+            $query = "SELECT i.id_incidencia, m.nombre as id_maquina, i.fecha_reporte, i.prioridad, i.descripcion as descripcion_problema, i.estado 
+                      FROM incidencias i 
+                      JOIN maquinas m ON i.id_maquina = m.id_maquina 
+                      ORDER BY i.id_incidencia DESC";
+            $res = $conn->query($query);
+            $lista = [];
+            if ($res) {
+                while ($f = $res->fetch_assoc()) $lista[] = $f;
+            }
+        }
+        $conn->close();
+        respuestaOk(['incidencias' => $lista]);
+    }
 }
 
-$incidencias = [];
-while ($fila = $res->fetch_assoc()) {
-    $incidencias[] = $fila;
+// ── POST ──────────────────────────────────────────────────────
+if ($m === 'POST') {
+    iniciarSesion();
+    $b = json_decode(file_get_contents('php://input'), true) ?? [];
+    
+    $id_maquina = (int)($b['id_maquina'] ?? 0);
+    $descripcion = trim($b['descripcion_problema'] ?? ($b['descripcion'] ?? ''));
+    $tipo = trim($b['tipo'] ?? 'averia');
+    $prioridad = trim($b['prioridad'] ?? 'media');
+    $estado = trim($b['estado'] ?? 'abierta');
+    $id_usuario = $_SESSION['id_usuario'] ?? 1; // Fallback al admin si no hay sesión
+
+    if ($id_maquina <= 0 || !$descripcion) {
+        $conn->close();
+        respuestaError('La máquina y la descripción son obligatorias.');
+    }
+
+    $stmt = $conn->prepare("INSERT INTO incidencias (id_maquina, id_usuario_reporta, descripcion, tipo, prioridad, estado) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("iissss", $id_maquina, $id_usuario, $descripcion, $tipo, $prioridad, $estado);
+
+    $ok = $stmt->execute();
+    $nid = $conn->insert_id;
+    $err = $stmt->error;
+    $stmt->close();
+    $conn->close();
+
+    if ($ok) {
+        respuestaOk(['msg' => 'Incidencia reportada con éxito', 'id_incidencia' => $nid]);
+    } else {
+        respuestaError('Error al crear la incidencia: ' . $err, 500);
+    }
+}
+
+// ── PUT ───────────────────────────────────────────────────────
+if ($m === 'PUT') {
+    $b = json_decode(file_get_contents('php://input'), true) ?? [];
+    $id = (int)($b['id_incidencia'] ?? 0);
+
+    if ($id <= 0) {
+        $conn->close();
+        respuestaError('ID de incidencia no válido.');
+    }
+
+    $id_maquina = (int)($b['id_maquina'] ?? 0);
+    $descripcion = trim($b['descripcion_problema'] ?? ($b['descripcion'] ?? ''));
+    $prioridad = trim($b['prioridad'] ?? 'media');
+    $estado = trim($b['estado'] ?? 'abierta');
+    $tipo = trim($b['tipo'] ?? 'averia');
+
+    $stmt = $conn->prepare("UPDATE incidencias SET id_maquina=?, descripcion=?, prioridad=?, estado=?, tipo=? WHERE id_incidencia=?");
+    $stmt->bind_param("issssi", $id_maquina, $descripcion, $prioridad, $estado, $tipo, $id);
+
+    $ok = $stmt->execute();
+    $stmt->close();
+    $conn->close();
+
+    if ($ok) {
+        respuestaOk(['msg' => 'Incidencia actualizada correctamente']);
+    } else {
+        respuestaError('Error al actualizar.', 500);
+    }
+}
+
+// ── DELETE ────────────────────────────────────────────────────
+if ($m === 'DELETE') {
+    $b = json_decode(file_get_contents('php://input'), true) ?? [];
+    $id = (int)($b['id_incidencia'] ?? 0);
+
+    if ($id <= 0) {
+        $conn->close();
+        respuestaError('ID de incidencia no válido.');
+    }
+
+    $stmt = $conn->prepare("DELETE FROM incidencias WHERE id_incidencia=?");
+    $stmt->bind_param("i", $id);
+
+    $ok = $stmt->execute();
+    $stmt->close();
+    $conn->close();
+
+    if ($ok) {
+        respuestaOk(['msg' => 'Incidencia eliminada correctamente']);
+    } else {
+        respuestaError('Error al eliminar.', 500);
+    }
 }
 
 $conn->close();
-respuestaOk(['incidencias' => $incidencias]);
+respuestaError('Método no soportado', 405);

@@ -17,6 +17,7 @@ body {
     margin: 0; 
     padding: 0; 
     background-color: #f4f4f9; 
+    overflow-x: hidden; /* Evita desplazamientos horizontales en la página completa */
 }
 
 /* =========================================================================

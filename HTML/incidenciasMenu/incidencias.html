@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../../CSS/menu.css">
 </head>
 
-<body class="theme-mantenimiento">
+<body class="theme-incidencias">
     <div class="app-body">
         <main class="main-content">
             <header class="header">
@@ -16,7 +16,9 @@
                     <h1>Órdenes de Trabajo (OT)</h1>
                     <p>Listado de incidencias y averías reportadas en planta.</p>
                 </div>
-                <div class="header-actions">
+                <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="inputBuscarIncidencia" placeholder="Buscar incidencia..." class="form-control" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                    <button class="btn btn-secondary" id="btnBuscarIncidencia">🔍 Buscar</button>
                     <button class="btn btn-primary" onclick="nuevaIncidencia()">
                         + Reportar Incidencia
                     </button>
@@ -45,45 +47,7 @@
     </div>
 
     <script src="../../Js/app.js"></script>
-    <script>
-        async function cargarIncidencias() {
-            const tbody = document.getElementById('tabla-incidencias-body');
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">Cargando incidencias... ⚙️</td></tr>';
-
-            const res = await api('GET', '../../api/incidencias/incidencias.php');
-
-            if (res && res.incidencias) {
-                tbody.innerHTML = '';
-                if (res.incidencias.length > 0) {
-                    res.incidencias.forEach(i => {
-                        const pClass = i.prioridad === 'ALTA' ? 'danger' : (i.prioridad === 'MEDIA' ? 'warning' : 'success');
-                        const sClass = i.estado === 'Abierto' ? 'danger' : 'warning';
-
-                        tbody.innerHTML += `
-                            <tr>
-                                <td><strong>${i.id_orden}</strong></td>
-                                <td>${i.id_maquina}</td>
-                                <td>${i.fecha_apertura}</td>
-                                <td><span class="status-badge ${pClass}">${i.prioridad}</span></td>
-                                <td>${i.descripcion}</td>
-                                <td>${i.tecnico_asignado || 'Sin asignar'}</td>
-                                <td><span class="status-badge ${sClass}">${i.estado}</span></td>
-                                <td class="action-buttons">
-                                    <button class="btn-icon" onclick="ver(${i.id_orden})">👁️</button>
-                                </td>
-                            </tr>`;
-                    });
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No hay incidencias.</td></tr>';
-                }
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            renderMenu();
-            cargarIncidencias();
-        });
-    </script>
+    <script src="../../Js/incidencias.js"></script>
 </body>
 
 </html>

@@ -191,6 +191,7 @@
 /* Contenedor gigante gris que ocupa toda la parte derecha de la pantalla */
 .main-content {
     flex: 1; /* Ocupa todo el espacio sobrante después de los 250px del sidebar */
+    min-width: 0; /* Evita que el contenedor se expanda más allá del viewport debido a tablas anchas */
     padding: 30px;
     background-color: #f4f7f6;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

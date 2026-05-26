@@ -3,8 +3,8 @@
 //  api/db_config.php  —  Configuración de la base de datos
 //  Modifica DB_USER y DB_PASS según tu servidor
 // ============================================================
-define('DB_HOST', '172.20.10.2');//172.20.10.2 para conectar con servidor de Grupo 5
-define('DB_USER', 'admin');//admin para conectar con servidor de Grupo 5
+define('DB_HOST', 'localhost');//172.20.10.2 para conectar con servidor de Grupo 5
+define('DB_USER', 'root');//admin para conectar con servidor de Grupo 5
 define('DB_PASS', '123456');//123456 para conectar con servidor de Grupo 5
 define('DB_NAME', 'GestionTaller');//GestionTaller es el servidor
 define('DB_CHARSET', 'utf8mb4');
