@@ -2,6 +2,8 @@
 // ============================================================
 // api/inventario/piezas.php — CRUD completo para Piezas y Asignaciones
 // ============================================================
+// Referencia en la web:
+//   - Pantalla "Gestión de Piezas de Repuesto" (HTML/inventarioMenu/piezas.html)
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 

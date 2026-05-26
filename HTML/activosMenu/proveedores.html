@@ -34,9 +34,29 @@
                         <button class="btn btn-secondary" onclick="togglePanelFiltros()">
                             ➕ Filtros
                         </button>
-                        <button class="btn btn-secondary" onclick="toggleOrden()">
-                            ⇅ Ordenar
-                        </button>
+                        <div class="dropdown-ordenar-container">
+                            <button class="btn btn-secondary" onclick="toggleDropdownOrden(event)">
+                                ⇅ Ordenar
+                            </button>
+                            <div id="dropdownOrden" class="dropdown-orden-content">
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('id')">
+                                    <span>ID Proveedor</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('empresa')">
+                                    <span>Nombre Empresa</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('contacto')">
+                                    <span>Persona Contacto</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('equipos')">
+                                    <span>Especialidad</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -119,10 +139,18 @@
 
     <script src="../../Js/app.js"></script>
     <script>
-        let proveedoresData = [];
-        let ordenAsc = true;
-        let criterioOrden = 'empresa'; // 'empresa' o 'id'
+        /* ==========================================================================
+          LÓGICA JAVASCRIPT (Controlador del Frontend)
+          Interactúa con: ../../api/activos/proveedores.php
+        =========================================================================== */
+        let proveedoresData = []; // Caché de datos traídos de la API
+        let ordenAsc = true;      // Estado de orden (ascendente/descendente)
+        let criterioOrden = 'id'; // Columna seleccionada para ordenar
 
+        /**
+         * Llama a la API (GET) para obtener todos los proveedores
+         * y repinta la tabla al finalizar.
+         */
         async function cargarProveedores() {
             const tbody = document.getElementById('tabla-proveedores-body');
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando directorio... 🚚</td></tr>';
@@ -131,6 +159,7 @@
                 proveedoresData = res.proveedores || [];
                 aplicarOrden();
                 filtrarProveedores();
+                actualizarUIOrden();
             } else {
                 tbody.innerHTML = '<tr><td colspan="6" class="error-msg">Error al conectar con la base de datos.</td></tr>';
             }
@@ -141,24 +170,25 @@
             p.style.display = p.style.display === 'none' ? 'block' : 'none';
         }
 
-        function toggleOrden() {
-            if (criterioOrden === 'empresa') {
-                if (ordenAsc) {
-                    ordenAsc = false;
-                } else {
-                    criterioOrden = 'id';
-                    ordenAsc = true;
-                }
+        function toggleDropdownOrden(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('dropdownOrden');
+            dropdown.classList.toggle('show');
+        }
+
+        function cambiarCriterioOrden(criterio) {
+            if (criterioOrden === criterio) {
+                ordenAsc = !ordenAsc; // Invierte el orden si es el mismo criterio
             } else {
-                if (ordenAsc) {
-                    ordenAsc = false;
-                } else {
-                    criterioOrden = 'empresa';
-                    ordenAsc = true;
-                }
+                criterioOrden = criterio;
+                ordenAsc = true; // Por defecto ascendente al cambiar de criterio
             }
             aplicarOrden();
             filtrarProveedores();
+            actualizarUIOrden();
+            
+            // Cerrar el dropdown después de elegir
+            document.getElementById('dropdownOrden').classList.remove('show');
         }
 
         function aplicarOrden() {
@@ -168,7 +198,15 @@
                     valA = (a.empresa || '').toLowerCase();
                     valB = (b.empresa || '').toLowerCase();
                     return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                } else {
+                } else if (criterioOrden === 'contacto') {
+                    valA = (a.contacto || '').toLowerCase();
+                    valB = (b.contacto || '').toLowerCase();
+                    return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else if (criterioOrden === 'equipos') {
+                    valA = (a.equipos || '').toLowerCase();
+                    valB = (b.equipos || '').toLowerCase();
+                    return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else { // id
                     valA = parseInt(a.id_proveedor);
                     valB = parseInt(b.id_proveedor);
                     return ordenAsc ? valA - valB : valB - valA;
@@ -176,12 +214,44 @@
             });
         }
 
+        function actualizarUIOrden() {
+            // Limpiar clases active y checkmarks
+            document.querySelectorAll('.dropdown-orden-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelectorAll('.check-icon').forEach(icon => {
+                icon.textContent = '';
+            });
+
+            // Establecer el activo
+            const activeItem = document.querySelector(`.dropdown-orden-item[onclick*="'${criterioOrden}'"]`);
+            if (activeItem) {
+                activeItem.classList.add('active');
+                const icon = activeItem.querySelector('.check-icon');
+                if (icon) {
+                    icon.textContent = ordenAsc ? '▲' : '▼';
+                }
+            }
+        }
+
+        // Cerrar dropdown al hacer click fuera
+        window.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('dropdownOrden');
+            if (dropdown && !e.target.closest('.dropdown-ordenar-container')) {
+                dropdown.classList.remove('show');
+            }
+        });
+
         function limpiarFiltros() {
             document.getElementById('searchProveedor').value = '';
             document.getElementById('filtroEquipos').value = '';
             filtrarProveedores();
         }
 
+        /**
+         * Filtra la variable global `proveedoresData` usando los inputs de búsqueda
+         * y dibuja los resultados dinámicamente en el tbody de la tabla.
+         */
         function filtrarProveedores() {
             const search = document.getElementById('searchProveedor').value.toLowerCase().trim();
             const equiposF = document.getElementById('filtroEquipos').value.toLowerCase().trim();
@@ -222,6 +292,9 @@
             });
         }
 
+        /**
+         * Abre el modal preparado para registrar un NUEVO proveedor.
+         */
         function nuevoProveedor() {
             document.getElementById('modalTituloProv').textContent = 'Nuevo Proveedor';
             document.getElementById('formProveedor').reset();
@@ -229,6 +302,10 @@
             document.getElementById('modalProveedor').classList.add('show');
         }
 
+        /**
+         * Abre el modal y rellena los inputs con los datos de un proveedor EXISTENTE (edición).
+         * @param {number} id - Identificador del proveedor a editar.
+         */
         function editarProveedor(id) {
             const p = proveedoresData.find(x => x.id_proveedor == id);
             if (!p) return;
@@ -246,6 +323,10 @@
             document.getElementById('modalProveedor').classList.remove('show');
         }
 
+        /**
+         * Evento de guardado del modal de proveedor (nuevo o editado).
+         * Llama a: api/activos/proveedores.php por POST (nuevo) o PUT (editar).
+         */
         async function guardarProveedor(e) {
             e.preventDefault();
             const id = document.getElementById('prov_id').value;
@@ -261,6 +342,10 @@
             else alert('Error: ' + res.error);
         }
 
+        /**
+         * Elimina un proveedor.
+         * Llama a: api/activos/proveedores.php usando DELETE.
+         */
         async function borrarProveedor(id) {
             if (!confirm('¿Estás seguro?')) return;
             const res = await api('DELETE', '../../api/activos/proveedores.php', { id_proveedor: id });

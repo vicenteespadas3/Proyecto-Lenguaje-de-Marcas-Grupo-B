@@ -53,6 +53,7 @@ if ($fila_bd && $fila_bd['activo'] == 1 && password_verify($password, $fila_bd['
     $es_admin = ($fila_bd['rol'] === 'administrador') ? 1 : 0;
 
     // Guardamos datos en la sesión (PHP Session)
+    $_SESSION['id_usuario'] = $fila_bd['id'];
     $_SESSION['usuario']   = $fila_bd['email'];
     $_SESSION['nombre']    = $fila_bd['nombre'];
     $_SESSION['es_admin']  = $es_admin;

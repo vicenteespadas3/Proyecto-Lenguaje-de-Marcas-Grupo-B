@@ -1,7 +1,15 @@
+<<<<<<< HEAD
 // Js/gamas.js
 // CRUD completo para Gamas de Mantenimiento
 
 let gamasData = []; // Array global para poder editar sin volver a llamar a la API
+=======
+// =========================================================================
+// ARCHIVO: Js/gamas.js
+// PROPÓSITO: Gestión de gamas de mantenimiento (Planes maestros).
+// REFERENCIA WEB: HTML/mantenimientoMenu/gamas.html
+// =========================================================================
+>>>>>>> e233ee8207e4e1f79743112ac960dcf90e3fb126
 
 document.addEventListener('DOMContentLoaded', async () => {
     renderMenu();

@@ -1,8 +1,9 @@
 /**
- * @project ERP Industrial - CMMS
- * @module  Administración
- * @author  Guadalupe MGM
- * @description Gestión de Horarios con persistencia en Base de Datos.
+ * =========================================================================
+ * ARCHIVO: Js/horarioTrabajo.js
+ * PROPÓSITO: Gestión de Horarios con persistencia en Base de Datos usando FullCalendar.
+ * REFERENCIA WEB: HTML/administracionMenu/horarioTrabajo.html
+ * =========================================================================
  */
 
 let calendar;

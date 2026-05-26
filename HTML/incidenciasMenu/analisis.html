@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Máquinas - ERP Mecatrónica</title>
+    <!-- Hoja de estilos principal del sistema (variables de color, tablas, modales, etc.) -->
+    <link rel="stylesheet" href="../../CSS/estilos.css">
+    <!-- Hoja de estilos del menú lateral y topbar -->
+    <link rel="stylesheet" href="../../CSS/menu.css">
+</head>
+
+<!--
+    Clase "theme-incidencias": aplica el color morado (#9b59b6) como color primario
+    del módulo "Taller e Incidencias", siguiendo la convención de temas del sistema.
+-->
+<body class="theme-incidencias">
+    <div class="app-body">
+        <!-- El sidebar se inyecta dinámicamente por renderMenu() en app.js -->
+
+        <main class="main-content">
+
+            <!-- ================================================================
+            CABECERA DE LA PANTALLA
+            Muestra el título, subtítulo y el botón de acción principal.
+            ================================================================ -->
+            <header class="header">
+                <div class="header-info">
+                    <h1>Análisis de Máquinas</h1>
+                    <p>Registro de variables técnicas: presiones, temperaturas y vibraciones</p>
+                </div>
+                <div class="header-actions">
+                    <!-- Botón para abrir el modal de nuevo análisis -->
+                    <button class="btn btn-primary" onclick="abrirModalNuevo()">
+                        + Nuevo Análisis
+                    </button>
+                </div>
+            </header>
+
+            <!-- ================================================================
+            BARRA DE BÚSQUEDA Y FILTROS
+            Permite buscar por texto libre y filtrar por estado "dentro_rango".
+            El panel de filtros avanzados es expandible/colapsable.
+            ================================================================ -->
+            <div class="search-filters-container">
+                <div class="search-filters-bar">
+
+                    <!-- Campo de búsqueda global -->
+                    <div class="search-group">
+                        <div class="search-input-wrapper">
+                            <input type="text" id="searchAnalisis"
+                                placeholder="Buscar por variable, máquina, unidad...">
+                        </div>
+                        <button class="btn btn-primary btn-search" onclick="filtrarAnalisis()">
+                            🔍 Buscar
+                        </button>
+                    </div>
+
+                    <!-- Botones de filtro avanzado y ordenación -->
+                    <div class="filter-actions">
+                        <button class="btn btn-secondary" onclick="togglePanelFiltros()">
+                            ➕ Filtros
+                        </button>
+                        <!-- Dropdown de ordenación (igual que en el módulo de Activos) -->
+                        <div class="dropdown-ordenar-container">
+                            <button class="btn btn-secondary" onclick="toggleDropdownOrden(event)">
+                                ⇅ Ordenar
+                            </button>
+                            <div id="dropdownOrden" class="dropdown-orden-content">
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('id')">
+                                    <span>ID Análisis</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('maquina')">
+                                    <span>Máquina</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('variable')">
+                                    <span>Variable</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('fecha')">
+                                    <span>Fecha de Registro</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('valor')">
+                                    <span>Valor Medido</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel de Filtros avanzados (expandible con animación) -->
+                <div id="panelFiltros" class="filter-panel" style="display: none;">
+                    <div class="filter-grid">
+
+                        <!-- Filtro: Estado del rango -->
+                        <div class="filter-item">
+                            <label>Estado de Rango</label>
+                            <select id="filtroRango" class="filter-select">
+                                <option value="">Todos</option>
+                                <option value="1">✅ Dentro del Rango</option>
+                                <option value="0">⚠️ Fuera del Rango</option>
+                            </select>
+                        </div>
+
+                        <!-- Filtro: Unidad de medida -->
+                        <div class="filter-item">
+                            <label>Unidad de Medida</label>
+                            <input type="text" id="filtroUnidad" placeholder="Ej: bar, °C, mm/s">
+                        </div>
+
+                        <!-- Filtro: Fecha desde -->
+                        <div class="filter-item">
+                            <label>Fecha Desde</label>
+                            <input type="date" id="filtroFechaDesde">
+                        </div>
+
+                        <!-- Filtro: Fecha hasta -->
+                        <div class="filter-item">
+                            <label>Fecha Hasta</label>
+                            <input type="date" id="filtroFechaHasta">
+                        </div>
+
+                    </div>
+                    <div class="filter-panel-actions">
+                        <button class="btn btn-secondary btn-small" onclick="limpiarFiltros()">Limpiar</button>
+                        <button class="btn btn-primary btn-small" onclick="filtrarAnalisis()">Aplicar Filtros</button>
+                    </div>
+                </div>
+
+                <!-- Contador de resultados -->
+                <div class="results-info">
+                    <span id="contadorAnalisis" class="search-results-count">0 registros encontrados</span>
+                </div>
+            </div>
+
+            <!-- ================================================================
+            TABLA DE DATOS
+            Muestra los análisis filtrados/ordenados. El tbody se puebla
+            dinámicamente por JavaScript al cargar la página.
+            ================================================================ -->
+            <section class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Máquina</th>
+                            <th>Ejecución</th>
+                            <th>Variable</th>
+                            <th>Valor</th>
+                            <th>Unidad</th>
+                            <th>Fecha Registro</th>
+                            <th>Estado Rango</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-analisis-body">
+                        <!-- Las filas se inyectan dinámicamente por JS -->
+                    </tbody>
+                </table>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ====================================================================
+    MODAL — CREAR / EDITAR ANÁLISIS
+    Formulario que permite introducir o modificar un registro de análisis.
+    Se abre con abrirModalNuevo() o editarAnalisis(id).
+    ==================================================================== -->
+    <div id="modalAnalisis" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTituloAnal">Nuevo Análisis</h2>
+                <button class="btn-close" onclick="cerrarModal()">×</button>
+            </div>
+
+            <form id="formAnalisis" onsubmit="guardarAnalisis(event)">
+                <!-- Campo oculto para distinguir si estamos creando o editando -->
+                <input type="hidden" id="anal_id">
+
+                <div class="form-grid">
+
+                    <!-- Máquina (ID numérico) -->
+                    <div class="form-group">
+                        <label>ID de Máquina</label>
+                        <input type="number" id="anal_maquina" required min="1"
+                            placeholder="Ej: 1, 3, 5...">
+                    </div>
+
+                    <!-- ID de Ejecución (opcional) -->
+                    <div class="form-group">
+                        <label>ID de Ejecución <small style="color:#7f8c8d;">(opcional)</small></label>
+                        <input type="number" id="anal_ejecucion" min="1"
+                            placeholder="Dejar vacío si no aplica">
+                    </div>
+
+                    <!-- Nombre de la variable medida -->
+                    <div class="form-group">
+                        <label>Nombre de Variable</label>
+                        <input type="text" id="anal_variable" required
+                            placeholder="Ej: presion_hidraulica, temperatura_aceite">
+                    </div>
+
+                    <!-- Valor numérico de la medición -->
+                    <div class="form-group">
+                        <label>Valor Medido</label>
+                        <input type="number" id="anal_valor" required step="0.0001"
+                            placeholder="Ej: 192.5000">
+                    </div>
+
+                    <!-- Unidad de medida -->
+                    <div class="form-group">
+                        <label>Unidad de Medida</label>
+                        <input type="text" id="anal_unidad"
+                            placeholder="Ej: bar, °C, mm/s">
+                    </div>
+
+                    <!-- Fecha y hora del registro -->
+                    <div class="form-group">
+                        <label>Fecha y Hora <small style="color:#7f8c8d;">(vacío = ahora)</small></label>
+                        <input type="datetime-local" id="anal_fecha">
+                    </div>
+
+                    <!-- Estado de rango -->
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>¿Dentro del Rango Aceptable?</label>
+                        <select id="anal_rango">
+                            <option value="1">✅ Sí — Dentro del rango</option>
+                            <option value="0">⚠️ No — Fuera del rango</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Análisis</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script global del sistema (api(), renderMenu(), etc.) -->
+    <script src="../../Js/app.js"></script>
+
+    <script>
+        // ====================================================================
+        // ESTADO GLOBAL DE LA PANTALLA
+        // ====================================================================
+
+        /** Array con todos los registros cargados desde la API */
+        let analisisData = [];
+
+        /** Dirección del orden actual: true = ASC, false = DESC */
+        let ordenAsc = true;
+
+        /** Campo por el que se ordena actualmente (por defecto: id) */
+        let criterioOrden = 'id';
+
+        // ====================================================================
+        // CARGA INICIAL DE DATOS
+        // ====================================================================
+
+        /**
+         * cargarAnalisis()
+         * Solicita al API todos los análisis de máquinas y los almacena en
+         * analisisData. Una vez recibidos, aplica el orden por defecto (ID ASC)
+         * y muestra los registros en la tabla.
+         */
+        async function cargarAnalisis() {
+            const tbody = document.getElementById('tabla-analisis-body');
+            // Mensaje de espera mientras carga
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px;">Cargando análisis... 📊</td></tr>';
+
+            const res = await api('GET', '../../api/incidencias/analisis_maquinas.php');
+
+            if (res && res.ok) {
+                analisisData = res.analisis || [];
+                aplicarOrden();         // Ordenar antes de pintar
+                filtrarAnalisis();      // Renderizar con filtros actuales (inicialmente vacíos)
+                actualizarUIOrden();    // Marcar el criterio activo en el dropdown
+            } else {
+                tbody.innerHTML = `<tr><td colspan="9" class="error-msg">Error: ${res.error || 'No se pudo conectar con el servidor'}</td></tr>`;
+            }
+        }
+
+        // ====================================================================
+        // PANEL DE FILTROS
+        // ====================================================================
+
+        /**
+         * togglePanelFiltros()
+         * Muestra u oculta el panel de filtros avanzados.
+         */
+        function togglePanelFiltros() {
+            const panel = document.getElementById('panelFiltros');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+
+        /**
+         * limpiarFiltros()
+         * Resetea todos los campos de búsqueda y filtros a sus valores por defecto,
+         * luego recarga la tabla completa sin ningún filtro aplicado.
+         */
+        function limpiarFiltros() {
+            document.getElementById('searchAnalisis').value    = '';
+            document.getElementById('filtroRango').value       = '';
+            document.getElementById('filtroUnidad').value      = '';
+            document.getElementById('filtroFechaDesde').value  = '';
+            document.getElementById('filtroFechaHasta').value  = '';
+            filtrarAnalisis();
+        }
+
+        // ====================================================================
+        // ORDENACIÓN (DROPDOWN)
+        // ====================================================================
+
+        /**
+         * toggleDropdownOrden(event)
+         * Muestra u oculta el menú desplegable de criterios de ordenación.
+         * Se usa event.stopPropagation() para evitar que el click en el botón
+         * cierre inmediatamente el dropdown (ya que el listener de window lo cierra).
+         *
+         * @param {Event} event - Evento click del botón Ordenar
+         */
+        function toggleDropdownOrden(event) {
+            event.stopPropagation();
+            document.getElementById('dropdownOrden').classList.toggle('show');
+        }
+
+        /**
+         * cambiarCriterioOrden(criterio)
+         * Cambia el campo por el que se ordena la tabla. Si se pulsa sobre el mismo
+         * criterio activo, invierte la dirección (ASC↔DESC). Si es uno nuevo,
+         * reinicia a ASC.
+         *
+         * @param {string} criterio - 'id' | 'maquina' | 'variable' | 'fecha' | 'valor'
+         */
+        function cambiarCriterioOrden(criterio) {
+            if (criterioOrden === criterio) {
+                // Mismo criterio → invertir dirección
+                ordenAsc = !ordenAsc;
+            } else {
+                // Nuevo criterio → ascendente por defecto
+                criterioOrden = criterio;
+                ordenAsc = true;
+            }
+            aplicarOrden();
+            filtrarAnalisis();
+            actualizarUIOrden();
+            // Cerrar el dropdown tras seleccionar
+            document.getElementById('dropdownOrden').classList.remove('show');
+        }
+
+        /**
+         * aplicarOrden()
+         * Ordena el array analisisData según el criterioOrden y la dirección ordenAsc.
+         * Soporta ordenación por: id, nombre de máquina, nombre de variable, fecha, y valor.
+         */
+        function aplicarOrden() {
+            analisisData.sort((a, b) => {
+                let valA, valB;
+
+                switch (criterioOrden) {
+                    case 'maquina':
+                        valA = (a.nombre_maquina || '').toLowerCase();
+                        valB = (b.nombre_maquina || '').toLowerCase();
+                        return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+
+                    case 'variable':
+                        valA = (a.nombre_variable || '').toLowerCase();
+                        valB = (b.nombre_variable || '').toLowerCase();
+                        return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+
+                    case 'fecha':
+                        // Comparación de fechas como strings ISO — funciona correctamente con 'YYYY-MM-DD HH:MM:SS'
+                        valA = a.fecha_registro || '';
+                        valB = b.fecha_registro || '';
+                        return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+
+                    case 'valor':
+                        valA = parseFloat(a.valor) || 0;
+                        valB = parseFloat(b.valor) || 0;
+                        return ordenAsc ? valA - valB : valB - valA;
+
+                    default: // 'id'
+                        valA = parseInt(a.id_analisis) || 0;
+                        valB = parseInt(b.id_analisis) || 0;
+                        return ordenAsc ? valA - valB : valB - valA;
+                }
+            });
+        }
+
+        /**
+         * actualizarUIOrden()
+         * Actualiza el aspecto visual del dropdown:
+         *   - Marca con clase "active" el ítem de criterio activo
+         *   - Muestra ▲ (ASC) o ▼ (DESC) en el check-icon del ítem activo
+         */
+        function actualizarUIOrden() {
+            // Limpiar estado anterior de todos los ítems
+            document.querySelectorAll('.dropdown-orden-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelectorAll('.check-icon').forEach(icon => {
+                icon.textContent = '';
+            });
+
+            // Marcar el ítem activo
+            const activeItem = document.querySelector(`.dropdown-orden-item[onclick*="'${criterioOrden}'"]`);
+            if (activeItem) {
+                activeItem.classList.add('active');
+                const icon = activeItem.querySelector('.check-icon');
+                if (icon) icon.textContent = ordenAsc ? '▲' : '▼';
+            }
+        }
+
+        // Cerrar el dropdown si el usuario hace clic en cualquier lugar fuera de él
+        window.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('dropdownOrden');
+            if (dropdown && !e.target.closest('.dropdown-ordenar-container')) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // ====================================================================
+        // FILTRADO Y RENDERIZADO DE TABLA
+        // ====================================================================
+
+        /**
+         * filtrarAnalisis()
+         * Aplica todos los filtros activos (búsqueda de texto, rango, unidad, fechas)
+         * sobre analisisData y renderiza el resultado en la tabla.
+         */
+        function filtrarAnalisis() {
+            const search      = document.getElementById('searchAnalisis').value.toLowerCase().trim();
+            const rangoF      = document.getElementById('filtroRango').value;           // '1', '0' o ''
+            const unidadF     = document.getElementById('filtroUnidad').value.toLowerCase().trim();
+            const fechaDesde  = document.getElementById('filtroFechaDesde').value;       // 'YYYY-MM-DD'
+            const fechaHasta  = document.getElementById('filtroFechaHasta').value;       // 'YYYY-MM-DD'
+            const tbody       = document.getElementById('tabla-analisis-body');
+
+            // --- Aplicar filtros sobre el array ---
+            const filtrados = analisisData.filter(a => {
+
+                // Búsqueda de texto: busca en variable, nombre máquina y unidad
+                const matchSearch = !search ||
+                    (a.nombre_variable || '').toLowerCase().includes(search) ||
+                    (a.nombre_maquina  || '').toLowerCase().includes(search) ||
+                    (a.unidad_medida   || '').toLowerCase().includes(search);
+
+                // Filtro por dentro/fuera de rango
+                const matchRango = rangoF === '' || String(a.dentro_rango) === rangoF;
+
+                // Filtro por unidad de medida
+                const matchUnidad = !unidadF || (a.unidad_medida || '').toLowerCase().includes(unidadF);
+
+                // Filtros de fecha: extraemos solo la parte 'YYYY-MM-DD' del datetime
+                const fechaReg     = (a.fecha_registro || '').substring(0, 10);
+                const matchDesde   = !fechaDesde || fechaReg >= fechaDesde;
+                const matchHasta   = !fechaHasta || fechaReg <= fechaHasta;
+
+                return matchSearch && matchRango && matchUnidad && matchDesde && matchHasta;
+            });
+
+            // Actualizar el contador de resultados
+            document.getElementById('contadorAnalisis').textContent = `${filtrados.length} registro${filtrados.length !== 1 ? 's' : ''} encontrado${filtrados.length !== 1 ? 's' : ''}`;
+
+            // Limpiar la tabla
+            tbody.innerHTML = '';
+
+            if (filtrados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px;">No se encontraron resultados con los filtros aplicados.</td></tr>';
+                return;
+            }
+
+            // Pintar cada fila
+            filtrados.forEach(a => {
+                // Determinar clases de color para el badge de estado de rango
+                const esDentro  = parseInt(a.dentro_rango) === 1;
+                const badgeClass = esDentro ? 'success' : 'danger';
+                const badgeTxt   = esDentro ? '✅ OK'    : '⚠️ Fuera';
+
+                // Formatear el valor a máximo 4 decimales, sin ceros de relleno innecesarios
+                const valorFmt = parseFloat(a.valor).toFixed(4);
+
+                // Formatear la fecha: mostrar en formato local (DD/MM/YYYY HH:MM)
+                let fechaFmt = a.fecha_registro || '-';
+                if (fechaFmt !== '-') {
+                    const dt = new Date(fechaFmt.replace(' ', 'T')); // Compatibilidad con Safari
+                    fechaFmt = dt.toLocaleDateString('es-ES') + ' ' + dt.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                }
+
+                // Nombre de la máquina: priorizar nombre real; si no, usar "Máquina X"
+                const nombreMaquina = a.nombre_maquina || `Máquina ${a.id_maquina}`;
+
+                // ID de ejecución: mostrar "—" si es null
+                const ejecucionTxt = a.id_ejecucion ? `EJC-${a.id_ejecucion}` : '—';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>ANL-${a.id_analisis}</strong></td>
+                        <td>
+                            <div style="font-weight:bold;">${nombreMaquina}</div>
+                            <small style="color:#7f8c8d;">ID: ${a.id_maquina}</small>
+                        </td>
+                        <td>${ejecucionTxt}</td>
+                        <td><code style="font-size:0.85em;">${a.nombre_variable}</code></td>
+                        <td style="font-weight:bold; text-align:right;">${valorFmt}</td>
+                        <td>${a.unidad_medida || '—'}</td>
+                        <td style="white-space:nowrap;">${fechaFmt}</td>
+                        <td><span class="status-badge ${badgeClass}">${badgeTxt}</span></td>
+                        <td class="action-buttons">
+                            <button class="btn-icon" title="Editar análisis" onclick="editarAnalisis(${a.id_analisis})">✏️</button>
+                            <button class="btn-icon" title="Eliminar análisis" style="color:#e74c3c;" onclick="borrarAnalisis(${a.id_analisis})">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ====================================================================
+        // CRUD — MODAL
+        // ====================================================================
+
+        /**
+         * abrirModalNuevo()
+         * Limpia el formulario del modal y lo abre en modo "creación".
+         */
+        function abrirModalNuevo() {
+            document.getElementById('modalTituloAnal').textContent = 'Nuevo Análisis';
+            document.getElementById('formAnalisis').reset();
+            document.getElementById('anal_id').value = '';
+            document.getElementById('modalAnalisis').classList.add('show');
+        }
+
+        /**
+         * editarAnalisis(id)
+         * Busca el registro con ese ID en analisisData, precarga el formulario con
+         * sus datos y abre el modal en modo "edición".
+         *
+         * @param {number} id - id_analisis del registro a editar
+         */
+        function editarAnalisis(id) {
+            const a = analisisData.find(x => x.id_analisis == id);
+            if (!a) return;
+
+            document.getElementById('modalTituloAnal').textContent = 'Editar Análisis';
+            document.getElementById('anal_id').value       = a.id_analisis;
+            document.getElementById('anal_maquina').value  = a.id_maquina;
+            document.getElementById('anal_ejecucion').value = a.id_ejecucion || '';
+            document.getElementById('anal_variable').value = a.nombre_variable;
+            document.getElementById('anal_valor').value    = a.valor;
+            document.getElementById('anal_unidad').value   = a.unidad_medida || '';
+            document.getElementById('anal_rango').value    = a.dentro_rango;
+
+            // Convertir la fecha de la BD al formato requerido por <input type="datetime-local">
+            // La BD guarda 'YYYY-MM-DD HH:MM:SS', el input necesita 'YYYY-MM-DDTHH:MM'
+            if (a.fecha_registro) {
+                document.getElementById('anal_fecha').value = a.fecha_registro.replace(' ', 'T').substring(0, 16);
+            }
+
+            document.getElementById('modalAnalisis').classList.add('show');
+        }
+
+        /**
+         * cerrarModal()
+         * Cierra el modal de creación/edición.
+         */
+        function cerrarModal() {
+            document.getElementById('modalAnalisis').classList.remove('show');
+        }
+
+        /**
+         * guardarAnalisis(e)
+         * Handler del formulario del modal. Determina si es una creación (POST)
+         * o una edición (PUT) según si anal_id tiene valor, construye el payload
+         * y llama al API correspondiente.
+         *
+         * @param {Event} e - Evento submit del formulario
+         */
+        async function guardarAnalisis(e) {
+            e.preventDefault();
+
+            const id       = document.getElementById('anal_id').value;
+            const fechaVal = document.getElementById('anal_fecha').value;
+
+            // Construir el payload con los valores del formulario
+            const payload = {
+                id_maquina:      parseInt(document.getElementById('anal_maquina').value),
+                id_ejecucion:    document.getElementById('anal_ejecucion').value
+                                    ? parseInt(document.getElementById('anal_ejecucion').value)
+                                    : null,
+                nombre_variable: document.getElementById('anal_variable').value,
+                valor:           parseFloat(document.getElementById('anal_valor').value),
+                unidad_medida:   document.getElementById('anal_unidad').value,
+                // Convertir de 'YYYY-MM-DDTHH:MM' a 'YYYY-MM-DD HH:MM:SS' para la BD
+                fecha_registro:  fechaVal ? fechaVal.replace('T', ' ') + ':00' : '',
+                dentro_rango:    parseInt(document.getElementById('anal_rango').value)
+            };
+
+            let res;
+            if (id) {
+                // Modo edición — incluir el ID en el payload para el UPDATE
+                payload.id_analisis = parseInt(id);
+                res = await api('PUT', '../../api/incidencias/analisis_maquinas.php', payload);
+            } else {
+                // Modo creación — POST
+                res = await api('POST', '../../api/incidencias/analisis_maquinas.php', payload);
+            }
+
+            if (res && res.ok) {
+                cerrarModal();
+                cargarAnalisis(); // Recargar la tabla para reflejar los cambios
+            } else {
+                alert('Error: ' + (res.error || 'No se pudo guardar el análisis'));
+            }
+        }
+
+        /**
+         * borrarAnalisis(id)
+         * Solicita confirmación al usuario y, si acepta, envía una petición DELETE
+         * al API para eliminar el registro con ese id_analisis.
+         *
+         * @param {number} id - id_analisis del registro a eliminar
+         */
+        async function borrarAnalisis(id) {
+            if (!confirm(`¿Eliminar el análisis ANL-${id}? Esta acción no se puede deshacer.`)) return;
+
+            const res = await api('DELETE', '../../api/incidencias/analisis_maquinas.php', { id_analisis: id });
+
+            if (res && res.ok) {
+                cargarAnalisis(); // Refrescar la tabla
+            } else {
+                alert('Error al eliminar: ' + (res.error || 'Error desconocido'));
+            }
+        }
+
+        // ====================================================================
+        // INICIALIZACIÓN
+        // ====================================================================
+
+        /**
+         * DOMContentLoaded
+         * Se ejecuta cuando el DOM está listo:
+         *   1. Inyecta el topbar y sidebar con renderMenu('incidencias')
+         *      (pasa 'incidencias' para que el módulo Taller quede activo/resaltado)
+         *   2. Carga los datos de la tabla desde el API
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMenu('incidencias');
+            cargarAnalisis();
+        });
+    </script>
+
+</body>
+
+</html>

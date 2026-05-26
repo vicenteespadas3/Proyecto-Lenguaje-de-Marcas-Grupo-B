@@ -1,4 +1,9 @@
 <!DOCTYPE html>
+<!-- ==================================================================
+     HTML/administracionMenu/horarioTrabajo.html
+     Interfaz para gestionar turnos de trabajo usando FullCalendar.
+     Interactúa con api/administracion/horarioTrabajo.php a través de Js/horarioTrabajo.js
+     ================================================================== -->
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -30,6 +35,10 @@
                 <button class="btn btn-primary" onclick="agregarTurno()">+ Asignar</button>
             </section>
 
+            <!-- ==================================================================
+                 CONTENEDOR DEL CALENDARIO
+                 Se inicializa en Js/horarioTrabajo.js con FullCalendar
+                 ================================================================== -->
             <section class="table-container" style="padding: 20px;">
                 <div id="calendario"></div>
             </section>

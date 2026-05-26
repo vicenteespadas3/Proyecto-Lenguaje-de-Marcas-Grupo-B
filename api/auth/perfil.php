@@ -1,18 +1,32 @@
 <?php
+/**
+ * ============================================================================
+ * Archivo: api/auth/perfil.php
+ * ============================================================================
+ * Propósito:
+ *   Permite al usuario logueado consultar sus propios datos y modificarlos
+ *   (nombre, apellidos, email y contraseña).
+ *
+ * Referencia en la web:
+ *   - Pantalla de Perfil de Usuario (HTML/perfil.html).
+ *
+ * Métodos soportados:
+ *   - GET  : Devuelve los datos actuales del usuario logueado.
+ *   - PUT  : Actualiza la información del perfil en la base de datos.
+ * ============================================================================
+ */
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 
-iniciarSesion();
-
-if (empty($_SESSION['usuario'])) {
-    respuestaError('Sin sesión.', 401);
-}
+// Asegurarnos de que el usuario tiene sesión activa
+$email_sesion = requireAuth();
 
 $conn = conectar();
 $metodo = $_SERVER['REQUEST_METHOD'];
-$email_sesion = $_SESSION['usuario'];
 
-// Obtener datos del usuario actual
+// ----------------------------------------------------------------------------
+// MÉTODO GET: Obtener datos del usuario actual para rellenar el formulario
+// ----------------------------------------------------------------------------
 if ($metodo === 'GET') {
     $stmt = $conn->prepare("SELECT id_usuario, email, nombre, apellidos, rol, activo, fecha_creacion, ultimo_acceso FROM usuarios WHERE email = ?");
     $stmt->bind_param("s", $email_sesion);
@@ -28,7 +42,9 @@ if ($metodo === 'GET') {
     }
 }
 
-// Actualizar datos del usuario actual
+// ----------------------------------------------------------------------------
+// MÉTODO PUT: Actualizar datos del usuario actual (guardar cambios)
+// ----------------------------------------------------------------------------
 if ($metodo === 'PUT') {
     $b = json_decode(file_get_contents('php://input'), true) ?? [];
     $nombre = trim($b['nombre'] ?? '');

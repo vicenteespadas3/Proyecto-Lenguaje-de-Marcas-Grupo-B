@@ -10,6 +10,8 @@
 // ============================================================
 //  api/definiciones.php  —  Diccionario de configuración
 // ============================================================
+// Referencia en la web:
+//   - Pantalla "Configuración de Definiciones" (HTML/administracionMenu/definiciones.html)
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 

@@ -10,6 +10,8 @@
 // ============================================================
 //  api/usuarios.php  —  CRUD adaptado a la BBDD oficial
 // ============================================================
+// Referencia en la web:
+//   - Pantalla "Gestión de Usuarios del Sistema" (HTML/administracionMenu/usuarios.html)
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 

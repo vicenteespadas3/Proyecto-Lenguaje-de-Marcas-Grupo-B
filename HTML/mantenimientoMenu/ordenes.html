@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ordenes de Trabajo - ERP Mecatronic</title>
+
+    <link rel="stylesheet" href="../../CSS/estilos.css">
+    <link rel="stylesheet" href="../../CSS/menu.css">
+</head>
+
+<body>
+    <div class="app-body theme-mantenimiento">
+        <main class="main-content">
+            <div class="header" style="flex-wrap: wrap; gap: 15px;">
+                <div class="header-info">
+                    <h1>Órdenes de Trabajo</h1>
+                    <p>Gestiona las intervenciones de mantenimiento y su estado en tiempo real.</p>
+                </div>
+                <div class="header-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <input type="text" id="inputBuscarOrden" placeholder="Buscar por ID, máquina u obs..." class="form-control" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 220px;">
+                    
+                    <select id="selectFiltroEstado" class="form-control" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; background: white;">
+                        <option value="">-- Todos los Estados --</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="En Proceso">En Proceso</option>
+                        <option value="Completada">Completada</option>
+                        <option value="Cancelada">Cancelada</option>
+                        <option value="Necesita Material">Necesita Material</option>
+                    </select>
+
+                    <select id="selectFiltroPrioridad" class="form-control" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; background: white;">
+                        <option value="">-- Todas las Prioridades --</option>
+                        <option value="Baja">Baja</option>
+                        <option value="Media">Media</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Urgente">Urgente</option>
+                    </select>
+
+                    <button class="btn btn-secondary" id="btnBuscarOrden">🔍 Filtrar</button>
+                    <button class="btn btn-primary" id="btnNuevaOrden">➕ Nueva Orden</button>
+                </div>
+            </div>
+
+            <!-- ==================================================================
+                 TABLA DE DATOS
+                 Se rellena dinámicamente desde Js/ordenes.js -> cargarOrdenes()
+                 Interactúa con api/mantenimiento/ordenes.php
+                 ================================================================== -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-id">ID Orden</th>
+                            <th>ID Máquina</th>
+                            <th>ID Plan</th>
+                            <th>ID Tipo</th>
+                            <th>ID Estado</th>
+                            <th>ID Prioridad</th>
+                            <th>Rol Asignado</th>
+                            <th>Fecha Programada</th>
+                            <th>Inicio</th>
+                            <th>Finalización</th>
+                            <th>T. Est.</th>
+                            <th>T. Real</th>
+                            <th>Observaciones</th>
+                            <th class="col-acciones">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaOrdenesBody">
+                        <tr>
+                            <td colspan="14" style="text-align: center;">Cargando órdenes...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================================================================
+         MODAL NUEVA/EDITAR ORDEN
+         ================================================================== -->
+    <div id="modalOrden" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalOrdenTitulo">Nueva Orden de Trabajo</h2>
+                <button id="btnCerrarModal" class="btn-close">&times;</button>
+            </div>
+
+            <form id="formOrden">
+                <div class="form-group">
+                    <label for="descripcion">Descripción</label>
+                    <textarea
+                        id="descripcion"
+                        name="descripcion"
+                        rows="4"
+                        required
+                        placeholder="Describe la avería, revisión o intervención necesaria"
+                    ></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="maquina">Máquina</label>
+                    <input
+                        id="maquina"
+                        name="maquina"
+                        type="text"
+                        required
+                        placeholder="Ej: Prensa hidráulica 01"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="tipo">Tipo</label>
+                    <select id="tipo" name="tipo" required>
+                        <option value="Correctivo">Correctivo</option>
+                        <option value="Preventivo">Preventivo</option>
+                        <option value="Predictivo">Predictivo</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Prioridad</label>
+                    <div style="display: flex; gap: 15px; margin-top: 5px;">
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; margin-bottom: 0;">
+                            <input type="radio" name="prioridad" value="Baja" style="width: auto;"> Baja
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; margin-bottom: 0;">
+                            <input type="radio" name="prioridad" value="Media" style="width: auto;" checked> Media
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; margin-bottom: 0;">
+                            <input type="radio" name="prioridad" value="Alta" style="width: auto;"> Alta
+                        </label>
+                    </div>
+                </div>
+
+                <div id="mensajeOrden" class="hidden" style="padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 0.9em;"></div>
+
+                <div class="modal-actions">
+                    <button id="btnCancelarOrden" type="button" class="btn btn-secondary">Cancelar</button>
+                    <button id="btnGuardarOrden" type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================================================================
+         MODAL DETALLE ORDEN
+         ================================================================== -->
+    <div id="modalDetalleOrden" class="modal-overlay">
+        <div class="modal-content" style="width: 600px; max-width: 90%;">
+            <div class="modal-header">
+                <h2 id="detalleTitulo">Detalle de la orden</h2>
+                <button id="btnCerrarDetalle" class="btn-close">&times;</button>
+            </div>
+
+            <div id="detalleContenido" style="display: flex; flex-direction: column; gap: 15px;">
+                <!-- Se llena dinámicamente -->
+            </div>
+
+            <div class="modal-actions">
+                <button id="btnCerrarDetalleInferior" type="button" class="btn btn-secondary">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../Js/app.js"></script>
+    <!-- Controlador específico de Órdenes de Trabajo -->
+    <script src="../../Js/ordenes.js"></script>
+</body>
+
+</html>

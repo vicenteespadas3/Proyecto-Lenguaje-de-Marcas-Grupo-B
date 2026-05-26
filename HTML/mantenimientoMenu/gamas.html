@@ -12,11 +12,25 @@
     <div class="app-body theme-mantenimiento">
         <main class="main-content">
 
+<<<<<<< HEAD
             <!-- CABECERA -->
             <div class="header">
                 <div class="header-info">
                     <h1>Gestión de Gamas</h1>
                     <p>Configuración de los tipos de mantenimiento preventivos y correctivos.</p>
+=======
+        <!-- ==================================================================
+             FORMULARIO NUEVA GAMA
+             Oculto por defecto, se muestra mediante JS al hacer click en "Nueva Gama"
+             Interactúa con api/mantenimiento/gamas.php vía Js/gamas.js
+             ================================================================== -->
+        <div id="formularioNuevaGama" style="display: none; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px;">
+            <h3 style="margin-top: 0;">Crear Nueva Gama</h3>
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <label for="nombreGama" style="display: block; margin-bottom: 5px; font-weight: bold;">Nombre</label>
+                    <input type="text" id="nombreGama" class="form-control" placeholder="Ej: Revisión general" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+>>>>>>> e233ee8207e4e1f79743112ac960dcf90e3fb126
                 </div>
                 <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
                     <input type="text" id="inputBuscarGama" placeholder="Buscar por ID o nombre..." class="form-control" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
@@ -25,6 +39,7 @@
                 </div>
             </div>
 
+<<<<<<< HEAD
             <!-- TABLA -->
             <div class="table-container">
                 <table>
@@ -43,6 +58,28 @@
                 </table>
             </div>
 
+=======
+        <!-- ==================================================================
+             TABLA DE DATOS
+             Se rellena dinámicamente desde Js/gamas.js -> cargarGamas()
+             ================================================================== -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-id">ID</th>
+                        <th>Nombre</th>
+                        <th>Tipo Mantenimiento</th>
+                        <th>Tipo Gama</th>
+                        <th class="col-acciones">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoTablaGamas">
+                    <tr><td colspan="5" style="text-align: center;">Cargando datos desde la base de datos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+>>>>>>> e233ee8207e4e1f79743112ac960dcf90e3fb126
         </main>
     </div>
 
@@ -95,6 +132,7 @@
     </div>
 
     <script src="../../Js/app.js"></script>
+    <!-- Controlador específico de Gamas -->
     <script src="../../Js/gamas.js"></script>
 </body>
 </html>

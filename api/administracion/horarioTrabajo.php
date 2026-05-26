@@ -10,6 +10,8 @@
 // ============================================================
 //  api/horarioTrabajo.php  —  Gestión de turnos y cuadrantes
 // ============================================================
+// Referencia en la web:
+//   - Pantalla "Gestión de Cuadrantes y Turnos" (HTML/administracionMenu/horarioTrabajo.html)
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 

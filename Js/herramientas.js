@@ -1,4 +1,8 @@
-// Js/herramientas.js
+// =========================================================================
+// ARCHIVO: Js/herramientas.js
+// PROPÓSITO: Gestión del catálogo de herramientas (CRUD y visualización).
+// REFERENCIA WEB: HTML/inventarioMenu/herramientas.html
+// =========================================================================
 
 let herramientasData = []; // Array global para almacenar los datos cargados y poder buscar/editar en memoria
 

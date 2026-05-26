@@ -30,6 +30,11 @@
                 </div>
             </header>
 
+            <!-- ==================================================================
+                 TABLA DE DATOS
+                 Se rellena dinámicamente desde Js/herramientas.js -> cargarHerramientas()
+                 Interactúa con api/inventario/herramientas.php
+                 ================================================================== -->
             <section class="table-container">
                 <table id="tabla-herramientas">
                     <thead>
@@ -49,7 +54,9 @@
             </section>
         </main>
 
-        <!-- Modal para Crear/Editar Herramienta -->
+        <!-- ==================================================================
+             MODAL PARA CREAR / EDITAR HERRAMIENTA
+             ================================================================== -->
         <div id="modalHerramienta" class="modal-overlay">
             <div class="modal-content">
                 <div class="modal-header">
@@ -92,6 +99,7 @@
         </div>
     </div>
     <script src="../../Js/app.js"></script>
+    <!-- Controlador específico de Herramientas -->
     <script src="../../Js/herramientas.js"></script>
 </body>
 

@@ -1,8 +1,22 @@
-// ==========================================
-// js/app.js - ARCHIVO COMÚN PARA TODO EL EQUIPO
-// ==========================================
+/**
+ * ============================================================================
+ * Archivo: Js/app.js
+ * ============================================================================
+ * Propósito:
+ *   Archivo JavaScript GLOBAL que se carga en TODAS las pantallas del proyecto.
+ *   Provee utilidades transversales como:
+ *     - Función centralizada `api()` para hacer peticiones AJAX a PHP.
+ *     - Renderizado dinámico del Menú Superior (Topbar) y Lateral (Sidebar).
+ *     - Gestión global de sesión, modo oscuro y estado del menú.
+ *     - Inyección dinámica de favicons.
+ * ============================================================================
+ */
 
-// 1. Función mágica para hablar con PHP sin recargar la página
+/**
+ * Función mágica para hablar con los endpoints PHP (AJAX/Fetch) de forma asíncrona.
+ * Acepta método HTTP, URL y opcionalmente un cuerpo JSON.
+ * Siempre incluye las cookies de sesión (credentials: 'include').
+ */
 async function api(metodo, url, cuerpo = null) {
     const opciones = { method: metodo, headers: {} };
     
@@ -23,9 +37,15 @@ async function api(metodo, url, cuerpo = null) {
     }
 }
 
-// Función principal del Menú (CON comprobación de sesión de usuario real desde PHP)
+/**
+ * Función principal encargada de construir y mostrar la interfaz base (Menús).
+ * Verifica contra el backend (api/auth/sesion.php) si la sesión es válida 
+ * ANTES de mostrar nada. Si no es válida, patea al usuario al login.html.
+ * 
+ * @param {string} activeCategory - Categoría activa para resaltar en el menú (opcional)
+ */
 async function renderMenu(activeCategory = null) {
-    // Determinar rutas relativas
+    // Determinar la ruta relativa (útil porque algunas páginas están en raíz y otras en subcarpetas)
     const inSubFolder = window.location.pathname.includes('Menu/');
     const pRoot = inSubFolder ? '../' : '';
 
@@ -35,9 +55,11 @@ async function renderMenu(activeCategory = null) {
     // XAMPP configurado ni acceso constante a la base de datos de Ubuntu.
     // ==============================================================================
     
-    // 1. Petición real al backend:
+    // 1. Petición real al backend para validar la sesión
+    // Esto previene que usuarios no autorizados vean las pantallas HTML directamente
     const sesion = await api('GET', pRoot + '../api/auth/sesion.php');
     if (!sesion || !sesion.ok) {
+        // Redirige al login si la sesión caducó o no existe
         window.location.href = pRoot + 'login.html';
         return;
     }
@@ -91,7 +113,7 @@ async function renderMenu(activeCategory = null) {
                 </div>
                 <div class="sidebar-submenu" id="sub-admin">
                     <a href="${pRoot}administracionMenu/usuarios.html" class="nav-link">Usuarios</a>
-                    <a href="${pRoot}administracionMenu/horarios.html" class="nav-link">Horarios de Trabajo</a>
+                    <a href="${pRoot}administracionMenu/horarioTrabajo.html" class="nav-link">Horarios de Trabajo</a>
                     <a href="${pRoot}administracionMenu/definiciones.html" class="nav-link">Definiciones (Ajustes)</a>
                 </div>
 
@@ -168,7 +190,13 @@ async function renderMenu(activeCategory = null) {
     }
 }
 
-// Función para abrir/cerrar submenús (acordeón)
+// ----------------------------------------------------------------------------
+// UTILIDADES DEL MENÚ E INTERFAZ
+// ----------------------------------------------------------------------------
+
+/**
+ * Abre y cierra los submenús (efecto acordeón) del Sidebar.
+ */
 function toggleSubmenu(id, btnElement) {
     const submenu = document.getElementById(id);
     if (submenu.style.display === 'flex') {
@@ -200,7 +228,9 @@ window.onclick = function(event) {
     }
 }
 
-// Función para cerrar la sesión de forma segura y redirigir
+/**
+ * Llama al endpoint de logout (PHP) y redirige a la pantalla de login.
+ */
 async function logoutApp(event, pRoot) {
     if (event) event.preventDefault();
     await api('POST', pRoot + '../api/auth/logout.php');
@@ -259,10 +289,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-/* * Inyección dinámica del Favicon
+/**
+ * Función autoejecutable para inyectar dinámicamente el Favicon en todas las pantallas.
+ * Evita tener que añadir el <link rel="icon"> manualmente en cada archivo HTML.
  * @author: Guadalupe MGM
- * @date: 2026
- * @description: Añade un favicon a la pestaña del navegador sin necesidad de modificar los HTML.
  */
 (function() {
     const favicon = document.createElement('link');

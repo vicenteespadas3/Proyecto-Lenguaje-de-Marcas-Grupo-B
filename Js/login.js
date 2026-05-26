@@ -1,22 +1,32 @@
 /**
- * @project ERP Industrial - CMMS
- * @module  Administración
+ * @project ERP Mecatrónica
+ * @module  Administración / Autenticación
  * @author  Guadalupe MGM
  * @date    2026
- * @description Lógica para la gestión de Login en el módulo de Administración del ERP.
+ * @description Lógica para la gestión de la pantalla de Login (HTML/login.html).
+ *              Controla tanto la animación interactiva de los "Robots" como el
+ *              envío del formulario a la API (api/auth/login.php).
  */
 
+// ----------------------------------------------------------------------------
+// REFERENCIAS A ELEMENTOS DEL DOM
+// ----------------------------------------------------------------------------
 const passwordInput = document.getElementById("password");
-const loginForm = document.getElementById("loginForm");
-const machines = document.querySelectorAll(".machine");
-const spyBot = document.querySelector(".machine.spy");
-const errorMsg = document.getElementById("error-msg");
+const loginForm     = document.getElementById("loginForm");
+const machines      = document.querySelectorAll(".machine");      // Todos los robots
+const spyBot        = document.querySelector(".machine.spy");     // El robot espía
+const errorMsg      = document.getElementById("error-msg");       // Mensaje de error
+
+// ----------------------------------------------------------------------------
+// LÓGICA DE ANIMACIÓN DE LOS ROBOTS
+// ----------------------------------------------------------------------------
 
 /**
- * Función central para mover las pupilas
- * @param {HTMLElement} machine - El contenedor del robot
- * @param {number} objetivoX - Coordenada X a mirar
- * @param {number} objetivoY - Coordenada Y a mirar
+ * Función central para mover las pupilas de los robots hacia un punto (X, Y).
+ * 
+ * @param {HTMLElement} machine - El contenedor del robot.
+ * @param {number} objetivoX - Coordenada X (del ratón o del cursor).
+ * @param {number} objetivoY - Coordenada Y (del ratón o del cursor).
  */
 function actualizarMirada(machine, objetivoX, objetivoY) {
     const pupilas = machine.querySelectorAll(".eye");
@@ -49,13 +59,15 @@ function moverPupilaHacia(pupila, x, y) {
     const ojoX = rect.left + rect.width / 2;
     const ojoY = rect.top + rect.height / 2;
     const angulo = Math.atan2(y - ojoY, x - ojoX);
-    const dist = 5;
+    const dist = 5; // Distancia máxima que la pupila puede moverse del centro del ojo
     pupila.style.transform = `translate(${Math.cos(angulo) * dist}px, ${Math.sin(angulo) * dist}px)`;
 }
 
-/* --- EVENTOS --- */
+// ----------------------------------------------------------------------------
+// EVENTOS DE INTERACCIÓN (Raton y Teclado)
+// ----------------------------------------------------------------------------
 
-// Seguir el cursor normalmente
+// 1. Los robots siguen el movimiento del ratón por la pantalla
 document.addEventListener("mousemove", (e) => {
     machines.forEach(m => actualizarMirada(m, e.clientX, e.clientY));
 });
@@ -91,29 +103,31 @@ passwordInput.addEventListener("blur", () => {
     });
 });
 
-/* --- EVENTOS --- */
+// ----------------------------------------------------------------------------
+// LÓGICA DE AUTENTICACIÓN Y CONEXIÓN CON LA API
+// ----------------------------------------------------------------------------
 
-// ... (tus otros eventos de mousemove, input, focus y blur se quedan igual) ...
-
-// Gestión del envío del formulario con conexión a la API
+/**
+ * Gestión del envío del formulario (Submit) con conexión a la API.
+ */
 loginForm.addEventListener("submit", async (e) => {
-    e.preventDefault(); 
+    e.preventDefault(); // Evita que la página se recargue al enviar el formulario
     
-    // Capturamos los valores actuales
+    // Capturamos los valores ingresados por el usuario
     const usuarioIngresado = loginForm.querySelector('input[type="text"]').value;
     const passwordIngresado = passwordInput.value;
 
     try {
+        // Enviar petición POST a la API de login
         const response = await fetch('../api/auth/login.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            credentials: 'include',
+            credentials: 'include', // IMPORTANTE: permite que la API establezca cookies de sesión (PHPSESSID)
             body: JSON.stringify({
                 usuario: usuarioIngresado,
-                password: passwordIngresado,
-                metodo: 'v1'
+                password: passwordIngresado
             })
         });
 

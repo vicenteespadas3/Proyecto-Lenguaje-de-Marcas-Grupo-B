@@ -1,7 +1,7 @@
 /* =========================================================================
     ARCHIVO: CSS/estilos.css
     PROPÓSITO: Contiene los estilos estructurales (Menú Lateral, Tablas, Variables)
-    Se usa en casi TODAS las pantallas del ERP para dar coherencia.
+    Referencia en la web: Se usa en TODAS las pantallas del ERP para dar coherencia (tablas, botones, sidebar, modales).
    ========================================================================= */
 
 /* --- VARIABLES DE COLOR (THEMES) --- 
@@ -191,6 +191,7 @@
 /* Contenedor gigante gris que ocupa toda la parte derecha de la pantalla */
 .main-content {
     flex: 1; /* Ocupa todo el espacio sobrante después de los 250px del sidebar */
+    min-width: 0; /* Evita que el contenedor se expanda más allá del viewport debido a tablas anchas */
     padding: 30px;
     background-color: #f4f7f6;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -226,7 +227,7 @@ table { width: 100%; border-collapse: collapse; }
 thead { background-color: var(--th-bg); color: white; }
 
 /* Celdas de datos (th=cabecera, td=dato normal) */
-th, td { padding: 15px 20px; text-align: left; border-bottom: 1px solid #ecf0f1; }
+th, td { padding: 20px; text-align: left; border-bottom: 1px solid #ecf0f1; }
 
 /* Efecto al pasar por encima de una fila de datos de la tabla */
 tbody tr:hover { background-color: #f8f9fa; }
@@ -885,4 +886,86 @@ body.dark-mode .search-results-count {
         text-align: center;
         width: 100%;
     }
+}
+
+/* =========================================================================
+    BLOQUE 12: DROPDOWN DE ORDENACIÓN (MÓDULO ACTIVOS)
+   ========================================================================= */
+.dropdown-ordenar-container {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-orden-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 5px);
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    min-width: 220px;
+    padding: 8px 0;
+    animation: slideDownDropdown 0.2s ease-out;
+}
+
+.dropdown-orden-content.show {
+    display: block;
+}
+
+@keyframes slideDownDropdown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+body.dark-mode .dropdown-orden-content {
+    background-color: #1a1a1a;
+    border-color: #333333;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.dropdown-orden-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    color: #4a5568;
+    text-decoration: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+    font-weight: 500;
+    text-align: left;
+}
+
+body.dark-mode .dropdown-orden-item {
+    color: #cbd5e0;
+}
+
+.dropdown-orden-item:hover {
+    background-color: #f7fafc;
+    color: var(--primary);
+}
+
+body.dark-mode .dropdown-orden-item:hover {
+    background-color: #2c2c2c;
+    color: var(--primary);
+}
+
+.dropdown-orden-item.active {
+    color: var(--primary);
+    font-weight: 600;
+    background-color: #f0f9ff;
+}
+
+body.dark-mode .dropdown-orden-item.active {
+    background-color: #2c2c2c;
+    color: var(--primary);
+}
+
+.dropdown-orden-item .check-icon {
+    font-size: 0.85rem;
+    color: var(--primary);
 }
