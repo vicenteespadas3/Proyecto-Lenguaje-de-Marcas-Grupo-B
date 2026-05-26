@@ -71,6 +71,8 @@ async function cargarHerramientas() {
                 // Añadimos la fila al cuerpo de la tabla de forma limpia y óptima
                 tbody.appendChild(fila);
             });
+            // Una vez cargadas las herramientas, inicializamos las opciones del desplegable de filtrado
+            cargarFiltrosHerramientas();
         } else {
             // Si la base de datos está vacía
             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No hay herramientas registradas.</td></tr>';
@@ -86,24 +88,100 @@ async function cargarHerramientas() {
 // --- FUNCIONES DEL BUSCADOR ---
 
 /**
- * Filtra dinámicamente las herramientas mostradas en la tabla al escribir en el buscador.
- * Busca coincidencias tanto en el ID como en el Nombre.
+ * Rellena el desplegable de filtros con opciones dinámicas basadas en todos los campos (Estado, Tipo, Ubicación).
+ */
+function cargarFiltrosHerramientas() {
+    const select = document.getElementById("filtroHerramientas");
+    if (!select) return;
+
+    // Limpiamos y añadimos la opción por defecto
+    select.innerHTML = '<option value="todos">Mostrar Todo (Sin filtros)</option>';
+
+    // 1. Grupo de Estados (estático)
+    const optgroupEstado = document.createElement("optgroup");
+    optgroupEstado.label = "Filtrar por Estado";
+    optgroupEstado.innerHTML = `
+        <option value="estado:exito">Disponible</option>
+        <option value="estado:advertencia">En Uso</option>
+        <option value="estado:peligro">No Disponible / En Rep.</option>
+    `;
+    select.appendChild(optgroupEstado);
+
+    // 2. Grupo de Tipos (dinámico a partir del array global herramientasData)
+    const tipos = [...new Set(herramientasData.map(h => h.tipo).filter(Boolean))];
+    if (tipos.length > 0) {
+        const optgroupTipo = document.createElement("optgroup");
+        optgroupTipo.label = "Filtrar por Tipo";
+        tipos.forEach(tipo => {
+            const option = document.createElement("option");
+            option.value = `tipo:${tipo}`;
+            option.textContent = tipo;
+            optgroupTipo.appendChild(option);
+        });
+        select.appendChild(optgroupTipo);
+    }
+
+    // 3. Grupo de Ubicaciones (dinámico a partir del array global herramientasData)
+    const ubicaciones = [...new Set(herramientasData.map(h => h.ubicacion).filter(Boolean))];
+    if (ubicaciones.length > 0) {
+        const optgroupUbi = document.createElement("optgroup");
+        optgroupUbi.label = "Filtrar por Ubicación";
+        ubicaciones.forEach(ubi => {
+            const option = document.createElement("option");
+            option.value = `ubicacion:${ubi}`;
+            option.textContent = ubi;
+            optgroupUbi.appendChild(option);
+        });
+        select.appendChild(optgroupUbi);
+    }
+}
+
+/**
+ * Filtra las herramientas mostradas en la tabla según la opción del desplegable único.
  */
 function filtrarHerramientas() {
+    // 1. LEER EL INPUT DE TEXTO (Esto es lo que faltaba)
     const input = document.getElementById("busquedaHerramienta");
-    const textoBuscado = input.value.toUpperCase(); // Pasamos a mayúsculas
+    const textoBuscado = input.value.toUpperCase();
+
+    const filtro = document.getElementById("filtroHerramientas").value;
     const filas = document.getElementById("tabla-herramientas-body").getElementsByTagName("tr");
 
-    // Recorremos todas las filas de la tabla
+    // Recorremos todas las filas de la tabla de herramientas
     for (let i = 0; i < filas.length; i++) {
-        // Obtenemos el texto de toda la fila para que busque en todas las columnas
-        const textoFila = filas[i].textContent || filas[i].innerText;
+        const fila = filas[i];
 
-        // Si el texto escrito está dentro de la fila, la mostramos
-        if (textoFila.toUpperCase().includes(textoBuscado)) {
-            filas[i].style.display = "";
+        // Omitimos filas especiales que no contienen datos
+        if (fila.cells.length === 1) continue;
+
+        // 2. COMPROBAR SI EL TEXTO COINCIDE (Igual que en piezas)
+        const textoFila = fila.textContent || fila.innerText;
+        const coincideTexto = textoFila.toUpperCase().includes(textoBuscado);
+
+        // 3. COMPROBAR EL FILTRO DESPLEGABLE
+        let coincideFiltro = true;
+
+        if (filtro !== "todos") {
+            const [criterio, valor] = filtro.split(":");
+
+            // Evaluamos según el criterio seleccionado en el desplegable
+            if (criterio === "estado") {
+                const etiqueta = fila.querySelector(".etiqueta-estado");
+                coincideFiltro = etiqueta && etiqueta.classList.contains(valor);
+            } else if (criterio === "tipo") {
+                const tipoCelda = fila.cells[3].textContent.trim(); // Cuarta celda: Tipo
+                coincideFiltro = tipoCelda.toUpperCase() === valor.toUpperCase();
+            } else if (criterio === "ubicacion") {
+                const ubiCelda = fila.cells[5].textContent.trim(); // Sexta celda: Ubicación
+                coincideFiltro = ubiCelda.toUpperCase() === valor.toUpperCase();
+            }
+        }
+
+        // 4. MOSTRAR U OCULTAR LA FILA (Solo si cumple ambos requisitos)
+        if (coincideTexto && coincideFiltro) {
+            fila.style.display = "";
         } else {
-            filas[i].style.display = "none"; // Si no coincide, la ocultamos
+            fila.style.display = "none";
         }
     }
 }
@@ -181,7 +259,7 @@ async function guardarHerramienta(evento) {
     if (res && res.ok !== false) {
         cerrarModal();          // 1. Ocultamos el modal
         cargarHerramientas();   // 2. Recargamos la tabla para ver los cambios
-        document.getElementById('busquedaHerramienta').value = ''; // 3. Vaciamos el buscador
+        document.getElementById('filtroHerramientas').value = 'todos'; // 3. Reiniciamos el filtro
     } else {
         alert('Error: ' + (res.error || 'No se pudo guardar la herramienta'));
     }
