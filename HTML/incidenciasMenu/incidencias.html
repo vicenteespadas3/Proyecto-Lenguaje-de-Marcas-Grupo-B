@@ -3,56 +3,115 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Incidencias - ERP Mecatrónica</title>
+    <!-- Hoja de estilos principal del sistema -->
     <link rel="stylesheet" href="../../CSS/estilos.css">
+    <!-- Hoja de estilos del menú lateral y topbar -->
     <link rel="stylesheet" href="../../CSS/menu.css">
 </head>
 
-<body class="theme-mantenimiento">
+<!--
+    Clase "theme-incidencias": aplica el color morado (#9b59b6) como color primario
+    del módulo "Taller e Incidencias", siguiendo la convención de temas del sistema.
+    La clase dark-mode se añade dinámicamente por app.js si el usuario la tiene activada.
+-->
+<body class="theme-incidencias">
     <div class="app-body">
-        <main class="main-content">            <header class="header">
+        <!-- El sidebar se inyecta dinámicamente por renderMenu() en app.js -->
+
+        <main class="main-content">
+
+            <!-- ============================================================
+                 CABECERA
+                 Muestra el título del módulo y el botón de acción principal.
+                 ============================================================ -->
+            <header class="header">
                 <div class="header-info">
                     <h1>Gestión de Incidencias</h1>
-                    <p>Reporte y seguimiento de averías en activos</p>
+                    <p>Reporte y seguimiento de averías, mantenimientos y anomalías en activos</p>
                 </div>
                 <div class="header-actions">
-                    <button class="btn btn-primary" onclick="abrirModalIncidencia()">+ Reportar Incidencia</button>
+                    <!-- Abre el modal en modo "crear nueva incidencia" -->
+                    <button class="btn btn-primary" onclick="abrirModalNueva()">
+                        + Reportar Incidencia
+                    </button>
                 </div>
             </header>
 
-            <!-- Barra de Búsqueda y Filtros Avanzada -->
+            <!-- ============================================================
+                 BARRA DE BÚSQUEDA Y FILTROS
+                 Permite buscar por texto libre y filtrar por prioridad/estado.
+                 El panel de filtros avanzados es expandible/colapsable.
+                 ============================================================ -->
             <div class="search-filters-container">
                 <div class="search-filters-bar">
+
+                    <!-- Campo de búsqueda global -->
                     <div class="search-group">
                         <div class="search-input-wrapper">
-                            <input type="text" id="searchIncidencia" placeholder="Buscar por descripción, máquina o técnico...">
+                            <input type="text" id="searchIncidencia"
+                                placeholder="Buscar por descripción, máquina, tipo..."
+                                oninput="filtrarIncidencias()">
                         </div>
                         <button class="btn btn-primary btn-search" onclick="filtrarIncidencias()">
                             🔍 Buscar
                         </button>
                     </div>
+
+                    <!-- Botones de filtros avanzados y ordenación -->
                     <div class="filter-actions">
                         <button class="btn btn-secondary" onclick="togglePanelFiltros()">
                             ➕ Filtros
                         </button>
-                        <button class="btn btn-secondary" onclick="toggleOrden()">
-                            ⇅ Ordenar
-                        </button>
+                        <!-- Dropdown de ordenación (mismo patrón que módulo Activos) -->
+                        <div class="dropdown-ordenar-container">
+                            <button class="btn btn-secondary" onclick="toggleDropdownOrden(event)">
+                                ⇅ Ordenar
+                            </button>
+                            <div id="dropdownOrden" class="dropdown-orden-content">
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('id')">
+                                    <span>ID Incidencia</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('maquina')">
+                                    <span>Máquina</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('prioridad')">
+                                    <span>Prioridad</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('estado')">
+                                    <span>Estado</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('fecha')">
+                                    <span>Fecha de Reporte</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Panel de Filtros (Expandible) -->
+                <!-- Panel de Filtros avanzados (expandible) -->
                 <div id="panelFiltros" class="filter-panel" style="display: none;">
                     <div class="filter-grid">
+
+                        <!-- Filtro: Prioridad -->
                         <div class="filter-item">
                             <label>Prioridad</label>
                             <select id="filtroPrioridad" class="filter-select">
                                 <option value="">Todas</option>
-                                <option value="Alta">Alta</option>
-                                <option value="Media">Media</option>
                                 <option value="Baja">Baja</option>
+                                <option value="Media">Media</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Critica">Crítica</option>
                             </select>
                         </div>
+
+                        <!-- Filtro: Estado de la incidencia -->
                         <div class="filter-item">
                             <label>Estado</label>
                             <select id="filtroEstado" class="filter-select">
@@ -63,224 +122,652 @@
                                 <option value="cerrada">Cerrada</option>
                             </select>
                         </div>
+
+                        <!-- Filtro: Tipo de incidencia -->
+                        <div class="filter-item">
+                            <label>Tipo</label>
+                            <select id="filtroTipo" class="filter-select">
+                                <option value="">Todos</option>
+                                <option value="Averia">Avería</option>
+                                <option value="Mantenimiento">Mantenimiento</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+
                     </div>
                     <div class="filter-panel-actions">
                         <button class="btn btn-secondary btn-small" onclick="limpiarFiltros()">Limpiar</button>
-                        <button class="btn btn-primary btn-small" onclick="filtrarIncidencias()">Aplicar</button>
+                        <button class="btn btn-primary btn-small" onclick="filtrarIncidencias()">Aplicar Filtros</button>
                     </div>
                 </div>
-                
+
+                <!-- Contador de resultados -->
                 <div class="results-info">
                     <span id="contadorIncidencias" class="search-results-count">0 incidencias encontradas</span>
                 </div>
             </div>
 
+            <!-- ============================================================
+                 TABLA DE DATOS
+                 El tbody se puebla dinámicamente por JavaScript.
+                 ============================================================ -->
             <section class="table-container">
                 <table>
                     <thead>
                         <tr>
                             <th>ID</th>
                             <th>Máquina</th>
+                            <th>Tipo</th>
                             <th>Descripción</th>
                             <th>Prioridad</th>
                             <th>Estado</th>
-                            <th>Técnico</th>
+                            <th>Fecha Reporte</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-incidencias-body">
+                        <!-- Las filas se inyectan por JS -->
                     </tbody>
                 </table>
             </section>
-        </main>
 
-        <!-- Modal Reportar/Editar Incidencia -->
-        <div id="modalIncidencia" class="modal-overlay">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 id="modalTituloInc">Reportar Incidencia</h2>
-                    <button class="btn-close" onclick="cerrarModalInc()">×</button>
-                </div>
-                <form id="formIncidencia" onsubmit="guardarIncidencia(event)">
-                    <input type="hidden" id="inc_id">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Máquina (ID)</label>
-                            <input type="number" id="inc_maquina" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Prioridad</label>
-                            <select id="inc_prioridad">
-                                <option value="Baja">Baja</option>
-                                <option value="Media" selected>Media</option>
-                                <option value="Alta">Alta</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="grid-column: span 2;">
-                            <label>Descripción de la avería</label>
-                            <textarea id="inc_desc" required placeholder="Describe el problema detectado..."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-actions">
-                        <button type="button" class="btn btn-secondary" onclick="cerrarModalInc()">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Enviar Reporte</button>
-                    </div>
-                </form>
+        </main>
+    </div>
+
+    <!-- ====================================================================
+         MODAL 1 — REPORTAR NUEVA INCIDENCIA
+         Formulario para crear un nuevo registro de incidencia.
+         Al guardar, también actualiza el estado de la máquina afectada.
+         ==================================================================== -->
+    <div id="modalNueva" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Reportar Incidencia</h2>
+                <button class="btn-close" onclick="cerrarModalNueva()">×</button>
             </div>
+            <form id="formNueva" onsubmit="guardarNuevaIncidencia(event)">
+                <div class="form-grid">
+
+                    <!-- Máquina: se carga desde la API para mostrar un select real -->
+                    <div class="form-group">
+                        <label>Máquina Afectada</label>
+                        <select id="nueva_maquina" required>
+                            <option value="">Cargando máquinas...</option>
+                        </select>
+                    </div>
+
+                    <!-- Tipo de incidencia: define el nuevo estado de la máquina -->
+                    <div class="form-group">
+                        <label>Tipo de Incidencia</label>
+                        <select id="nueva_tipo">
+                            <!--
+                                IMPORTANTE: estos valores mapean directamente al estado
+                                que tendrá la máquina tras guardar la incidencia:
+                                  Averia        → maquina.estado = 'averia'
+                                  Mantenimiento → maquina.estado = 'en_mantenimiento'
+                                  Otro          → no cambia el estado de la máquina
+                            -->
+                            <option value="Averia">⚠️ Avería (Máquina → Estado: Avería)</option>
+                            <option value="Mantenimiento">🔧 Mantenimiento (Máquina → En Mantenimiento)</option>
+                            <option value="Otro">📋 Otro (No cambia estado de máquina)</option>
+                        </select>
+                    </div>
+
+                    <!-- Prioridad: nivel de urgencia -->
+                    <div class="form-group">
+                        <label>Prioridad</label>
+                        <select id="nueva_prioridad">
+                            <option value="Baja">🟢 Baja</option>
+                            <option value="Media" selected>🟡 Media</option>
+                            <option value="Alta">🟠 Alta</option>
+                            <option value="Critica">🔴 Crítica</option>
+                        </select>
+                    </div>
+
+                    <!-- Descripción del problema -->
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Descripción del Problema</label>
+                        <textarea id="nueva_desc" required rows="4"
+                            placeholder="Describe el problema detectado con el mayor detalle posible..."></textarea>
+                    </div>
+
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalNueva()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Reportar Incidencia</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <script src="../../Js/app.js"></script>
-    <script>
-        let ordenAsc = true;
-        let criterioOrden = 'id'; // Default 'id' o 'descripcion'
+    <!-- ====================================================================
+         MODAL 2 — GESTIONAR / RESOLVER INCIDENCIA
+         Permite actualizar el estado de una incidencia abierta y añadir
+         la solución aplicada. Al cerrar/resolver, libera la máquina.
+         ==================================================================== -->
+    <div id="modalGestionar" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="tituloGestionar">Gestionar Incidencia</h2>
+                <button class="btn-close" onclick="cerrarModalGestionar()">×</button>
+            </div>
 
+            <!-- Cabecera informativa de la incidencia seleccionada -->
+            <div id="infoIncidencia"
+                style="background:#f8f9fa; border-radius:6px; padding:12px 16px; margin-bottom:20px; font-size:0.9rem;">
+                <!-- Se rellena dinámicamente por JS -->
+            </div>
+
+            <form id="formGestionar" onsubmit="guardarGestion(event)">
+                <!-- ID oculto de la incidencia que se está gestionando -->
+                <input type="hidden" id="gest_id">
+
+                <div class="form-grid">
+
+                    <!-- Nuevo estado de la incidencia -->
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Actualizar Estado</label>
+                        <select id="gest_estado">
+                            <option value="abierta">🔴 Abierta</option>
+                            <option value="en_curso">🟡 En Curso</option>
+                            <option value="resuelta">🟢 Resuelta (libera la máquina)</option>
+                            <option value="cerrada">✅ Cerrada (libera la máquina)</option>
+                        </select>
+                        <small style="color:#7f8c8d; margin-top:5px; display:block;">
+                            💡 Al marcar como <strong>Resuelta</strong> o <strong>Cerrada</strong>,
+                            la máquina volverá automáticamente al estado <strong>Disponible</strong>.
+                        </small>
+                    </div>
+
+                    <!-- Solución aplicada -->
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Solución Aplicada</label>
+                        <textarea id="gest_solucion" rows="4"
+                            placeholder="Describe la solución aplicada para resolver la incidencia..."></textarea>
+                    </div>
+
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalGestionar()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script global del sistema (api(), renderMenu(), etc.) -->
+    <script src="../../Js/app.js"></script>
+
+    <script>
+        // ====================================================================
+        // ESTADO GLOBAL DE LA PANTALLA
+        // ====================================================================
+
+        /** Array con todos los registros de incidencias cargados desde la API */
+        let incidenciasData = [];
+
+        /** Array con todas las máquinas disponibles (para el select del modal) */
+        let maquinasDisponibles = [];
+
+        /** Dirección del orden actual: true = ASC, false = DESC */
+        let ordenAsc = false; // Por defecto las más recientes primero
+
+        /** Campo por el que se ordena actualmente */
+        let criterioOrden = 'id';
+
+        // ====================================================================
+        // CARGA INICIAL DE DATOS
+        // ====================================================================
+
+        /**
+         * cargarIncidencias()
+         * Solicita al API el listado completo de incidencias y los renderiza
+         * en la tabla con el orden y filtros actuales.
+         */
         async function cargarIncidencias() {
             const tbody = document.getElementById('tabla-incidencias-body');
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">Cargando incidencias... 🛠️</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">Cargando incidencias... 🛠️</td></tr>';
+
             const res = await api('GET', '../../api/incidencias/incidencias.php');
+
             if (res && res.ok) {
                 incidenciasData = res.incidencias || [];
                 aplicarOrden();
                 filtrarIncidencias();
+                actualizarUIOrden();
             } else {
-                tbody.innerHTML = '<tr><td colspan="7" class="error-msg">Error al cargar datos.</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="8" class="error-msg">Error: ${res.error || 'No se pudo conectar'}</td></tr>`;
             }
         }
 
-        function togglePanelFiltros() {
-            const p = document.getElementById('panelFiltros');
-            p.style.display = p.style.display === 'none' ? 'block' : 'none';
+        /**
+         * cargarMaquinas()
+         * Carga la lista de máquinas desde la API de activos para poblar
+         * el selector del modal de nueva incidencia.
+         */
+        async function cargarMaquinas() {
+            const res = await api('GET', '../../api/activos/maquinas.php');
+            if (res && res.ok) {
+                maquinasDisponibles = res.maquinas || [];
+            }
         }
 
-        function toggleOrden() {
-            if (criterioOrden === 'id') {
-                if (ordenAsc) {
-                    ordenAsc = false;
-                } else {
-                    criterioOrden = 'descripcion';
-                    ordenAsc = true;
-                }
+        // ====================================================================
+        // PANEL DE FILTROS
+        // ====================================================================
+
+        /**
+         * togglePanelFiltros()
+         * Muestra u oculta el panel de filtros avanzados.
+         */
+        function togglePanelFiltros() {
+            const panel = document.getElementById('panelFiltros');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+
+        /**
+         * limpiarFiltros()
+         * Resetea todos los campos de búsqueda y filtros y recarga la tabla.
+         */
+        function limpiarFiltros() {
+            document.getElementById('searchIncidencia').value = '';
+            document.getElementById('filtroPrioridad').value  = '';
+            document.getElementById('filtroEstado').value     = '';
+            document.getElementById('filtroTipo').value       = '';
+            filtrarIncidencias();
+        }
+
+        // ====================================================================
+        // ORDENACIÓN (DROPDOWN)
+        // ====================================================================
+
+        /**
+         * toggleDropdownOrden(event)
+         * Muestra/oculta el menú desplegable de criterios de ordenación.
+         */
+        function toggleDropdownOrden(event) {
+            event.stopPropagation();
+            document.getElementById('dropdownOrden').classList.toggle('show');
+        }
+
+        /**
+         * cambiarCriterioOrden(criterio)
+         * Cambia el campo de ordenación. Si es el mismo activo, invierte la dirección.
+         *
+         * @param {string} criterio — 'id' | 'maquina' | 'prioridad' | 'estado' | 'fecha'
+         */
+        function cambiarCriterioOrden(criterio) {
+            if (criterioOrden === criterio) {
+                ordenAsc = !ordenAsc;
             } else {
-                if (ordenAsc) {
-                    ordenAsc = false;
-                } else {
-                    criterioOrden = 'id';
-                    ordenAsc = true;
-                }
+                criterioOrden = criterio;
+                ordenAsc = criterio !== 'id'; // id: por defecto DESC (más recientes primero)
             }
             aplicarOrden();
             filtrarIncidencias();
+            actualizarUIOrden();
+            document.getElementById('dropdownOrden').classList.remove('show');
         }
 
+        /**
+         * Mapa de prioridades a número para permitir ordenación lógica (no alfabética).
+         * Crítica > Alta > Media > Baja
+         */
+        const PRIO_RANK = { 'Critica': 4, 'Alta': 3, 'Media': 2, 'Baja': 1 };
+
+        /**
+         * Mapa de estados a número para ordenación lógica.
+         * abierta → más urgente primero
+         */
+        const ESTADO_RANK = { 'abierta': 1, 'en_curso': 2, 'resuelta': 3, 'cerrada': 4 };
+
+        /**
+         * aplicarOrden()
+         * Ordena incidenciasData según criterioOrden y ordenAsc.
+         */
         function aplicarOrden() {
             incidenciasData.sort((a, b) => {
                 let valA, valB;
-                if (criterioOrden === 'descripcion') {
-                    valA = (a.descripcion || '').toLowerCase();
-                    valB = (b.descripcion || '').toLowerCase();
-                    return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                } else {
-                    valA = parseInt(a.id_incidencia);
-                    valB = parseInt(b.id_incidencia);
-                    return ordenAsc ? valA - valB : valB - valA;
+                switch (criterioOrden) {
+                    case 'maquina':
+                        valA = (a.maquina || '').toLowerCase();
+                        valB = (b.maquina || '').toLowerCase();
+                        return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    case 'prioridad':
+                        valA = PRIO_RANK[a.prioridad] || 0;
+                        valB = PRIO_RANK[b.prioridad] || 0;
+                        return ordenAsc ? valA - valB : valB - valA;
+                    case 'estado':
+                        valA = ESTADO_RANK[a.estado] || 0;
+                        valB = ESTADO_RANK[b.estado] || 0;
+                        return ordenAsc ? valA - valB : valB - valA;
+                    case 'fecha':
+                        valA = a.fecha_reporte || '';
+                        valB = b.fecha_reporte || '';
+                        return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    default: // 'id'
+                        valA = parseInt(a.id_incidencia) || 0;
+                        valB = parseInt(b.id_incidencia) || 0;
+                        return ordenAsc ? valA - valB : valB - valA;
                 }
             });
         }
 
-        function limpiarFiltros() {
-            document.getElementById('searchIncidencia').value = '';
-            document.getElementById('filtroPrioridad').value = '';
-            document.getElementById('filtroEstado').value = '';
-            filtrarIncidencias();
+        /**
+         * actualizarUIOrden()
+         * Actualiza el aspecto visual del dropdown de ordenación:
+         *   - Marca el ítem activo con la clase 'active'
+         *   - Muestra ▲/▼ en el check-icon del ítem activo
+         */
+        function actualizarUIOrden() {
+            document.querySelectorAll('.dropdown-orden-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelectorAll('.check-icon').forEach(icon => {
+                icon.textContent = '';
+            });
+            const activeItem = document.querySelector(`.dropdown-orden-item[onclick*="'${criterioOrden}'"]`);
+            if (activeItem) {
+                activeItem.classList.add('active');
+                const icon = activeItem.querySelector('.check-icon');
+                if (icon) icon.textContent = ordenAsc ? '▲' : '▼';
+            }
         }
 
-        function filtrarIncidencias() {
-            const search = document.getElementById('searchIncidencia').value.toLowerCase().trim();
-            const prioridadF = document.getElementById('filtroPrioridad').value;
-            const estadoF = document.getElementById('filtroEstado').value;
-            const tbody = document.getElementById('tabla-incidencias-body');
+        // Cerrar el dropdown al hacer click fuera de él
+        window.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('dropdownOrden');
+            if (dropdown && !e.target.closest('.dropdown-ordenar-container')) {
+                dropdown.classList.remove('show');
+            }
+        });
 
+        // ====================================================================
+        // FILTRADO Y RENDERIZADO DE TABLA
+        // ====================================================================
+
+        /**
+         * filtrarIncidencias()
+         * Aplica todos los filtros activos sobre incidenciasData y renderiza
+         * el resultado en la tabla HTML.
+         */
+        function filtrarIncidencias() {
+            const search    = document.getElementById('searchIncidencia').value.toLowerCase().trim();
+            const prioridadF = document.getElementById('filtroPrioridad').value;
+            const estadoF   = document.getElementById('filtroEstado').value;
+            const tipoF     = document.getElementById('filtroTipo').value;
+            const tbody     = document.getElementById('tabla-incidencias-body');
+
+            // Aplicar filtros
             const filtradas = incidenciasData.filter(i => {
-                const matchSearch = !search || 
-                    (i.descripcion || '').toLowerCase().includes(search) || 
-                    (i.maquina || '').toLowerCase().includes(search) || 
-                    (i.tecnico_asignado || '').toLowerCase().includes(search);
-                const matchPrio = !prioridadF || i.prioridad === prioridadF;
-                const matchEst = !estadoF || i.estado === estadoF;
-                return matchSearch && matchPrio && matchEst;
+                const matchSearch = !search ||
+                    (i.descripcion || '').toLowerCase().includes(search) ||
+                    (i.maquina     || '').toLowerCase().includes(search) ||
+                    (i.tipo        || '').toLowerCase().includes(search);
+
+                const matchPrio  = !prioridadF || i.prioridad === prioridadF;
+                const matchEst   = !estadoF    || i.estado    === estadoF;
+                const matchTipo  = !tipoF      || (i.tipo     || '').toLowerCase().includes(tipoF.toLowerCase());
+
+                return matchSearch && matchPrio && matchEst && matchTipo;
             });
 
-            document.getElementById('contadorIncidencias').textContent = `${filtradas.length} incidencias encontradas`;
+            // Actualizar contador
+            document.getElementById('contadorIncidencias').textContent =
+                `${filtradas.length} incidencia${filtradas.length !== 1 ? 's' : ''} encontrada${filtradas.length !== 1 ? 's' : ''}`;
 
+            // Limpiar tabla
             tbody.innerHTML = '';
+
+            if (filtradas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">No se encontraron resultados.</td></tr>';
+                return;
+            }
+
+            // Renderizar filas
             filtradas.forEach(i => {
-                let pClass = 'success';
-                if (i.prioridad === 'Media') pClass = 'warning';
-                if (i.prioridad === 'Alta') pClass = 'danger';
+                // Colores para el badge de prioridad
+                const pClases = { 'Baja': 'success', 'Media': 'warning', 'Alta': 'danger', 'Critica': 'danger' };
+                const pClass  = pClases[i.prioridad] || 'success';
 
-                let eClass = 'info';
-                if (i.estado === 'abierta') eClass = 'danger';
-                if (i.estado === 'en_curso') eClass = 'warning';
-                if (i.estado === 'resuelta' || i.estado === 'cerrada') eClass = 'success';
+                // Colores para el badge de estado
+                const eClases = { 'abierta': 'danger', 'en_curso': 'warning', 'resuelta': 'success', 'cerrada': 'success' };
+                const eClass  = eClases[i.estado] || 'info';
 
-                const estTxt = i.estado.charAt(0).toUpperCase() + i.estado.slice(1).replace('_', ' ');
+                // Texto de estado formateado (sin guiones bajos)
+                const estadoTxt = (i.estado || '').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+                // Formatar fecha de reporte
+                let fechaFmt = '-';
+                if (i.fecha_reporte) {
+                    const dt = new Date(i.fecha_reporte.replace(' ', 'T'));
+                    fechaFmt = dt.toLocaleDateString('es-ES') + ' ' + dt.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                }
+
+                // Icono de tipo
+                const tipoIconos = { 'Averia': '⚠️', 'Mantenimiento': '🔧', 'Otro': '📋' };
+                const tipoIcono  = tipoIconos[i.tipo] || '📋';
 
                 tbody.innerHTML += `
                     <tr>
                         <td><strong>INC-${i.id_incidencia}</strong></td>
-                        <td>${i.maquina || 'Máquina ' + i.id_maquina}</td>
-                        <td>${i.descripcion}</td>
-                        <td><span class="status-badge ${pClass}">${i.prioridad}</span></td>
-                        <td><span class="status-badge ${eClass}">${estTxt}</span></td>
-                        <td>${i.tecnico_asignado || 'Sin asignar'}</td>
+                        <td>
+                            <div style="font-weight:bold;">${i.maquina || 'Máquina ' + i.id_maquina}</div>
+                            <small style="color:#7f8c8d;">ID: ${i.id_maquina}</small>
+                        </td>
+                        <td>${tipoIcono} ${i.tipo || '-'}</td>
+                        <td style="max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+                            title="${(i.descripcion || '').replace(/"/g, '&quot;')}">
+                            ${i.descripcion || '-'}
+                        </td>
+                        <td><span class="status-badge ${pClass}">${i.prioridad || '-'}</span></td>
+                        <td><span class="status-badge ${eClass}">${estadoTxt}</span></td>
+                        <td style="white-space:nowrap;">${fechaFmt}</td>
                         <td class="action-buttons">
-                            <button class="btn-icon" title="Gestionar" onclick="gestionarInc(${i.id_incidencia})">⚙️</button>
-                            <button class="btn-icon" title="Eliminar" style="color:red;" onclick="borrarInc(${i.id_incidencia})">🗑️</button>
+                            <button class="btn-icon" title="Gestionar / Resolver incidencia"
+                                onclick="abrirModalGestionar(${i.id_incidencia})">⚙️</button>
+                            <button class="btn-icon" title="Eliminar incidencia"
+                                style="color:#e74c3c;"
+                                onclick="borrarIncidencia(${i.id_incidencia})">🗑️</button>
                         </td>
                     </tr>
                 `;
             });
         }
 
-        function abrirModalIncidencia() {
-            document.getElementById('modalTituloInc').textContent = 'Reportar Incidencia';
-            document.getElementById('formIncidencia').reset();
-            document.getElementById('inc_id').value = '';
-            document.getElementById('modalIncidencia').classList.add('show');
+        // ====================================================================
+        // MODAL 1 — NUEVA INCIDENCIA
+        // ====================================================================
+
+        /**
+         * abrirModalNueva()
+         * Limpia el formulario, puebla el selector de máquinas con los datos
+         * cargados desde la API y abre el modal de creación.
+         */
+        function abrirModalNueva() {
+            // Resetear el formulario
+            document.getElementById('formNueva').reset();
+
+            // Poblar el selector de máquinas con las disponibles en el sistema
+            const sel = document.getElementById('nueva_maquina');
+            if (maquinasDisponibles.length > 0) {
+                sel.innerHTML = '<option value="">-- Selecciona una máquina --</option>' +
+                    maquinasDisponibles.map(m =>
+                        `<option value="${m.id_maquina}">${m.nombre} (ID: ${m.id_maquina} — ${m.estado})</option>`
+                    ).join('');
+            } else {
+                sel.innerHTML = '<option value="">No hay máquinas disponibles</option>';
+            }
+
+            document.getElementById('modalNueva').classList.add('show');
         }
 
-        function cerrarModalInc() {
-            document.getElementById('modalIncidencia').classList.remove('show');
+        /**
+         * cerrarModalNueva()
+         * Cierra el modal de nueva incidencia.
+         */
+        function cerrarModalNueva() {
+            document.getElementById('modalNueva').classList.remove('show');
         }
 
-        async function guardarIncidencia(e) {
+        /**
+         * guardarNuevaIncidencia(e)
+         * Handler del formulario de nueva incidencia.
+         * Envía un POST al API y recarga la tabla si la operación fue exitosa.
+         *
+         * @param {Event} e - Evento submit del formulario
+         */
+        async function guardarNuevaIncidencia(e) {
             e.preventDefault();
-            const datos = {
-                id_maquina: document.getElementById('inc_maquina').value,
-                prioridad: document.getElementById('inc_prioridad').value,
-                descripcion: document.getElementById('inc_desc').value
+
+            const payload = {
+                id_maquina:  parseInt(document.getElementById('nueva_maquina').value),
+                tipo:        document.getElementById('nueva_tipo').value,
+                prioridad:   document.getElementById('nueva_prioridad').value,
+                descripcion: document.getElementById('nueva_desc').value
             };
-            const res = await api('POST', '../../api/incidencias/incidencias.php', datos);
-            if (res.ok) { cerrarModalInc(); cargarIncidencias(); }
-            else alert('Error: ' + res.error);
+
+            // Validación mínima antes de enviar
+            if (!payload.id_maquina) {
+                alert('Por favor selecciona una máquina.');
+                return;
+            }
+
+            const res = await api('POST', '../../api/incidencias/incidencias.php', payload);
+
+            if (res && res.ok) {
+                cerrarModalNueva();
+                // Mostrar info sobre si se actualizó el estado de la máquina
+                if (res.estado_maquina_actualizado) {
+                    console.info(`Estado de máquina actualizado a: ${res.nuevo_estado_maquina}`);
+                }
+                // Recargar lista completa para reflejar los cambios
+                await cargarMaquinas(); // Refrescar también las máquinas (su estado habrá cambiado)
+                await cargarIncidencias();
+            } else {
+                alert('Error al registrar la incidencia: ' + (res.error || 'Error desconocido'));
+            }
         }
 
-        async function gestionarInc(id) {
-            alert('Lógica de gestión para INC-' + id + ' en desarrollo (abriría modal de resolución)');
+        // ====================================================================
+        // MODAL 2 — GESTIONAR / RESOLVER INCIDENCIA
+        // ====================================================================
+
+        /**
+         * abrirModalGestionar(id)
+         * Busca la incidencia en el array local, precarga el formulario con
+         * su información y abre el modal de gestión/resolución.
+         *
+         * @param {number} id - id_incidencia a gestionar
+         */
+        function abrirModalGestionar(id) {
+            const inc = incidenciasData.find(x => x.id_incidencia == id);
+            if (!inc) return;
+
+            // Título del modal con el ID de la incidencia
+            document.getElementById('tituloGestionar').textContent = `Gestionar INC-${inc.id_incidencia}`;
+
+            // Bloque informativo con los datos principales de la incidencia
+            const pClases = { 'Baja': '#27ae60', 'Media': '#e67e22', 'Alta': '#e74c3c', 'Critica': '#c0392b' };
+            document.getElementById('infoIncidencia').innerHTML = `
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <div><strong>Máquina:</strong> ${inc.maquina || 'ID ' + inc.id_maquina}</div>
+                    <div><strong>Tipo:</strong> ${inc.tipo || '-'}</div>
+                    <div><strong>Prioridad:</strong>
+                        <span style="color:${pClases[inc.prioridad] || '#333'}; font-weight:bold;">${inc.prioridad}</span>
+                    </div>
+                    <div><strong>Estado actual:</strong> ${(inc.estado || '').replace('_', ' ')}</div>
+                    <div style="grid-column:span 2;"><strong>Descripción:</strong> ${inc.descripcion}</div>
+                    ${inc.solucion_aplicada ? `<div style="grid-column:span 2;"><strong>Solución previa:</strong> ${inc.solucion_aplicada}</div>` : ''}
+                </div>
+            `;
+
+            // Precargar los campos del formulario
+            document.getElementById('gest_id').value        = inc.id_incidencia;
+            document.getElementById('gest_estado').value    = inc.estado;
+            document.getElementById('gest_solucion').value  = inc.solucion_aplicada || '';
+
+            document.getElementById('modalGestionar').classList.add('show');
         }
 
-        async function borrarInc(id) {
-            if (!confirm('¿Seguro?')) return;
+        /**
+         * cerrarModalGestionar()
+         * Cierra el modal de gestión de incidencia.
+         */
+        function cerrarModalGestionar() {
+            document.getElementById('modalGestionar').classList.remove('show');
+        }
+
+        /**
+         * guardarGestion(e)
+         * Handler del formulario de gestión. Envía un PUT al API con el nuevo estado
+         * y la solución aplicada. Si se cierra/resuelve, la máquina queda liberada.
+         *
+         * @param {Event} e - Evento submit del formulario
+         */
+        async function guardarGestion(e) {
+            e.preventDefault();
+
+            const payload = {
+                id_incidencia:    parseInt(document.getElementById('gest_id').value),
+                estado:           document.getElementById('gest_estado').value,
+                solucion_aplicada: document.getElementById('gest_solucion').value
+            };
+
+            const res = await api('PUT', '../../api/incidencias/incidencias.php', payload);
+
+            if (res && res.ok) {
+                cerrarModalGestionar();
+                if (res.maquina_liberada) {
+                    console.info('La máquina ha sido liberada y vuelve a estado Disponible.');
+                }
+                // Refrescar datos (la máquina puede haber cambiado de estado)
+                await cargarMaquinas();
+                await cargarIncidencias();
+            } else {
+                alert('Error al actualizar: ' + (res.error || 'Error desconocido'));
+            }
+        }
+
+        // ====================================================================
+        // ELIMINAR INCIDENCIA
+        // ====================================================================
+
+        /**
+         * borrarIncidencia(id)
+         * Solicita confirmación y elimina la incidencia con ese ID mediante DELETE.
+         *
+         * @param {number} id - id_incidencia a eliminar
+         */
+        async function borrarIncidencia(id) {
+            if (!confirm(`¿Eliminar la incidencia INC-${id}? Esta acción no se puede deshacer.`)) return;
+
             const res = await api('DELETE', '../../api/incidencias/incidencias.php', { id_incidencia: id });
-            if (res.ok) cargarIncidencias();
-            else alert('Error: ' + res.error);
+
+            if (res && res.ok) {
+                cargarIncidencias();
+            } else {
+                alert('Error al eliminar: ' + (res.error || 'Error desconocido'));
+            }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        // ====================================================================
+        // INICIALIZACIÓN
+        // ====================================================================
+
+        /**
+         * DOMContentLoaded
+         * Se ejecuta cuando el DOM está listo:
+         *   1. Inyecta el topbar y sidebar con renderMenu('incidencias')
+         *   2. Carga en paralelo las máquinas (para el selector) y las incidencias
+         */
+        document.addEventListener('DOMContentLoaded', async () => {
             renderMenu('incidencias');
-            cargarIncidencias();
+            // Cargar máquinas e incidencias en paralelo para mayor rapidez
+            await Promise.all([cargarMaquinas(), cargarIncidencias()]);
         });
     </script>
+
 </body>
+
 </html>

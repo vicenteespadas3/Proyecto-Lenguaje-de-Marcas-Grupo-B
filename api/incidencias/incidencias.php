@@ -4,72 +4,88 @@
  * API Endpoint: /api/incidencias/incidencias.php
  * ============================================================================
  * Propósito:
- *   Proporciona un servicio RESTful para la gestión (CRUD) de incidencias
- *   reportadas sobre las máquinas del taller. Permite abrir nuevas incidencias,
- *   consultar su estado actual, modificarlas (ej. para registrar soluciones o cerrarlas),
- *   y eliminarlas del sistema.
+ *   Servicio RESTful para la gestión (CRUD) de incidencias reportadas sobre
+ *   las máquinas del taller.
  *
- * Funciones Principales:
- *   - GET: Obtener una incidencia específica por ID o listar todas las incidencias
- *          ordenadas de forma descendente por fecha de reporte.
- *   - POST: Reportar una nueva incidencia asociada a una máquina (se inicializa
- *           en estado 'abierta' y con fecha actual).
- *   - PUT: Actualizar una incidencia (estado y solución aplicada). Si el nuevo
- *          estado es 'cerrada', establece automáticamente la fecha de resolución a NOW().
- *   - DELETE: Eliminar una incidencia de la base de datos por su ID.
+ * Lógica de negocio adicional:
+ *   - POST: Al registrar una incidencia, actualiza automáticamente el estado
+ *           de la máquina afectada según el tipo de incidencia:
+ *             · 'Avería'        → maquina.estado = 'averia'
+ *             · 'Mantenimiento' → maquina.estado = 'en_mantenimiento'
+ *             · Otros tipos     → no se toca el estado de la máquina
+ *   - PUT:  Al cerrar ('cerrada') o resolver ('resuelta') una incidencia,
+ *           devuelve la máquina al estado 'disponible' automáticamente.
+ *
+ * Métodos:
+ *   - GET    : Listar todas las incidencias o una por ?id=X
+ *   - POST   : Reportar nueva incidencia (+ actualizar estado de máquina)
+ *   - PUT    : Actualizar estado/solución (+ liberar máquina si se cierra)
+ *   - DELETE : Eliminar una incidencia
  *
  * Dependencias:
- *   - ../config/helpers.php: Respuestas estandarizadas REST JSON (respuestaOk, respuestaError).
- *   - ../config/db_config.php: Conector centralizado mysqli.
+ *   - ../config/helpers.php  : respuestaOk(), respuestaError()
+ *   - ../config/db_config.php: conectar()
  * ============================================================================
  */
 
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 
-// Conectar a la base de datos
+// Establecer conexión con la base de datos
 $conn = conectar();
 
-// Obtener el método HTTP de la petición (GET, POST, PUT, DELETE)
+// Leer el método HTTP de la petición
 $metodo = $_SERVER['REQUEST_METHOD'];
 
+// ============================================================================
+// MÉTODO GET — Consulta de incidencias
+// ============================================================================
 /**
- * ----------------------------------------------------------------------------
- * MÉTODO GET - Lectura / Consulta de Incidencias
- * ----------------------------------------------------------------------------
- * Permite:
- *   1. Si se proporciona un 'id' por parámetro (?id=X):
- *      Obtiene la información detallada de una incidencia en específico.
- *   2. Si NO se proporciona un 'id':
- *      Obtiene todas las incidencias ordenadas descendentemente por su fecha de reporte.
+ * Casos soportados:
+ *   1. ?id=X  → Devuelve la incidencia con ese ID.
+ *   2. Sin id → Devuelve todas las incidencias ordenadas por fecha DESC.
  *
- * En ambos casos se realiza un LEFT JOIN con la tabla 'maquinas' para incluir
- * el nombre de la máquina asociada en la respuesta (alias 'maquina').
+ * En ambos casos el LEFT JOIN con maquinas añade:
+ *   - alias 'maquina'        → nombre de la máquina
+ *   - alias 'estado_maquina' → estado actual de la máquina
  */
 if ($metodo === 'GET') {
-    // Caso 1: Obtener una incidencia específica por ID
+
+    // Caso 1: Una incidencia específica por su ID
     if (isset($_GET['id'])) {
         $id = (int)$_GET['id'];
-        
-        $stmt = $conn->prepare("SELECT i.*, m.nombre as maquina FROM incidencias i LEFT JOIN maquinas m ON i.id_maquina = m.id_maquina WHERE i.id_incidencia = ?");
+
+        $stmt = $conn->prepare(
+            "SELECT i.*, m.nombre AS maquina, m.estado AS estado_maquina
+             FROM incidencias i
+             LEFT JOIN maquinas m ON i.id_maquina = m.id_maquina
+             WHERE i.id_incidencia = ?"
+        );
         $stmt->bind_param("i", $id);
         $stmt->execute();
-        $res = $stmt->get_result();
-        $inc = $res->fetch_assoc();
+        $inc = $stmt->get_result()->fetch_assoc();
         $stmt->close();
-        
+
         if ($inc) {
             respuestaOk(['incidencia' => $inc]);
         } else {
             respuestaError('Incidencia no encontrada.', 404);
         }
-    } 
-    // Caso 2: Obtener el listado de todas las incidencias
-    else {
-        $query = "SELECT i.*, m.nombre as maquina FROM incidencias i LEFT JOIN maquinas m ON i.id_maquina = m.id_maquina ORDER BY i.fecha_reporte DESC";
-        $res = $conn->query($query);
+
+    // Caso 2: Listar todas las incidencias
+    } else {
+        $res = $conn->query(
+            "SELECT i.*, m.nombre AS maquina, m.estado AS estado_maquina
+             FROM incidencias i
+             LEFT JOIN maquinas m ON i.id_maquina = m.id_maquina
+             ORDER BY i.fecha_reporte DESC, i.id_incidencia DESC"
+        );
+
+        if (!$res) {
+            respuestaError('Error BD: ' . $conn->error, 500);
+        }
+
         $incidencias = [];
-        
         while ($fila = $res->fetch_assoc()) {
             $incidencias[] = $fila;
         }
@@ -77,129 +93,185 @@ if ($metodo === 'GET') {
     }
 }
 
+// ============================================================================
+// MÉTODO POST — Registrar nueva incidencia + actualizar estado de máquina
+// ============================================================================
 /**
- * ----------------------------------------------------------------------------
- * MÉTODO POST - Registro / Reporte de Nueva Incidencia
- * ----------------------------------------------------------------------------
- * Recibe un payload JSON para abrir una incidencia en una máquina:
- *   - id_maquina (int, obligatorio): ID de la máquina que presenta la avería.
- *   - descripcion (string, obligatorio): Explicación detallada del problema.
- *   - prioridad (string, opcional, por defecto 'Media'): Nivel de urgencia (ej. Baja, Media, Alta).
- *   - tipo (string, opcional, por defecto 'Avería'): Tipo de incidencia (ej. Avería, Mantenimiento preventivo).
+ * Payload JSON esperado:
+ *   - id_maquina  (int,    obligatorio)
+ *   - descripcion (string, obligatorio)
+ *   - tipo        (string, opcional, defecto 'Averia') — Averia | Mantenimiento | Otro
+ *   - prioridad   (string, opcional, defecto 'Media')  — Baja | Media | Alta | Critica
  *
- * Lógica de Negocio:
- *   - Se inicializa el estado automáticamente como 'abierta'.
- *   - Se registra la fecha actual utilizando la función NOW() de la base de datos.
- *
- * Validaciones:
- *   - id_maquina debe ser mayor que cero.
- *   - descripcion no debe estar vacía.
+ * Lógica de negocio:
+ *   1. Inserta la incidencia con estado inicial 'abierta'.
+ *   2. Según el campo 'tipo', actualiza el estado de la máquina:
+ *        · 'Averia'        → maquinas.estado = 'averia'
+ *        · 'Mantenimiento' → maquinas.estado = 'en_mantenimiento'
+ *        · Otros tipos     → no se modifica el estado de la máquina
  */
 if ($metodo === 'POST') {
-    // Decodificar el JSON recibido en la petición
+    // Decodificar el cuerpo JSON
     $b = json_decode(file_get_contents('php://input'), true) ?? [];
-    
-    // Asignar parámetros sanitizados
-    $id_maquina = (int)($b['id_maquina'] ?? 0);
+
+    // Extraer y sanear los campos
+    $id_maquina  = (int)($b['id_maquina'] ?? 0);
     $descripcion = trim($b['descripcion'] ?? '');
-    $prioridad = trim($b['prioridad'] ?? 'Media');
-    $tipo = trim($b['tipo'] ?? 'Avería');
-    
-    // Validación obligatoria
-    if ($id_maquina <= 0 || !$descripcion) {
-        respuestaError('Máquina y descripción son obligatorios.');
+    $tipo        = trim($b['tipo']        ?? 'Averia');
+    $prioridad   = trim($b['prioridad']   ?? 'Media');
+
+    // Validaciones obligatorias
+    if ($id_maquina <= 0) {
+        respuestaError('El ID de maquina es obligatorio.');
+    }
+    if (!$descripcion) {
+        respuestaError('La descripcion es obligatoria.');
     }
 
-    // Insertar la nueva incidencia en la base de datos
-    $stmt = $conn->prepare("INSERT INTO incidencias (id_maquina, descripcion, prioridad, tipo, estado, fecha_reporte) VALUES (?, ?, ?, ?, 'abierta', NOW())");
-    $stmt->bind_param("isss", $id_maquina, $descripcion, $prioridad, $tipo);
-    
-    if ($stmt->execute()) {
-        respuestaOk(['msg' => 'Incidencia reportada.', 'id' => $stmt->insert_id]);
-    } else {
-        respuestaError('Error al crear incidencia.');
+    // Paso 1: Insertar la incidencia con estado 'abierta' y fecha actual
+    $stmt = $conn->prepare(
+        "INSERT INTO incidencias (id_maquina, descripcion, tipo, prioridad, estado, fecha_reporte)
+         VALUES (?, ?, ?, ?, 'abierta', NOW())"
+    );
+    $stmt->bind_param("isss", $id_maquina, $descripcion, $tipo, $prioridad);
+
+    if (!$stmt->execute()) {
+        respuestaError('Error al registrar la incidencia: ' . $stmt->error, 500);
     }
+    $nuevo_id = $stmt->insert_id;
     $stmt->close();
+
+    // Paso 2: Actualizar el estado de la máquina según el tipo de incidencia.
+    // Usamos stripos para comparación sin distinción de tildes/mayúsculas.
+    $nuevo_estado_maquina = null;
+    $tipo_lower = strtolower($tipo);
+
+    if (strpos($tipo_lower, 'averia') !== false || strpos($tipo_lower, 'avería') !== false) {
+        // Tipo Avería → la máquina pasa a estado 'averia'
+        $nuevo_estado_maquina = 'averia';
+    } elseif (strpos($tipo_lower, 'mantenimiento') !== false) {
+        // Tipo Mantenimiento → la máquina pasa a estado 'en_mantenimiento'
+        $nuevo_estado_maquina = 'en_mantenimiento';
+    }
+    // Para cualquier otro tipo (ej. 'Otro', 'Revisión', etc.) no se cambia el estado
+
+    if ($nuevo_estado_maquina !== null) {
+        $stmt2 = $conn->prepare("UPDATE maquinas SET estado = ? WHERE id_maquina = ?");
+        $stmt2->bind_param("si", $nuevo_estado_maquina, $id_maquina);
+        $stmt2->execute();
+        $stmt2->close();
+    }
+
+    respuestaOk([
+        'msg'                        => 'Incidencia registrada correctamente.',
+        'id'                         => $nuevo_id,
+        'estado_maquina_actualizado' => $nuevo_estado_maquina !== null,
+        'nuevo_estado_maquina'       => $nuevo_estado_maquina
+    ]);
 }
 
+// ============================================================================
+// MÉTODO PUT — Actualizar incidencia + liberar máquina al cerrar/resolver
+// ============================================================================
 /**
- * ----------------------------------------------------------------------------
- * MÉTODO PUT - Actualización / Cierre de Incidencia
- * ----------------------------------------------------------------------------
- * Recibe un payload JSON con las modificaciones a realizar:
- *   - id_incidencia (int, obligatorio): ID del registro que se va a editar.
- *   - estado (string, obligatorio): Nuevo estado de la incidencia (ej. abierta, en_proceso, cerrada).
- *   - solucion_aplicada (string, opcional): Detalles técnicos del arreglo o solución.
+ * Payload JSON esperado:
+ *   - id_incidencia    (int,    obligatorio)
+ *   - estado           (string, obligatorio) — abierta | en_curso | resuelta | cerrada
+ *   - solucion_aplicada (string, opcional)
  *
- * Lógica de Negocio:
- *   - Si el estado de la incidencia se actualiza a 'cerrada', la consulta SQL establece
- *     automáticamente el campo `fecha_resolucion` al tiempo actual (NOW()). En caso contrario,
- *     se conserva el valor actual de `fecha_resolucion`.
- *
- * Validaciones:
- *   - El ID de la incidencia debe ser válido y mayor que cero.
- *   - El nuevo estado no puede estar vacío.
+ * Lógica de negocio:
+ *   - Si el nuevo estado es 'cerrada' o 'resuelta':
+ *       · Se establece fecha_resolucion = NOW()
+ *       · La máquina asociada vuelve a estado = 'disponible'
  */
 if ($metodo === 'PUT') {
-    // Decodificar cuerpo de la petición
+    // Decodificar el cuerpo JSON
     $b = json_decode(file_get_contents('php://input'), true) ?? [];
-    
-    // Asignar variables
-    $id = (int)($b['id_incidencia'] ?? 0);
-    $estado = trim($b['estado'] ?? '');
-    $solucion = trim($b['solucion_aplicada'] ?? '');
 
-    // Validación obligatoria
-    if ($id <= 0 || !$estado) {
-        respuestaError('ID y estado obligatorios.');
+    $id       = (int)($b['id_incidencia']     ?? 0);
+    $estado   = trim($b['estado']             ?? '');
+    $solucion = trim($b['solucion_aplicada']  ?? '');
+
+    // Validaciones
+    if ($id <= 0) {
+        respuestaError('ID de incidencia no valido.');
+    }
+    if (!$estado) {
+        respuestaError('El campo estado es obligatorio.');
     }
 
-    // Preparar y ejecutar la consulta de actualización con la lógica condicional para fecha_resolucion
-    $stmt = $conn->prepare("UPDATE incidencias SET estado=?, solucion_aplicada=?, fecha_resolucion = IF(? = 'cerrada', NOW(), fecha_resolucion) WHERE id_incidencia=?");
+    // Obtener el id_maquina asociado a esta incidencia (necesario para actualizarla después)
+    $stmtGet = $conn->prepare("SELECT id_maquina FROM incidencias WHERE id_incidencia = ?");
+    $stmtGet->bind_param("i", $id);
+    $stmtGet->execute();
+    $incRow = $stmtGet->get_result()->fetch_assoc();
+    $stmtGet->close();
+
+    if (!$incRow) {
+        respuestaError('Incidencia no encontrada.', 404);
+    }
+    $id_maquina = (int)$incRow['id_maquina'];
+
+    // Actualizar la incidencia.
+    // Si el estado es 'cerrada' o 'resuelta', se registra la fecha de resolución.
+    $stmt = $conn->prepare(
+        "UPDATE incidencias
+         SET estado = ?,
+             solucion_aplicada = ?,
+             fecha_resolucion = IF(? IN ('cerrada','resuelta'), NOW(), fecha_resolucion)
+         WHERE id_incidencia = ?"
+    );
     $stmt->bind_param("sssi", $estado, $solucion, $estado, $id);
-    
-    if ($stmt->execute()) {
-        respuestaOk(['msg' => 'Incidencia actualizada.']);
-    } else {
-        respuestaError('Error al actualizar.');
+
+    if (!$stmt->execute()) {
+        respuestaError('Error al actualizar la incidencia: ' . $stmt->error, 500);
     }
     $stmt->close();
+
+    // Si la incidencia se cierra o se resuelve, liberar la máquina (→ 'disponible')
+    $maquina_liberada = false;
+    if (in_array($estado, ['cerrada', 'resuelta'])) {
+        $stmt2 = $conn->prepare("UPDATE maquinas SET estado = 'disponible' WHERE id_maquina = ?");
+        $stmt2->bind_param("i", $id_maquina);
+        $stmt2->execute();
+        $stmt2->close();
+        $maquina_liberada = true;
+    }
+
+    respuestaOk([
+        'msg'              => 'Incidencia actualizada correctamente.',
+        'maquina_liberada' => $maquina_liberada
+    ]);
 }
 
+// ============================================================================
+// MÉTODO DELETE — Eliminar una incidencia
+// ============================================================================
 /**
- * ----------------------------------------------------------------------------
- * MÉTODO DELETE - Eliminación de Incidencia
- * ----------------------------------------------------------------------------
- * Recibe un payload JSON con el identificador de la incidencia:
- *   - id_incidencia (int, obligatorio): ID de la incidencia que se desea borrar.
- *
- * Validaciones:
- *   - El ID debe ser válido y mayor que cero.
+ * Payload JSON esperado:
+ *   - id_incidencia (int, obligatorio)
  */
 if ($metodo === 'DELETE') {
-    // Decodificar JSON
-    $b = json_decode(file_get_contents('php://input'), true) ?? [];
+    $b  = json_decode(file_get_contents('php://input'), true) ?? [];
     $id = (int)($b['id_incidencia'] ?? 0);
-    
-    // Validar ID
+
     if ($id <= 0) {
-        respuestaError('ID no válido.');
+        respuestaError('ID de incidencia no valido.');
     }
 
-    // Eliminar físicamente el registro
-    $stmt = $conn->prepare("DELETE FROM incidencias WHERE id_incidencia=?");
+    $stmt = $conn->prepare("DELETE FROM incidencias WHERE id_incidencia = ?");
     $stmt->bind_param("i", $id);
-    
+
     if ($stmt->execute()) {
-        respuestaOk(['msg' => 'Incidencia eliminada.']);
+        respuestaOk(['msg' => 'Incidencia eliminada correctamente.']);
     } else {
-        respuestaError('Error al eliminar.');
+        respuestaError('Error al eliminar: ' . $stmt->error, 500);
     }
     $stmt->close();
 }
 
-// Cerrar conexión
+// Cerrar la conexion con la base de datos
 $conn->close();
 
-// Método no permitido
-respuestaError('Método no permitido', 405);
+// Si se llega aqui, el metodo HTTP no esta soportado
+respuestaError('Metodo no permitido.', 405);
