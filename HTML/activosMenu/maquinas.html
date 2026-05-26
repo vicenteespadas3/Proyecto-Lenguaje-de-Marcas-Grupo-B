@@ -39,9 +39,29 @@
                         <button class="btn btn-secondary" onclick="togglePanelFiltros()">
                             ➕ Filtros
                         </button>
-                        <button class="btn btn-secondary" onclick="toggleOrden()">
-                            ⇅ Ordenar
-                        </button>
+                        <div class="dropdown-ordenar-container">
+                            <button class="btn btn-secondary" onclick="toggleDropdownOrden(event)">
+                                ⇅ Ordenar
+                            </button>
+                            <div id="dropdownOrden" class="dropdown-orden-content">
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('id')">
+                                    <span>ID</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('nombre')">
+                                    <span>Nombre</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('tipo')">
+                                    <span>Tipo (Alfabéticamente)</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('estado')">
+                                    <span>Estado (Disponibilidad)</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -187,7 +207,7 @@
     <script>
         let maquinasData = [];
         let ordenAsc = true;
-        let criterioOrden = 'nombre'; // 'nombre' o 'id'
+        let criterioOrden = 'id'; // Por defecto ordenado por id
 
         async function cargarMaquinas() {
             const tbody = document.getElementById('tabla-maquinas-body');
@@ -198,6 +218,7 @@
                 maquinasData = res.maquinas || [];
                 aplicarOrden(); // Aseguramos el orden inicial
                 filtrarMaquinas();
+                actualizarUIOrden();
             } else {
                 tbody.innerHTML = `<tr><td colspan="7" class="error-msg">Error: ${res.error || 'No se pudo conectar'}</td></tr>`;
             }
@@ -208,29 +229,35 @@
             p.style.display = p.style.display === 'none' ? 'block' : 'none';
         }
 
-        function toggleOrden() {
-            // Ciclo: Nombre ASC -> Nombre DESC -> ID ASC -> ID DESC
-            if (criterioOrden === 'nombre') {
-                if (ordenAsc) {
-                    ordenAsc = false; // Nombre DESC
-                } else {
-                    criterioOrden = 'id';
-                    ordenAsc = true; // ID ASC
-                }
+        function toggleDropdownOrden(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('dropdownOrden');
+            dropdown.classList.toggle('show');
+        }
+
+        function cambiarCriterioOrden(criterio) {
+            if (criterioOrden === criterio) {
+                ordenAsc = !ordenAsc; // Invierte el orden si es el mismo criterio
             } else {
-                if (ordenAsc) {
-                    ordenAsc = false; // ID DESC
-                } else {
-                    criterioOrden = 'nombre';
-                    ordenAsc = true; // Nombre ASC
-                }
+                criterioOrden = criterio;
+                ordenAsc = true; // Por defecto ascendente al cambiar de criterio
             }
-            
             aplicarOrden();
             filtrarMaquinas();
+            actualizarUIOrden();
             
-            // Feedback visual opcional en el botón o consola
-            console.log(`Ordenando por ${criterioOrden} (${ordenAsc ? 'ASC' : 'DESC'})`);
+            // Cerrar el dropdown después de elegir
+            document.getElementById('dropdownOrden').classList.remove('show');
+        }
+
+        function obtenerRangoEstado(estado) {
+            switch (estado) {
+                case 'disponible': return 1;
+                case 'en_mantenimiento': return 2;
+                case 'averia': return 3;
+                case 'desactivada': return 4;
+                default: return 5;
+            }
         }
 
         function aplicarOrden() {
@@ -240,13 +267,49 @@
                     valA = (a.nombre || '').toLowerCase();
                     valB = (b.nombre || '').toLowerCase();
                     return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                } else {
+                } else if (criterioOrden === 'tipo') {
+                    valA = (a.tipo || '').toLowerCase();
+                    valB = (b.tipo || '').toLowerCase();
+                    return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else if (criterioOrden === 'estado') {
+                    valA = obtenerRangoEstado(a.estado);
+                    valB = obtenerRangoEstado(b.estado);
+                    return ordenAsc ? valA - valB : valB - valA;
+                } else { // id
                     valA = parseInt(a.id_maquina);
                     valB = parseInt(b.id_maquina);
                     return ordenAsc ? valA - valB : valB - valA;
                 }
             });
         }
+
+        function actualizarUIOrden() {
+            // Limpiar clases active y checkmarks
+            document.querySelectorAll('.dropdown-orden-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelectorAll('.check-icon').forEach(icon => {
+                icon.textContent = '';
+            });
+
+            // Establecer el activo
+            const activeItem = document.querySelector(`.dropdown-orden-item[onclick*="'${criterioOrden}'"]`);
+            if (activeItem) {
+                activeItem.classList.add('active');
+                const icon = activeItem.querySelector('.check-icon');
+                if (icon) {
+                    icon.textContent = ordenAsc ? '▲' : '▼';
+                }
+            }
+        }
+
+        // Cerrar dropdown al hacer click fuera
+        window.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('dropdownOrden');
+            if (dropdown && !e.target.closest('.dropdown-ordenar-container')) {
+                dropdown.classList.remove('show');
+            }
+        });
 
         function limpiarFiltros() {
             document.getElementById('searchMaquina').value = '';
