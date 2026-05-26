@@ -155,37 +155,57 @@ if ($metodo === 'POST') {
         respuestaError('El campo valor es obligatorio.');
     }
 
-    // Insertar usando NOW() si no se proporcionó fecha
-    if ($fecha_registro !== '') {
-        // El usuario proporcionó fecha explícita
+    // -----------------------------------------------------------------------
+    // Inserción con 4 variantes:
+    //   A) Con id_ejecucion + con fecha_registro explícita
+    //   B) Con id_ejecucion + sin fecha (usa NOW())
+    //   C) Sin id_ejecucion + con fecha_registro explícita
+    //   D) Sin id_ejecucion + sin fecha (usa NOW())
+    //
+    // Por qué 4 ramas:
+    //   - mysqli::bind_param NO acepta null con tipo 'i'; si id_ejecucion es null
+    //     hay que omitirlo del bind y usar NULL literal directamente en el SQL.
+    //   - Lo mismo para fecha_registro: si no se proporciona usamos NOW() en SQL.
+    // -----------------------------------------------------------------------
+    if ($id_ejecucion !== null && $fecha_registro !== '') {
+        // A: Con ejecucion + con fecha
         $stmt = $conn->prepare(
             "INSERT INTO analisis_maquinas
              (id_maquina, id_ejecucion, nombre_variable, valor, unidad_medida, fecha_registro, dentro_rango)
              VALUES (?, ?, ?, ?, ?, ?, ?)"
         );
         $stmt->bind_param("iisdssi",
-            $id_maquina,
-            $id_ejecucion,
-            $nombre_variable,
-            $valor,
-            $unidad_medida,
-            $fecha_registro,
-            $dentro_rango
+            $id_maquina, $id_ejecucion, $nombre_variable, $valor, $unidad_medida, $fecha_registro, $dentro_rango
         );
-    } else {
-        // Sin fecha: MySQL establece NOW() automáticamente
+    } elseif ($id_ejecucion !== null && $fecha_registro === '') {
+        // B: Con ejecucion + sin fecha (NOW())
         $stmt = $conn->prepare(
             "INSERT INTO analisis_maquinas
              (id_maquina, id_ejecucion, nombre_variable, valor, unidad_medida, fecha_registro, dentro_rango)
              VALUES (?, ?, ?, ?, ?, NOW(), ?)"
         );
         $stmt->bind_param("iisdsi",
-            $id_maquina,
-            $id_ejecucion,
-            $nombre_variable,
-            $valor,
-            $unidad_medida,
-            $dentro_rango
+            $id_maquina, $id_ejecucion, $nombre_variable, $valor, $unidad_medida, $dentro_rango
+        );
+    } elseif ($id_ejecucion === null && $fecha_registro !== '') {
+        // C: Sin ejecucion (NULL en SQL) + con fecha
+        $stmt = $conn->prepare(
+            "INSERT INTO analisis_maquinas
+             (id_maquina, id_ejecucion, nombre_variable, valor, unidad_medida, fecha_registro, dentro_rango)
+             VALUES (?, NULL, ?, ?, ?, ?, ?)"
+        );
+        $stmt->bind_param("isdssi",
+            $id_maquina, $nombre_variable, $valor, $unidad_medida, $fecha_registro, $dentro_rango
+        );
+    } else {
+        // D: Sin ejecucion (NULL en SQL) + sin fecha (NOW())
+        $stmt = $conn->prepare(
+            "INSERT INTO analisis_maquinas
+             (id_maquina, id_ejecucion, nombre_variable, valor, unidad_medida, fecha_registro, dentro_rango)
+             VALUES (?, NULL, ?, ?, ?, NOW(), ?)"
+        );
+        $stmt->bind_param("isdsi",
+            $id_maquina, $nombre_variable, $valor, $unidad_medida, $dentro_rango
         );
     }
 
@@ -218,16 +238,16 @@ if ($metodo === 'PUT') {
     // Extraer y sanear los campos
     $id_analisis     = (int)($b['id_analisis'] ?? 0);
     $id_maquina      = (int)($b['id_maquina'] ?? 0);
-    $id_ejecucion    = !empty($b['id_ejecucion'])    ? (int)$b['id_ejecucion']    : null;
+    $id_ejecucion    = !empty($b['id_ejecucion']) ? (int)$b['id_ejecucion'] : null;
     $nombre_variable = trim($b['nombre_variable'] ?? '');
-    $valor           = isset($b['valor'])            ? (float)$b['valor']          : null;
+    $valor           = isset($b['valor'])         ? (float)$b['valor']      : null;
     $unidad_medida   = trim($b['unidad_medida'] ?? '');
     $fecha_registro  = trim($b['fecha_registro'] ?? '');
-    $dentro_rango    = isset($b['dentro_rango'])     ? (int)(bool)$b['dentro_rango'] : 1;
+    $dentro_rango    = isset($b['dentro_rango'])  ? (int)(bool)$b['dentro_rango'] : 1;
 
     // Validaciones obligatorias
     if ($id_analisis <= 0) {
-        respuestaError('ID de análisis no válido.');
+        respuestaError('ID de analisis no valido.');
     }
     if ($id_maquina <= 0) {
         respuestaError('El campo id_maquina es obligatorio.');
@@ -242,28 +262,39 @@ if ($metodo === 'PUT') {
         respuestaError('El campo fecha_registro es obligatorio.');
     }
 
-    // Actualizar el registro en la base de datos
-    $stmt = $conn->prepare(
-        "UPDATE analisis_maquinas
-         SET id_maquina=?, id_ejecucion=?, nombre_variable=?, valor=?,
-             unidad_medida=?, fecha_registro=?, dentro_rango=?
-         WHERE id_analisis=?"
-    );
-    $stmt->bind_param("iisdssii",
-        $id_maquina,
-        $id_ejecucion,
-        $nombre_variable,
-        $valor,
-        $unidad_medida,
-        $fecha_registro,
-        $dentro_rango,
-        $id_analisis
-    );
+    // Actualizar el registro.
+    // Al igual que en POST, id_ejecucion puede ser null, por lo que usamos
+    // dos ramas para no pasar null a bind_param con tipo 'i'.
+    if ($id_ejecucion !== null) {
+        // Con id_ejecucion
+        $stmt = $conn->prepare(
+            "UPDATE analisis_maquinas
+             SET id_maquina=?, id_ejecucion=?, nombre_variable=?, valor=?,
+                 unidad_medida=?, fecha_registro=?, dentro_rango=?
+             WHERE id_analisis=?"
+        );
+        $stmt->bind_param("iisdssi",
+            $id_maquina, $id_ejecucion, $nombre_variable, $valor,
+            $unidad_medida, $fecha_registro, $dentro_rango, $id_analisis
+        );
+    } else {
+        // Sin id_ejecucion: NULL literal en SQL
+        $stmt = $conn->prepare(
+            "UPDATE analisis_maquinas
+             SET id_maquina=?, id_ejecucion=NULL, nombre_variable=?, valor=?,
+                 unidad_medida=?, fecha_registro=?, dentro_rango=?
+             WHERE id_analisis=?"
+        );
+        $stmt->bind_param("isdssi",
+            $id_maquina, $nombre_variable, $valor,
+            $unidad_medida, $fecha_registro, $dentro_rango, $id_analisis
+        );
+    }
 
     if ($stmt->execute()) {
-        respuestaOk(['msg' => 'Análisis actualizado correctamente.']);
+        respuestaOk(['msg' => 'Analisis actualizado correctamente.']);
     } else {
-        respuestaError('Error al actualizar el análisis: ' . $stmt->error, 500);
+        respuestaError('Error al actualizar el analisis: ' . $stmt->error, 500);
     }
     $stmt->close();
 }
