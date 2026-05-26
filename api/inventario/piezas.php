@@ -65,6 +65,20 @@ switch ($metodo) {
 
             if (!$nombre) respuestaError('El nombre de la pieza es obligatorio.');
 
+            // Verificar si ya existe una pieza con el mismo nombre
+            $chk = $conn->prepare("SELECT id_pieza FROM piezas_repuesto WHERE nombre=?");
+            $chk->bind_param("s", $nombre); $chk->execute(); $chk->store_result();
+            if ($chk->num_rows > 0) { $chk->close(); $conn->close(); respuestaError('Ya existe una pieza con ese nombre.'); }
+            $chk->close();
+
+            // Verificar codigo_interno duplicado (si se proporcionó)
+            if ($cod_int !== '') {
+                $chk2 = $conn->prepare("SELECT id_pieza FROM piezas_repuesto WHERE codigo_interno=?");
+                $chk2->bind_param("s", $cod_int); $chk2->execute(); $chk2->store_result();
+                if ($chk2->num_rows > 0) { $chk2->close(); $conn->close(); respuestaError('Ya existe una pieza con ese código interno.'); }
+                $chk2->close();
+            }
+
             // Si id_proveedor es 0, lo ponemos a NULL para evitar error de clave foránea
             $id_prov_val = $id_proveedor > 0 ? $id_proveedor : null;
 
@@ -96,6 +110,20 @@ switch ($metodo) {
 
         if ($id <= 0) respuestaError('ID de pieza no válido.');
         if (!$nombre) respuestaError('El nombre es obligatorio.');
+
+        // Verificar si ya existe otra pieza con el mismo nombre (excluyendo la actual)
+        $chk = $conn->prepare("SELECT id_pieza FROM piezas_repuesto WHERE nombre=? AND id_pieza!=?");
+        $chk->bind_param("si", $nombre, $id); $chk->execute(); $chk->store_result();
+        if ($chk->num_rows > 0) { $chk->close(); $conn->close(); respuestaError('Ya existe otra pieza con ese nombre.'); }
+        $chk->close();
+
+        // Verificar codigo_interno duplicado (si se proporcionó)
+        if ($cod_int !== '') {
+            $chk2 = $conn->prepare("SELECT id_pieza FROM piezas_repuesto WHERE codigo_interno=? AND id_pieza!=?");
+            $chk2->bind_param("si", $cod_int, $id); $chk2->execute(); $chk2->store_result();
+            if ($chk2->num_rows > 0) { $chk2->close(); $conn->close(); respuestaError('Ya existe otra pieza con ese código interno.'); }
+            $chk2->close();
+        }
 
         // Si id_proveedor es 0, lo ponemos a NULL
         $id_prov_val = $id_proveedor > 0 ? $id_proveedor : null;

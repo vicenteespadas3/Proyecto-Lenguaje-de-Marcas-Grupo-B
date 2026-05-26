@@ -122,7 +122,7 @@
                             <div style="font-weight: bold; color: #2c3e50; font-size: 0.9em; margin-bottom: 4px;">${inc.titulo || inc.descripcion.substring(0, 40) + '...'}</div>
                             <div style="font-size: 0.8em; color: #7f8c8d; display: flex; justify-content: space-between;">
                                 <span>Reporte: ${new Date(inc.fecha_reporte).toLocaleDateString()}</span>
-                                <span style="font-weight: bold;">${inc.estado}</span>
+                                <span style="font-weight: bold; text-transform: capitalize;">${inc.estado.replace('_', ' ')}</span>
                             </div>
                         </div>
                     `;

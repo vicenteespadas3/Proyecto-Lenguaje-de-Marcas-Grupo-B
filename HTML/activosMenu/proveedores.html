@@ -9,33 +9,72 @@
 <body>
     <div class="app-body theme-activos">
         <main class="main-content">
-        <header class="header">
-            <div class="header-info">
-                <h1>Directorio de Proveedores</h1>
-                <p>Gestión de empresas suministradoras y contactos técnicos</p>
-            </div>
-            <div class="header-actions">
-                <input type="text" id="searchProveedor" placeholder="Buscar proveedor..." style="padding: 10px; border-radius: 6px; border: 1px solid var(--border); margin-right: 10px;">
-                <button class="btn btn-primary" onclick="nuevoProveedor()">+ Nuevo Proveedor</button>
-            </div>
-        </header>
+            <header class="header">
+                <div class="header-info">
+                    <h1>Directorio de Proveedores</h1>
+                    <p>Gestión de empresas suministradoras y contactos técnicos</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="nuevoProveedor()">+ Nuevo Proveedor</button>
+                </div>
+            </header>
 
-        <section class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Empresa</th>
-                        <th>Contacto</th>
-                        <th>Teléfono / Email</th>
-                        <th>Equipos</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="tabla-proveedores-body">
+            <!-- Barra de Búsqueda y Filtros Avanzada -->
+            <div class="search-filters-container">
+                <div class="search-filters-bar">
+                    <div class="search-group">
+                        <div class="search-input-wrapper">
+                            <input type="text" id="searchProveedor" placeholder="Buscar por empresa, contacto, email...">
+                        </div>
+                        <button class="btn btn-primary btn-search" onclick="filtrarProveedores()">
+                            🔍 Buscar
+                        </button>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-secondary" onclick="togglePanelFiltros()">
+                            ➕ Filtros
+                        </button>
+                        <button class="btn btn-secondary" onclick="toggleOrden()">
+                            ⇅ Ordenar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Panel de Filtros (Expandible) -->
+                <div id="panelFiltros" class="filter-panel" style="display: none;">
+                    <div class="filter-grid">
+                        <div class="filter-item">
+                            <label>Especialidad</label>
+                            <input type="text" id="filtroEquipos" placeholder="Ej: Tornillería">
+                        </div>
+                    </div>
+                    <div class="filter-panel-actions">
+                        <button class="btn btn-secondary btn-small" onclick="limpiarFiltros()">Limpiar</button>
+                        <button class="btn btn-primary btn-small" onclick="filtrarProveedores()">Aplicar</button>
+                    </div>
+                </div>
+                
+                <div class="results-info">
+                    <span id="contadorProveedores" class="search-results-count">0 proveedores encontrados</span>
+                </div>
+            </div>
+
+            <section class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Empresa / Suministrador</th>
+                            <th>Contacto</th>
+                            <th>Teléfono / Email</th>
+                            <th>Especialidad</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-proveedores-body">
                     </tbody>
-            </table>
-        </section>
+                </table>
+            </section>
         </main>
 
         <!-- Modal Proveedor -->
@@ -47,29 +86,31 @@
                 </div>
                 <form id="formProveedor" onsubmit="guardarProveedor(event)">
                     <input type="hidden" id="prov_id">
-                    <div class="form-group">
-                        <label>Nombre de Empresa</label>
-                        <input type="text" id="prov_empresa" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Persona de Contacto</label>
-                        <input type="text" id="prov_contacto">
-                    </div>
-                    <div class="form-group">
-                        <label>Teléfono</label>
-                        <input type="text" id="prov_telefono">
-                    </div>
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="prov_email">
-                    </div>
-                    <div class="form-group">
-                        <label>Especialidad / Equipos</label>
-                        <input type="text" id="prov_equipos" placeholder="Ej: Tornillería, Componentes Eléctricos...">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nombre de Empresa</label>
+                            <input type="text" id="prov_empresa" required placeholder="Nombre legal">
+                        </div>
+                        <div class="form-group">
+                            <label>Persona de Contacto</label>
+                            <input type="text" id="prov_contacto" placeholder="Nombre completo">
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="text" id="prov_telefono" placeholder="+34 000 000 000">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="prov_email" placeholder="contacto@empresa.com">
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Especialidad / Equipos</label>
+                            <input type="text" id="prov_equipos" placeholder="Ej: Tornillería, Componentes Eléctricos...">
+                        </div>
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn btn-secondary" onclick="cerrarModalProv()">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Proveedor</button>
                     </div>
                 </form>
             </div>
@@ -79,49 +120,106 @@
     <script src="../../Js/app.js"></script>
     <script>
         let proveedoresData = [];
+        let ordenAsc = true;
+        let criterioOrden = 'empresa'; // 'empresa' o 'id'
 
         async function cargarProveedores() {
             const tbody = document.getElementById('tabla-proveedores-body');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando proveedores desde la Base de Datos... 🚚</td></tr>';
-            
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando directorio... 🚚</td></tr>';
             const res = await api('GET', '../../api/activos/proveedores.php');
-            
             if (res && res.ok) {
-                tbody.innerHTML = '';
                 proveedoresData = res.proveedores || [];
-                
-                if (proveedoresData.length > 0) {
-                    proveedoresData.forEach(prov => {
-                        const id = prov.id_proveedor;
-                        const empresa = prov.empresa;
-                        const contacto = prov.contacto || '-';
-                        const email = prov.email || '';
-                        const telefono = prov.telefono || '';
-                        const telEmail = (telefono && email) ? `${telefono} <br> <small>${email}</small>` : (telefono || email || '-');
-                        const equipos = prov.equipos || 'Variados';
-                        
-                        tbody.innerHTML += `
-                            <tr>
-                                <td><strong>PRV-${id}</strong></td>
-                                <td>${empresa}</td>
-                                <td>${contacto}</td>
-                                <td>${telEmail}</td>
-                                <td>${equipos}</td>
-                                <td class="action-buttons">
-                                    <button class="btn-icon" title="Editar" onclick="editarProveedor(${id})">✏️</button>
-                                    <button class="btn-icon" title="Eliminar" style="color: #e74c3c;" onclick="borrarProveedor(${id})">🗑️</button>
-                                </td>
-                            </tr>
-                        `;
-                    });
+                aplicarOrden();
+                filtrarProveedores();
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" class="error-msg">Error al conectar con la base de datos.</td></tr>';
+            }
+        }
+
+        function togglePanelFiltros() {
+            const p = document.getElementById('panelFiltros');
+            p.style.display = p.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleOrden() {
+            if (criterioOrden === 'empresa') {
+                if (ordenAsc) {
+                    ordenAsc = false;
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">No hay proveedores registrados en la base de datos.</td></tr>';
+                    criterioOrden = 'id';
+                    ordenAsc = true;
                 }
             } else {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">
-                    <strong>⚠️ Error al conectar con la base de datos:</strong><br> ${res.error || 'Verifica que el servidor Ubuntu esté encendido.'}
-                </td></tr>`;
+                if (ordenAsc) {
+                    ordenAsc = false;
+                } else {
+                    criterioOrden = 'empresa';
+                    ordenAsc = true;
+                }
             }
+            aplicarOrden();
+            filtrarProveedores();
+        }
+
+        function aplicarOrden() {
+            proveedoresData.sort((a, b) => {
+                let valA, valB;
+                if (criterioOrden === 'empresa') {
+                    valA = (a.empresa || '').toLowerCase();
+                    valB = (b.empresa || '').toLowerCase();
+                    return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else {
+                    valA = parseInt(a.id_proveedor);
+                    valB = parseInt(b.id_proveedor);
+                    return ordenAsc ? valA - valB : valB - valA;
+                }
+            });
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('searchProveedor').value = '';
+            document.getElementById('filtroEquipos').value = '';
+            filtrarProveedores();
+        }
+
+        function filtrarProveedores() {
+            const search = document.getElementById('searchProveedor').value.toLowerCase().trim();
+            const equiposF = document.getElementById('filtroEquipos').value.toLowerCase().trim();
+            const tbody = document.getElementById('tabla-proveedores-body');
+
+            const filtrados = proveedoresData.filter(p => {
+                const matchSearch = !search || 
+                    (p.empresa || '').toLowerCase().includes(search) || 
+                    (p.contacto || '').toLowerCase().includes(search) || 
+                    (p.email || '').toLowerCase().includes(search);
+                const matchEquipos = !equiposF || (p.equipos || '').toLowerCase().includes(equiposF);
+                return matchSearch && matchEquipos;
+            });
+
+            document.getElementById('contadorProveedores').textContent = `${filtrados.length} proveedores encontrados`;
+
+            tbody.innerHTML = '';
+            if (filtrados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No se encontraron resultados.</td></tr>';
+                return;
+            }
+
+            filtrados.forEach(p => {
+                const telEmail = (p.telefono && p.email) ? `${p.telefono} <br> <small>${p.email}</small>` : (p.telefono || p.email || '-');
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>PRV-${p.id_proveedor}</strong></td>
+                        <td><div style="font-weight:bold;">${p.empresa}</div></td>
+                        <td>${p.contacto || '-'}</td>
+                        <td>${telEmail}</td>
+                        <td>${p.equipos || 'Variados'}</td>
+                        <td class="action-buttons">
+                            <button class="btn-icon" title="Editar" onclick="editarProveedor(${p.id_proveedor})">✏️</button>
+                            <button class="btn-icon" title="Eliminar" style="color: #e74c3c;" onclick="borrarProveedor(${p.id_proveedor})">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
         }
 
         function nuevoProveedor() {
@@ -134,7 +232,6 @@
         function editarProveedor(id) {
             const p = proveedoresData.find(x => x.id_proveedor == id);
             if (!p) return;
-
             document.getElementById('modalTituloProv').textContent = 'Editar Proveedor';
             document.getElementById('prov_id').value = p.id_proveedor;
             document.getElementById('prov_empresa').value = p.empresa || '';
@@ -142,7 +239,6 @@
             document.getElementById('prov_telefono').value = p.telefono || '';
             document.getElementById('prov_email').value = p.email || '';
             document.getElementById('prov_equipos').value = p.equipos || '';
-
             document.getElementById('modalProveedor').classList.add('show');
         }
 
@@ -160,32 +256,20 @@
                 email: document.getElementById('prov_email').value,
                 equipos: document.getElementById('prov_equipos').value
             };
-
-            const metodo = id ? 'PUT' : 'POST';
-            if (id) datos.id_proveedor = id;
-
-            const res = await api(metodo, '../../api/activos/proveedores.php', datos);
-            if (res.ok) {
-                cerrarModalProv();
-                cargarProveedores();
-            } else {
-                alert('Error: ' + res.error);
-            }
+            const res = await api(id ? 'PUT' : 'POST', '../../api/activos/proveedores.php', id ? {...datos, id_proveedor: id} : datos);
+            if (res.ok) { cerrarModalProv(); cargarProveedores(); }
+            else alert('Error: ' + res.error);
         }
 
         async function borrarProveedor(id) {
-            if (confirm('¿Estás seguro de eliminar este proveedor?')) {
-                const res = await api('DELETE', '../../api/activos/proveedores.php', { id_proveedor: id });
-                if (res.ok) {
-                    cargarProveedores();
-                } else {
-                    alert('Error: ' + res.error);
-                }
-            }
+            if (!confirm('¿Estás seguro?')) return;
+            const res = await api('DELETE', '../../api/activos/proveedores.php', { id_proveedor: id });
+            if (res.ok) cargarProveedores();
+            else alert('Error: ' + res.error);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            renderMenu(); 
+            renderMenu('activos'); 
             cargarProveedores();
         });
     </script>

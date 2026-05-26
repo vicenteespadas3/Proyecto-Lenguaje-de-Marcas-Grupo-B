@@ -12,9 +12,9 @@ $m = $_SERVER['REQUEST_METHOD'];
 if ($m === 'GET') {
     if (isset($_GET['id'])) {
         $id = (int)$_GET['id'];
-        $s = $conn->prepare("SELECT i.*, m.nombre as maquina_nombre 
+        $s = $conn->prepare("SELECT i.*, m.nombre as maquina 
                              FROM incidencias i 
-                             JOIN maquinas m ON i.id_maquina = m.id_maquina 
+                             LEFT JOIN maquinas m ON i.id_maquina = m.id_maquina 
                              WHERE i.id_incidencia = ?");
         $s->bind_param("i", $id);
         $s->execute();
@@ -27,11 +27,11 @@ if ($m === 'GET') {
         $buscar = isset($_GET['buscar']) ? trim($_GET['buscar']) : '';
         
         if ($buscar !== '') {
-            $s = $conn->prepare("SELECT i.id_incidencia, m.nombre as id_maquina, i.fecha_reporte, i.prioridad, i.descripcion as descripcion_problema, i.estado 
+            $s = $conn->prepare("SELECT i.*, m.nombre as maquina 
                                  FROM incidencias i 
-                                 JOIN maquinas m ON i.id_maquina = m.id_maquina 
+                                 LEFT JOIN maquinas m ON i.id_maquina = m.id_maquina 
                                  WHERE i.descripcion LIKE ? OR m.nombre LIKE ? 
-                                 ORDER BY i.id_incidencia DESC");
+                                 ORDER BY i.fecha_reporte DESC, i.id_incidencia DESC");
             $like = "%" . $buscar . "%";
             $s->bind_param("ss", $like, $like);
             $s->execute();
@@ -40,10 +40,10 @@ if ($m === 'GET') {
             while ($f = $r->fetch_assoc()) $lista[] = $f;
             $s->close();
         } else {
-            $query = "SELECT i.id_incidencia, m.nombre as id_maquina, i.fecha_reporte, i.prioridad, i.descripcion as descripcion_problema, i.estado 
+            $query = "SELECT i.*, m.nombre as maquina 
                       FROM incidencias i 
-                      JOIN maquinas m ON i.id_maquina = m.id_maquina 
-                      ORDER BY i.id_incidencia DESC";
+                      LEFT JOIN maquinas m ON i.id_maquina = m.id_maquina 
+                      ORDER BY i.fecha_reporte DESC, i.id_incidencia DESC";
             $res = $conn->query($query);
             $lista = [];
             if ($res) {
@@ -62,8 +62,8 @@ if ($m === 'POST') {
     
     $id_maquina = (int)($b['id_maquina'] ?? 0);
     $descripcion = trim($b['descripcion_problema'] ?? ($b['descripcion'] ?? ''));
-    $tipo = trim($b['tipo'] ?? 'averia');
-    $prioridad = trim($b['prioridad'] ?? 'media');
+    $tipo = trim($b['tipo'] ?? 'Avería');
+    $prioridad = trim($b['prioridad'] ?? 'Media');
     $estado = trim($b['estado'] ?? 'abierta');
     $id_usuario = $_SESSION['id_usuario'] ?? 1; // Fallback al admin si no hay sesión
 
@@ -72,7 +72,7 @@ if ($m === 'POST') {
         respuestaError('La máquina y la descripción son obligatorias.');
     }
 
-    $stmt = $conn->prepare("INSERT INTO incidencias (id_maquina, id_usuario_reporta, descripcion, tipo, prioridad, estado) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO incidencias (id_maquina, id_usuario_reporta, descripcion, tipo, prioridad, estado, fecha_reporte) VALUES (?, ?, ?, ?, ?, ?, NOW())");
     $stmt->bind_param("iissss", $id_maquina, $id_usuario, $descripcion, $tipo, $prioridad, $estado);
 
     $ok = $stmt->execute();
@@ -82,7 +82,7 @@ if ($m === 'POST') {
     $conn->close();
 
     if ($ok) {
-        respuestaOk(['msg' => 'Incidencia reportada con éxito', 'id_incidencia' => $nid]);
+        respuestaOk(['msg' => 'Incidencia reportada con éxito', 'id' => $nid, 'id_incidencia' => $nid]);
     } else {
         respuestaError('Error al crear la incidencia: ' . $err, 500);
     }
@@ -98,14 +98,29 @@ if ($m === 'PUT') {
         respuestaError('ID de incidencia no válido.');
     }
 
-    $id_maquina = (int)($b['id_maquina'] ?? 0);
-    $descripcion = trim($b['descripcion_problema'] ?? ($b['descripcion'] ?? ''));
-    $prioridad = trim($b['prioridad'] ?? 'media');
-    $estado = trim($b['estado'] ?? 'abierta');
-    $tipo = trim($b['tipo'] ?? 'averia');
+    if (isset($b['id_maquina']) || isset($b['descripcion']) || isset($b['descripcion_problema'])) {
+        // Modificación general de la incidencia
+        $id_maquina = (int)($b['id_maquina'] ?? 0);
+        $descripcion = trim($b['descripcion_problema'] ?? ($b['descripcion'] ?? ''));
+        $prioridad = trim($b['prioridad'] ?? 'Media');
+        $estado = trim($b['estado'] ?? 'abierta');
+        $tipo = trim($b['tipo'] ?? 'Avería');
 
-    $stmt = $conn->prepare("UPDATE incidencias SET id_maquina=?, descripcion=?, prioridad=?, estado=?, tipo=? WHERE id_incidencia=?");
-    $stmt->bind_param("issssi", $id_maquina, $descripcion, $prioridad, $estado, $tipo, $id);
+        $stmt = $conn->prepare("UPDATE incidencias SET id_maquina=?, descripcion=?, prioridad=?, estado=?, tipo=? WHERE id_incidencia=?");
+        $stmt->bind_param("issssi", $id_maquina, $descripcion, $prioridad, $estado, $tipo, $id);
+    } else {
+        // Resolución de la incidencia (procedente del commit remoto)
+        $estado = trim($b['estado'] ?? '');
+        $solucion = trim($b['solucion_aplicada'] ?? '');
+
+        if (!$estado) {
+            $conn->close();
+            respuestaError('El estado es obligatorio.');
+        }
+
+        $stmt = $conn->prepare("UPDATE incidencias SET estado=?, solucion_aplicada=?, fecha_resolucion = IF(? = 'cerrada', NOW(), fecha_resolucion) WHERE id_incidencia=?");
+        $stmt->bind_param("sssi", $estado, $solucion, $estado, $id);
+    }
 
     $ok = $stmt->execute();
     $stmt->close();
@@ -114,7 +129,7 @@ if ($m === 'PUT') {
     if ($ok) {
         respuestaOk(['msg' => 'Incidencia actualizada correctamente']);
     } else {
-        respuestaError('Error al actualizar.', 500);
+        respuestaError('Error al actualizar la incidencia.', 500);
     }
 }
 
@@ -143,4 +158,4 @@ if ($m === 'DELETE') {
 }
 
 $conn->close();
-respuestaError('Método no soportado', 405);
+respuestaError('Método no permitido', 405);

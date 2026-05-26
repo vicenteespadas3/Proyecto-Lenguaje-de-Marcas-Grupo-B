@@ -10,33 +10,82 @@
 
 <body class="theme-incidencias">
     <div class="app-body">
-        <main class="main-content">
-            <header class="header">
+        <main class="main-content">            <header class="header">
                 <div class="header-info">
-                    <h1>Órdenes de Trabajo (OT)</h1>
-                    <p>Listado de incidencias y averías reportadas en planta.</p>
+                    <h1>Gestión de Incidencias</h1>
+                    <p>Reporte y seguimiento de averías en activos</p>
                 </div>
-                <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
-                    <input type="text" id="inputBuscarIncidencia" placeholder="Buscar incidencia..." class="form-control" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-                    <button class="btn btn-secondary" id="btnBuscarIncidencia">🔍 Buscar</button>
-                    <button class="btn btn-primary" onclick="nuevaIncidencia()">
-                        + Reportar Incidencia
-                    </button>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="abrirModalIncidencia()">+ Reportar Incidencia</button>
                 </div>
             </header>
+
+            <!-- Barra de Búsqueda y Filtros Avanzada -->
+            <div class="search-filters-container">
+                <div class="search-filters-bar">
+                    <div class="search-group">
+                        <div class="search-input-wrapper">
+                            <input type="text" id="searchIncidencia" placeholder="Buscar por descripción, máquina o técnico...">
+                        </div>
+                        <button class="btn btn-primary btn-search" onclick="filtrarIncidencias()">
+                            🔍 Buscar
+                        </button>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-secondary" onclick="togglePanelFiltros()">
+                            ➕ Filtros
+                        </button>
+                        <button class="btn btn-secondary" onclick="toggleOrden()">
+                            ⇅ Ordenar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Panel de Filtros (Expandible) -->
+                <div id="panelFiltros" class="filter-panel" style="display: none;">
+                    <div class="filter-grid">
+                        <div class="filter-item">
+                            <label>Prioridad</label>
+                            <select id="filtroPrioridad" class="filter-select">
+                                <option value="">Todas</option>
+                                <option value="Alta">Alta</option>
+                                <option value="Media">Media</option>
+                                <option value="Baja">Baja</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label>Estado</label>
+                            <select id="filtroEstado" class="filter-select">
+                                <option value="">Todos</option>
+                                <option value="abierta">Abierta</option>
+                                <option value="en_curso">En Curso</option>
+                                <option value="resuelta">Resuelta</option>
+                                <option value="cerrada">Cerrada</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="filter-panel-actions">
+                        <button class="btn btn-secondary btn-small" onclick="limpiarFiltros()">Limpiar</button>
+                        <button class="btn btn-primary btn-small" onclick="filtrarIncidencias()">Aplicar</button>
+                    </div>
+                </div>
+                
+                <div class="results-info">
+                    <span id="contadorIncidencias" class="search-results-count">0 incidencias encontradas</span>
+                </div>
+            </div>
 
             <section class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>ID Orden</th>
+                            <th>ID</th>
                             <th>Máquina</th>
-                            <th>Apertura</th>
-                            <th>Prioridad</th>
                             <th>Descripción</th>
-                            <th>Técnico</th>
+                            <th>Prioridad</th>
                             <th>Estado</th>
-                            <th class="col-acciones">Acciones</th>
+                            <th>Técnico</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-incidencias-body">
@@ -44,10 +93,44 @@
                 </table>
             </section>
         </main>
+
+        <!-- Modal Reportar/Editar Incidencia -->
+        <div id="modalIncidencia" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTituloInc">Reportar Incidencia</h2>
+                    <button class="btn-close" onclick="cerrarModalInc()">×</button>
+                </div>
+                <form id="formIncidencia" onsubmit="guardarIncidencia(event)">
+                    <input type="hidden" id="inc_id">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Máquina (ID)</label>
+                            <input type="number" id="inc_maquina" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Prioridad</label>
+                            <select id="inc_prioridad">
+                                <option value="Baja">Baja</option>
+                                <option value="Media" selected>Media</option>
+                                <option value="Alta">Alta</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label>Descripción de la avería</label>
+                            <textarea id="inc_desc" required placeholder="Describe el problema detectado..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="cerrarModalInc()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Enviar Reporte</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script src="../../Js/app.js"></script>
     <script src="../../Js/incidencias.js"></script>
 </body>
-
 </html>

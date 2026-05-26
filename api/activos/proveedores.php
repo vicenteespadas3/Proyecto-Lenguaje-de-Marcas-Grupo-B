@@ -9,6 +9,10 @@ $metodo = $_SERVER['REQUEST_METHOD'];
 if ($metodo === 'GET') {
     if (isset($_GET['id'])) {
         $id = (int)$_GET['id'];
+        /**
+         * Obtiene los datos de un proveedor específico filtrado por id_proveedor.
+         * Mapea algunos campos con alias ('nombre' como 'empresa', 'direccion' como 'equipos').
+         */
         $stmt = $conn->prepare("SELECT id_proveedor, nombre as empresa, contacto, telefono, email, direccion as equipos FROM proveedores_maquinas WHERE id_proveedor = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
@@ -18,6 +22,10 @@ if ($metodo === 'GET') {
         if ($proveedor) respuestaOk(['proveedor' => $proveedor]);
         else respuestaError('Proveedor no encontrado.', 404);
     } else {
+        /**
+         * Obtiene todos los proveedores registrados, ordenados de forma descendente por id_proveedor.
+         * Mapea algunos campos con alias ('nombre' como 'empresa', 'direccion' como 'equipos').
+         */
         $res = $conn->query("SELECT id_proveedor, nombre as empresa, contacto, telefono, email, direccion as equipos FROM proveedores_maquinas ORDER BY id_proveedor DESC");
         if (!$res) respuestaError('Error BD: ' . $conn->error, 500);
         $proveedores = [];
@@ -37,6 +45,15 @@ if ($metodo === 'POST') {
 
     if (!$empresa) respuestaError('El nombre de la empresa es obligatorio.');
 
+    // Verificar si ya existe un proveedor con el mismo nombre de empresa
+    $chk = $conn->prepare("SELECT id_proveedor FROM proveedores_maquinas WHERE nombre=?");
+    $chk->bind_param("s", $empresa); $chk->execute(); $chk->store_result();
+    if ($chk->num_rows > 0) { $chk->close(); $conn->close(); respuestaError('Ya existe un proveedor con ese nombre de empresa.'); }
+    $chk->close();
+
+    /**
+     * Inserta un nuevo proveedor en la base de datos (proveedores_maquinas) con los datos recibidos.
+     */
     $stmt = $conn->prepare("INSERT INTO proveedores_maquinas (nombre, contacto, telefono, email, direccion) VALUES (?, ?, ?, ?, ?)");
     $stmt->bind_param("sssss", $empresa, $contacto, $telefono, $email, $equipos);
     
@@ -62,6 +79,15 @@ if ($metodo === 'PUT') {
     if ($id <= 0) respuestaError('ID de proveedor no válido.');
     if (!$empresa) respuestaError('El nombre de la empresa es obligatorio.');
 
+    // Verificar si ya existe otro proveedor con el mismo nombre de empresa (excluyendo el actual)
+    $chk = $conn->prepare("SELECT id_proveedor FROM proveedores_maquinas WHERE nombre=? AND id_proveedor!=?");
+    $chk->bind_param("si", $empresa, $id); $chk->execute(); $chk->store_result();
+    if ($chk->num_rows > 0) { $chk->close(); $conn->close(); respuestaError('Ya existe otro proveedor con ese nombre de empresa.'); }
+    $chk->close();
+
+    /**
+     * Actualiza la información de un proveedor existente identificado por id_proveedor.
+     */
     $stmt = $conn->prepare("UPDATE proveedores_maquinas SET nombre=?, contacto=?, telefono=?, email=?, direccion=? WHERE id_proveedor=?");
     $stmt->bind_param("sssssi", $empresa, $contacto, $telefono, $email, $equipos, $id);
     
@@ -80,6 +106,9 @@ if ($metodo === 'DELETE') {
 
     if ($id <= 0) respuestaError('ID de proveedor no válido.');
 
+    /**
+     * Elimina el registro de un proveedor de la base de datos de acuerdo a su id_proveedor.
+     */
     $stmt = $conn->prepare("DELETE FROM proveedores_maquinas WHERE id_proveedor=?");
     $stmt->bind_param("i", $id);
     

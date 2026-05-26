@@ -8,15 +8,6 @@ require_once '../config/db_config.php';
 $conn = conectar();
 $metodo = $_SERVER['REQUEST_METHOD'];
 
-// Autocrear tabla si no existe
-$conn->query("CREATE TABLE IF NOT EXISTS maquinas (
-    id_maquina INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL,
-    estado VARCHAR(50) DEFAULT 'Activa',
-    ubicacion VARCHAR(255) DEFAULT 'Taller Principal',
-    ultima_revision DATE NULL
-)");
-
 // ── GET (Listar o Buscar) ───────────────────────────────────
 if ($metodo === 'GET') {
     if (isset($_GET['id'])) {
@@ -42,14 +33,22 @@ if ($metodo === 'GET') {
 if ($metodo === 'POST') {
     $b = json_decode(file_get_contents('php://input'), true) ?? [];
     $nombre = trim($b['nombre'] ?? '');
-    $estado = trim($b['estado'] ?? 'Activa');
+    $tipo = trim($b['tipo'] ?? '');
+    $numero_serie = trim($b['numero_serie'] ?? '');
     $ubicacion = trim($b['ubicacion'] ?? '');
-    $ultima_revision = trim($b['ultima_revision'] ?? date('Y-m-d'));
+    $fabricante = trim($b['fabricante'] ?? '');
+    $estado = trim($b['estado'] ?? 'disponible');
+    $proveedor_id = !empty($b['proveedor_id']) ? (int)$b['proveedor_id'] : null;
 
     if (!$nombre) respuestaError('El nombre de la máquina es obligatorio.');
 
-    $stmt = $conn->prepare("INSERT INTO maquinas (nombre, estado, ubicacion, ultima_revision) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("ssss", $nombre, $estado, $ubicacion, $ultima_revision);
+    $chk = $conn->prepare("SELECT id_maquina FROM maquinas WHERE numero_serie=? AND numero_serie != ''");
+    $chk->bind_param("s", $numero_serie); $chk->execute(); $chk->store_result();
+    if ($chk->num_rows > 0) { $chk->close(); $conn->close(); respuestaError('Ya existe una máquina con ese número de serie.'); }
+    $chk->close();
+
+    $stmt = $conn->prepare("INSERT INTO maquinas (nombre, tipo, numero_serie, ubicacion, fabricante, estado, proveedor_id, activa, fecha_registro) VALUES (?, ?, ?, ?, ?, ?, ?, 1, NOW())");
+    $stmt->bind_param("ssssssi", $nombre, $tipo, $numero_serie, $ubicacion, $fabricante, $estado, $proveedor_id);
     
     if ($stmt->execute()) {
         $id = $stmt->insert_id;
@@ -65,15 +64,18 @@ if ($metodo === 'PUT') {
     $b = json_decode(file_get_contents('php://input'), true) ?? [];
     $id = (int)($b['id_maquina'] ?? 0);
     $nombre = trim($b['nombre'] ?? '');
-    $estado = trim($b['estado'] ?? 'Activa');
+    $tipo = trim($b['tipo'] ?? '');
+    $numero_serie = trim($b['numero_serie'] ?? '');
     $ubicacion = trim($b['ubicacion'] ?? '');
-    $ultima_revision = trim($b['ultima_revision'] ?? date('Y-m-d'));
+    $fabricante = trim($b['fabricante'] ?? '');
+    $estado = trim($b['estado'] ?? 'disponible');
+    $proveedor_id = !empty($b['proveedor_id']) ? (int)$b['proveedor_id'] : null;
 
     if ($id <= 0) respuestaError('ID de máquina no válido.');
     if (!$nombre) respuestaError('El nombre de la máquina es obligatorio.');
 
-    $stmt = $conn->prepare("UPDATE maquinas SET nombre=?, estado=?, ubicacion=?, ultima_revision=? WHERE id_maquina=?");
-    $stmt->bind_param("ssssi", $nombre, $estado, $ubicacion, $ultima_revision, $id);
+    $stmt = $conn->prepare("UPDATE maquinas SET nombre=?, tipo=?, numero_serie=?, ubicacion=?, fabricante=?, estado=?, proveedor_id=? WHERE id_maquina=?");
+    $stmt->bind_param("ssssssii", $nombre, $tipo, $numero_serie, $ubicacion, $fabricante, $estado, $proveedor_id, $id);
     
     if ($stmt->execute()) {
         $stmt->close();
@@ -89,6 +91,23 @@ if ($metodo === 'DELETE') {
     $id = (int)($b['id_maquina'] ?? 0);
 
     if ($id <= 0) respuestaError('ID de máquina no válido.');
+
+    // Verificaciones de integridad (Garantizar que no haya dependencias activas)
+    // 1. Mantenimiento
+    $chk = $conn->prepare("SELECT estado FROM maquinas WHERE id_maquina=?");
+    $chk->bind_param("i", $id); $chk->execute();
+    $m_data = $chk->get_result()->fetch_assoc(); $chk->close();
+    if ($m_data && $m_data['estado'] === 'en_mantenimiento') {
+        respuestaError('No se puede eliminar una máquina en mantenimiento.');
+    }
+
+    // 2. Incidencias
+    $chk2 = $conn->prepare("SELECT COUNT(*) as t FROM incidencias WHERE id_maquina=? AND estado != 'cerrada'");
+    $chk2->bind_param("i", $id); $chk2->execute();
+    if ($chk2->get_result()->fetch_assoc()['t'] > 0) {
+        respuestaError('No se puede eliminar: la máquina tiene incidencias activas.');
+    }
+    $chk2->close();
 
     $stmt = $conn->prepare("DELETE FROM maquinas WHERE id_maquina=?");
     $stmt->bind_param("i", $id);
