@@ -34,9 +34,29 @@
                         <button class="btn btn-secondary" onclick="togglePanelFiltros()">
                             ➕ Filtros
                         </button>
-                        <button class="btn btn-secondary" onclick="toggleOrden()">
-                            ⇅ Ordenar
-                        </button>
+                        <div class="dropdown-ordenar-container">
+                            <button class="btn btn-secondary" onclick="toggleDropdownOrden(event)">
+                                ⇅ Ordenar
+                            </button>
+                            <div id="dropdownOrden" class="dropdown-orden-content">
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('id')">
+                                    <span>ID Documento</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('nombre')">
+                                    <span>Nombre Archivo</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('tipo')">
+                                    <span>Tipo</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('fecha')">
+                                    <span>Fecha</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -124,7 +144,7 @@
     <script>
         let archivosData = [];
         let ordenAsc = true;
-        let criterioOrden = 'nombre'; // 'nombre' o 'id'
+        let criterioOrden = 'id'; // Por defecto ordenado por id
 
         async function cargarArchivos() {
             const tbody = document.getElementById('tabla-archivos-body');
@@ -134,6 +154,7 @@
                 archivosData = res.archivos || [];
                 aplicarOrden();
                 filtrarArchivos();
+                actualizarUIOrden();
             } else {
                 tbody.innerHTML = '<tr><td colspan="6" class="error-msg">Error al conectar con la base de datos.</td></tr>';
             }
@@ -144,24 +165,25 @@
             p.style.display = p.style.display === 'none' ? 'block' : 'none';
         }
 
-        function toggleOrden() {
-            if (criterioOrden === 'nombre') {
-                if (ordenAsc) {
-                    ordenAsc = false;
-                } else {
-                    criterioOrden = 'id';
-                    ordenAsc = true;
-                }
+        function toggleDropdownOrden(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('dropdownOrden');
+            dropdown.classList.toggle('show');
+        }
+
+        function cambiarCriterioOrden(criterio) {
+            if (criterioOrden === criterio) {
+                ordenAsc = !ordenAsc; // Invierte el orden si es el mismo criterio
             } else {
-                if (ordenAsc) {
-                    ordenAsc = false;
-                } else {
-                    criterioOrden = 'nombre';
-                    ordenAsc = true;
-                }
+                criterioOrden = criterio;
+                ordenAsc = true; // Por defecto ascendente al cambiar de criterio
             }
             aplicarOrden();
             filtrarArchivos();
+            actualizarUIOrden();
+            
+            // Cerrar el dropdown después de elegir
+            document.getElementById('dropdownOrden').classList.remove('show');
         }
 
         function aplicarOrden() {
@@ -171,13 +193,49 @@
                     valA = (a.nombre_archivo || '').toLowerCase();
                     valB = (b.nombre_archivo || '').toLowerCase();
                     return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                } else {
+                } else if (criterioOrden === 'tipo') {
+                    valA = (a.tipo || '').toLowerCase();
+                    valB = (b.tipo || '').toLowerCase();
+                    return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else if (criterioOrden === 'fecha') {
+                    valA = a.fecha_subida || '';
+                    valB = b.fecha_subida || '';
+                    return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else { // id
                     valA = parseInt(a.id_archivo);
                     valB = parseInt(b.id_archivo);
                     return ordenAsc ? valA - valB : valB - valA;
                 }
             });
         }
+
+        function actualizarUIOrden() {
+            // Limpiar clases active y checkmarks
+            document.querySelectorAll('.dropdown-orden-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelectorAll('.check-icon').forEach(icon => {
+                icon.textContent = '';
+            });
+
+            // Establecer el activo
+            const activeItem = document.querySelector(`.dropdown-orden-item[onclick*="'${criterioOrden}'"]`);
+            if (activeItem) {
+                activeItem.classList.add('active');
+                const icon = activeItem.querySelector('.check-icon');
+                if (icon) {
+                    icon.textContent = ordenAsc ? '▲' : '▼';
+                }
+            }
+        }
+
+        // Cerrar dropdown al hacer click fuera
+        window.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('dropdownOrden');
+            if (dropdown && !e.target.closest('.dropdown-ordenar-container')) {
+                dropdown.classList.remove('show');
+            }
+        });
 
         function limpiarFiltros() {
             document.getElementById('searchArchivo').value = '';

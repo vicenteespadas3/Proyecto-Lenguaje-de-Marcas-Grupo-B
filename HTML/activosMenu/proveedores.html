@@ -34,9 +34,29 @@
                         <button class="btn btn-secondary" onclick="togglePanelFiltros()">
                             ➕ Filtros
                         </button>
-                        <button class="btn btn-secondary" onclick="toggleOrden()">
-                            ⇅ Ordenar
-                        </button>
+                        <div class="dropdown-ordenar-container">
+                            <button class="btn btn-secondary" onclick="toggleDropdownOrden(event)">
+                                ⇅ Ordenar
+                            </button>
+                            <div id="dropdownOrden" class="dropdown-orden-content">
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('id')">
+                                    <span>ID Proveedor</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('empresa')">
+                                    <span>Nombre Empresa</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('contacto')">
+                                    <span>Persona Contacto</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('equipos')">
+                                    <span>Especialidad</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -121,7 +141,7 @@
     <script>
         let proveedoresData = [];
         let ordenAsc = true;
-        let criterioOrden = 'empresa'; // 'empresa' o 'id'
+        let criterioOrden = 'id'; // Por defecto ordenado por id
 
         async function cargarProveedores() {
             const tbody = document.getElementById('tabla-proveedores-body');
@@ -131,6 +151,7 @@
                 proveedoresData = res.proveedores || [];
                 aplicarOrden();
                 filtrarProveedores();
+                actualizarUIOrden();
             } else {
                 tbody.innerHTML = '<tr><td colspan="6" class="error-msg">Error al conectar con la base de datos.</td></tr>';
             }
@@ -141,24 +162,25 @@
             p.style.display = p.style.display === 'none' ? 'block' : 'none';
         }
 
-        function toggleOrden() {
-            if (criterioOrden === 'empresa') {
-                if (ordenAsc) {
-                    ordenAsc = false;
-                } else {
-                    criterioOrden = 'id';
-                    ordenAsc = true;
-                }
+        function toggleDropdownOrden(event) {
+            event.stopPropagation();
+            const dropdown = document.getElementById('dropdownOrden');
+            dropdown.classList.toggle('show');
+        }
+
+        function cambiarCriterioOrden(criterio) {
+            if (criterioOrden === criterio) {
+                ordenAsc = !ordenAsc; // Invierte el orden si es el mismo criterio
             } else {
-                if (ordenAsc) {
-                    ordenAsc = false;
-                } else {
-                    criterioOrden = 'empresa';
-                    ordenAsc = true;
-                }
+                criterioOrden = criterio;
+                ordenAsc = true; // Por defecto ascendente al cambiar de criterio
             }
             aplicarOrden();
             filtrarProveedores();
+            actualizarUIOrden();
+            
+            // Cerrar el dropdown después de elegir
+            document.getElementById('dropdownOrden').classList.remove('show');
         }
 
         function aplicarOrden() {
@@ -168,13 +190,49 @@
                     valA = (a.empresa || '').toLowerCase();
                     valB = (b.empresa || '').toLowerCase();
                     return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                } else {
+                } else if (criterioOrden === 'contacto') {
+                    valA = (a.contacto || '').toLowerCase();
+                    valB = (b.contacto || '').toLowerCase();
+                    return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else if (criterioOrden === 'equipos') {
+                    valA = (a.equipos || '').toLowerCase();
+                    valB = (b.equipos || '').toLowerCase();
+                    return ordenAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else { // id
                     valA = parseInt(a.id_proveedor);
                     valB = parseInt(b.id_proveedor);
                     return ordenAsc ? valA - valB : valB - valA;
                 }
             });
         }
+
+        function actualizarUIOrden() {
+            // Limpiar clases active y checkmarks
+            document.querySelectorAll('.dropdown-orden-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelectorAll('.check-icon').forEach(icon => {
+                icon.textContent = '';
+            });
+
+            // Establecer el activo
+            const activeItem = document.querySelector(`.dropdown-orden-item[onclick*="'${criterioOrden}'"]`);
+            if (activeItem) {
+                activeItem.classList.add('active');
+                const icon = activeItem.querySelector('.check-icon');
+                if (icon) {
+                    icon.textContent = ordenAsc ? '▲' : '▼';
+                }
+            }
+        }
+
+        // Cerrar dropdown al hacer click fuera
+        window.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('dropdownOrden');
+            if (dropdown && !e.target.closest('.dropdown-ordenar-container')) {
+                dropdown.classList.remove('show');
+            }
+        });
 
         function limpiarFiltros() {
             document.getElementById('searchProveedor').value = '';
