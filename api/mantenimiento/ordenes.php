@@ -1,10 +1,4 @@
 <?php
-<<<<<<< HEAD
-// API interna para listar y crear ordenes de trabajo con PDO.
-// Referencia en la web:
-//   - Pantalla "Órdenes de Trabajo" (HTML/mantenimientoMenu/ordenes.html)
-//Jordi Martinez Diaz
-=======
 // ==============================================================================
 // ARCHIVO: api/mantenimiento/ordenes.php
 // DESCRIPCIÓN: API REST para gestionar órdenes de trabajo (CRUD)
@@ -21,7 +15,6 @@
 //   - Tabla: maquinas (para referencia)
 //   - Tabla: definiciones (para tipos, estados, prioridades)
 // ==============================================================================
->>>>>>> 76768b96258ac15ff99076c38feb273d4fc50781
 
 require_once '../config/db_config.php';
 
