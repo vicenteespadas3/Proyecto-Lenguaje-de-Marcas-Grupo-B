@@ -3,7 +3,7 @@
 // PROPÓSITO: Gestión asíncrona de la pantalla de Órdenes de Trabajo.
 // REFERENCIA WEB: HTML/mantenimientoMenu/ordenes.html
 // =========================================================================
-
+//Jordi Martinez Diaz
 const API_ORDENES_URL = '../../api/mantenimiento/ordenes.php';
 let ordenesCache = [];
 let editandoId = null;

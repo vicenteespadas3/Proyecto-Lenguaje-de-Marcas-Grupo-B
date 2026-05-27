@@ -3,6 +3,8 @@
 // PROPÓSITO: CRUD completo de ejecuciones de mantenimiento.
 // REFERENCIA WEB: HTML/mantenimientoMenu/ejecuciones.html
 // =========================================================================
+//Jordi Martinez Diaz
+
 
 const API_EJECUCIONES_URL = '../../api/mantenimiento/ejecuciones.php';
 let ejecucionesCache = [];
