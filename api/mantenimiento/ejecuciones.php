@@ -1,13 +1,4 @@
 <?php
-<<<<<<< HEAD
-// ============================================================
-//  api/mantenimiento/ejecuciones.php  —  CRUD para Ejecuciones
-// ============================================================
-// Referencia en la web:
-//   - Pantalla "Historial de Ejecuciones" (HTML/mantenimientoMenu/ejecuciones.html)
-//Jordi Martinez Diaz
-
-=======
 // ==============================================================================
 // ARCHIVO: api/mantenimiento/ejecuciones.php
 // DESCRIPCIÓN: API REST para gestionar ejecuciones de mantenimiento (CRUD)
@@ -31,7 +22,6 @@
 // ==============================================================================
 
 // Cargar archivo de configuración con funciones auxiliares y conexión BD
->>>>>>> 76768b96258ac15ff99076c38feb273d4fc50781
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 

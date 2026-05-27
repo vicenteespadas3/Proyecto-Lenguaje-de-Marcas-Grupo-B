@@ -1,11 +1,5 @@
 // ==============================================================================
 // ARCHIVO: Js/ordenes.js
-<<<<<<< HEAD
-// PROPÓSITO: Gestión asíncrona de la pantalla de Órdenes de Trabajo.
-// REFERENCIA WEB: HTML/mantenimientoMenu/ordenes.html
-// =========================================================================
-//Jordi Martinez Diaz
-=======
 // PROPÓSITO: Controlador principal para la gestión de Órdenes de Trabajo.
 // Gestiona la carga, visualización, creación, edición y eliminación de
 // órdenes de mantenimiento (correctivas, preventivas o predictivas).
@@ -23,7 +17,6 @@
 // ==============================================================================
 
 // URL del API REST para operaciones CRUD de órdenes
->>>>>>> 76768b96258ac15ff99076c38feb273d4fc50781
 const API_ORDENES_URL = '../../api/mantenimiento/ordenes.php';
 
 // Cache en memoria de órdenes cargadas (para no recargar innecesariamente)
@@ -53,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ========== EVENT LISTENERS PARA MODAL ==========
     // Abrir modal para crear nueva orden
     btnNuevaOrden?.addEventListener('click', abrirModalOrden);
-    
+
     // Cerrar modal al hacer clic en botones o fuera
     btnCerrarModal?.addEventListener('click', cerrarModalOrden);
     btnCancelarOrden?.addEventListener('click', cerrarModalOrden);
@@ -107,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ========== SUBMIT DEL FORMULARIO ==========
     formOrden?.addEventListener('submit', guardarOrden);
-    
+
     // ========== EVENT LISTENERS PARA BÚSQUEDA Y FILTROS ==========
     const btnBuscarOrden = document.getElementById('btnBuscarOrden');
     const inputBuscarOrden = document.getElementById('inputBuscarOrden');
@@ -116,12 +109,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Ejecutar búsqueda al hacer clic en el botón Filtrar
     btnBuscarOrden?.addEventListener('click', cargarOrdenes);
-    
+
     // Permitir buscar presionando Enter en el campo de texto
     inputBuscarOrden?.addEventListener('keyup', (e) => {
         if (e.key === 'Enter') cargarOrdenes();
     });
-    
+
     // Recargar tabla al cambiar los filtros de estado o prioridad
     selectFiltroEstado?.addEventListener('change', cargarOrdenes);
     selectFiltroPrioridad?.addEventListener('change', cargarOrdenes);
@@ -142,11 +135,11 @@ function abrirModalOrden() {
     const modal = document.getElementById('modalOrden');
     const titulo = document.getElementById('modalOrdenTitulo');
     const form = document.getElementById('formOrden');
-    
+
     editandoId = null;
     if (titulo) titulo.textContent = 'Nueva Orden de Trabajo';
     form?.reset();
-    
+
     limpiarMensaje();
     modal?.classList.add('show');
     document.getElementById('descripcion')?.focus();
@@ -581,13 +574,13 @@ const minSwipeDist = 50;
 
 // Event listener para detectar el inicio del toque en pantalla táctil
 document.addEventListener('touchstart', e => {
-  touchStartX = e.changedTouches[0].screenX;
+    touchStartX = e.changedTouches[0].screenX;
 });
 
 // Event listener para detectar el final del toque
 document.addEventListener('touchend', e => {
-  touchEndX = e.changedTouches[0].screenX;
-  handleSwipe(); // Procesar el gesto detectado
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe(); // Procesar el gesto detectado
 });
 
 /**
@@ -595,14 +588,14 @@ document.addEventListener('touchend', e => {
  * Si es un deslizamiento hacia la derecha, expande la barra lateral
  */
 function handleSwipe() {
-  const diffX = touchEndX - touchStartX;
-  if (diffX > minSwipeDist) {
-    // Right swipe detected
-    const sidebar = document.querySelector('.sidebar');
-    if (sidebar && sidebar.classList.contains('collapsed')) {
-      toggleSidebar(); // expand sidebar
+    const diffX = touchEndX - touchStartX;
+    if (diffX > minSwipeDist) {
+        // Right swipe detected
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar && sidebar.classList.contains('collapsed')) {
+            toggleSidebar(); // expand sidebar
+        }
     }
-  }
 }
 
 

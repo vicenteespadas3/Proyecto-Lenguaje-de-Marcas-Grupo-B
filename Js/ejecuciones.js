@@ -1,13 +1,6 @@
 // ==============================================================================
 // ARCHIVO: Js/ejecuciones.js
-<<<<<<< HEAD
-// PROPÓSITO: CRUD completo de ejecuciones de mantenimiento.
-// REFERENCIA WEB: HTML/mantenimientoMenu/ejecuciones.html
-// =========================================================================
-//Jordi Martinez Diaz
-
-=======
-// PROPÓSITO: Controlador principal para la gestión completa (CRUD) de 
+// PROPÓSITO: Controlador principal para la gestión completa (CRUD) de
 // ejecuciones de mantenimiento. Gestiona la carga, visualización, creación,
 // edición y eliminación de registros de ejecuciones.
 // RELACIONES:
@@ -23,7 +16,6 @@
 //   6. Ver detalles de una ejecución
 //   7. Ver y actualizar tareas ejecutadas
 // ==============================================================================
->>>>>>> 76768b96258ac15ff99076c38feb273d4fc50781
 
 // URL del API REST para operaciones CRUD de ejecuciones
 const API_EJECUCIONES_URL = '../../api/mantenimiento/ejecuciones.php';
@@ -41,32 +33,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ========== REFERENCIAS A ELEMENTOS DEL DOM ==========
     // Modales
-    const modalEjecucion       = document.getElementById('modalEjecucion');
-    const modalDetalle         = document.getElementById('modalDetalleEjecucion');
-    const modalTareas          = document.getElementById('modalTareas');
-    
+    const modalEjecucion = document.getElementById('modalEjecucion');
+    const modalDetalle = document.getElementById('modalDetalleEjecucion');
+    const modalTareas = document.getElementById('modalTareas');
+
     // Botones de acción principales
-    const btnNuevaEjecucion    = document.getElementById('btnNuevaEjecucion');
-    const btnVerTodasTareas    = document.getElementById('btnVerTodasTareas');
-    
+    const btnNuevaEjecucion = document.getElementById('btnNuevaEjecucion');
+    const btnVerTodasTareas = document.getElementById('btnVerTodasTareas');
+
     // Botones de cierre de modales
-    const btnCerrarModal       = document.getElementById('btnCerrarModalEjecucion');
-    const btnCancelar          = document.getElementById('btnCancelarEjecucion');
-    const btnCerrarDetalle     = document.getElementById('btnCerrarDetalleEjecucion');
-    const btnCerrarDetalleInf  = document.getElementById('btnCerrarDetalleEjecucionInferior');
-    const btnCerrarTareas      = document.getElementById('btnCerrarModalTareas');
-    const btnCerrarTareasInf   = document.getElementById('btnCerrarModalTareasInferior');
-    
+    const btnCerrarModal = document.getElementById('btnCerrarModalEjecucion');
+    const btnCancelar = document.getElementById('btnCancelarEjecucion');
+    const btnCerrarDetalle = document.getElementById('btnCerrarDetalleEjecucion');
+    const btnCerrarDetalleInf = document.getElementById('btnCerrarDetalleEjecucionInferior');
+    const btnCerrarTareas = document.getElementById('btnCerrarModalTareas');
+    const btnCerrarTareasInf = document.getElementById('btnCerrarModalTareasInferior');
+
     // Formulario y tabla
-    const formEjecucion        = document.getElementById('formEjecucion');
-    const tbody                = document.getElementById('tabla-ejecuciones-body');
-    const listaTareas          = document.getElementById('listaTareasContainer');
+    const formEjecucion = document.getElementById('formEjecucion');
+    const tbody = document.getElementById('tabla-ejecuciones-body');
+    const listaTareas = document.getElementById('listaTareasContainer');
 
     // Controles de búsqueda y filtrado
-    const btnBuscar        = document.getElementById('btnBuscarEjecucion');
-    const inputBuscar      = document.getElementById('inputBuscarEjecucion');
-    const filtroResultado  = document.getElementById('filtroResultadoEjecucion');
-    const filtroOrden      = document.getElementById('filtroOrdenEjecucion');
+    const btnBuscar = document.getElementById('btnBuscarEjecucion');
+    const inputBuscar = document.getElementById('inputBuscarEjecucion');
+    const filtroResultado = document.getElementById('filtroResultadoEjecucion');
+    const filtroOrden = document.getElementById('filtroOrdenEjecucion');
 
     // ========== EVENT LISTENERS PARA BÚSQUEDA Y FILTROS ==========
     // Permitir solo números en el input de búsqueda
@@ -79,10 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.key === 'Enter') cargarEjecuciones();
         });
     }
-    
+
     // Ejecutar búsqueda al hacer clic en el botón Filtrar
     btnBuscar?.addEventListener('click', () => cargarEjecuciones());
-    
+
     // Recargar tabla cuando cambian los filtros de resultado u orden
     filtroResultado?.addEventListener('change', () => cargarEjecuciones());
     filtroOrden?.addEventListener('change', () => cargarEjecuciones());
@@ -90,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ========== EVENT LISTENERS PARA MODALES ==========
     // Abrir modal para crear nueva ejecución
     btnNuevaEjecucion?.addEventListener('click', abrirModalNuevaEjecucion);
-    
+
     // Abrir modal de todas las tareas ejecutadas
     btnVerTodasTareas?.addEventListener('click', () => verTareas(null));
 
@@ -179,11 +171,11 @@ async function cargarEjecuciones() {
 
     try {
         const filtros = obtenerFiltros();
-        const params  = new URLSearchParams();
+        const params = new URLSearchParams();
 
         if (filtros.idEjecucion) params.set('id_ejecucion', filtros.idEjecucion);
-        if (filtros.resultado)   params.set('resultado', filtros.resultado);
-        if (filtros.orden)       params.set('orden', filtros.orden);
+        if (filtros.resultado) params.set('resultado', filtros.resultado);
+        if (filtros.orden) params.set('orden', filtros.orden);
 
         const url = API_EJECUCIONES_URL + (params.toString() ? `?${params}` : '');
         const res = await api('GET', url);
@@ -214,8 +206,8 @@ async function cargarEjecuciones() {
 function obtenerFiltros() {
     return {
         idEjecucion: document.getElementById('inputBuscarEjecucion')?.value.trim() || '',
-        resultado:   document.getElementById('filtroResultadoEjecucion')?.value || '',
-        orden:       document.getElementById('filtroOrdenEjecucion')?.value || 'recientes'
+        resultado: document.getElementById('filtroResultadoEjecucion')?.value || '',
+        orden: document.getElementById('filtroOrdenEjecucion')?.value || 'recientes'
     };
 }
 
@@ -328,8 +320,8 @@ function abrirModificarEjecucion(id) {
  */
 function abrirDetalleEjecucion(id) {
     const e = ejecucionesCache.find(item => String(item.id_ejecucion) === String(id));
-    const modal    = document.getElementById('modalDetalleEjecucion');
-    const titulo   = document.getElementById('detalleTituloEjecucion');
+    const modal = document.getElementById('modalDetalleEjecucion');
+    const titulo = document.getElementById('detalleTituloEjecucion');
     const contenido = document.getElementById('detalleContenidoEjecucion');
 
     if (!e || !modal || !titulo || !contenido) return;
@@ -390,17 +382,17 @@ function campoDet(etiqueta, valor) {
 async function guardarEjecucion(event) {
     event.preventDefault();
 
-    const form      = event.currentTarget;
+    const form = event.currentTarget;
     const btnGuardar = document.getElementById('btnGuardarEjecucion');
-    const formData  = new FormData(form);
+    const formData = new FormData(form);
 
     const datos = {
-        id_orden:        String(formData.get('id_orden') || '').trim(),
+        id_orden: String(formData.get('id_orden') || '').trim(),
         fecha_ejecucion: String(formData.get('fecha_ejecucion') || '').trim(),
-        hora_inicio:     String(formData.get('hora_inicio') || '').trim(),
-        hora_fin:        String(formData.get('hora_fin') || '').trim(),
-        observaciones:   String(formData.get('observaciones') || '').trim(),
-        resultado:       String(formData.get('resultado') || '').trim()
+        hora_inicio: String(formData.get('hora_inicio') || '').trim(),
+        hora_fin: String(formData.get('hora_fin') || '').trim(),
+        observaciones: String(formData.get('observaciones') || '').trim(),
+        resultado: String(formData.get('resultado') || '').trim()
     };
 
     if (editandoEjecucionId) datos.id_ejecucion = editandoEjecucionId;
@@ -480,16 +472,16 @@ async function borrarEjecucion(id) {
  * @param {number|string|null} idEjecucion - ID de ejecución o null para todas
  */
 async function verTareas(idEjecucion = null) {
-    const modal       = document.getElementById('modalTareas');
-    const container   = document.getElementById('listaTareasContainer');
-    const titulo      = document.getElementById('modalTitulo');
-    const subtitulo   = document.getElementById('modalSubtitulo');
+    const modal = document.getElementById('modalTareas');
+    const container = document.getElementById('listaTareasContainer');
+    const titulo = document.getElementById('modalTitulo');
+    const subtitulo = document.getElementById('modalSubtitulo');
     const estadoGuard = document.getElementById('estadoGuardadoTareas');
 
     if (!modal || !container || !titulo || !subtitulo) return;
 
     modal.classList.add('show');
-    
+
     if (idEjecucion) {
         titulo.innerText = `Tareas de la Ejecución #${idEjecucion}`;
         subtitulo.innerText = 'Marca o desmarca tareas para guardar su estado al instante.';
@@ -497,15 +489,15 @@ async function verTareas(idEjecucion = null) {
         titulo.innerText = 'Todas las Tareas Ejecutadas';
         subtitulo.innerText = 'Historial completo de tareas ejecutadas de todas las ejecuciones.';
     }
-    
+
     container.innerHTML = '<p style="text-align:center; padding: 20px; color:#888;">Cargando tareas...</p>';
     if (estadoGuard) estadoGuard.innerText = '';
 
     try {
-        const url = idEjecucion 
+        const url = idEjecucion
             ? `${API_EJECUCIONES_URL}?action=get_tareas&id_ejecucion=${encodeURIComponent(idEjecucion)}`
             : `${API_EJECUCIONES_URL}?action=get_tareas`;
-            
+
         const respuesta = await fetch(url, {
             method: 'GET',
             headers: { 'Accept': 'application/json' },
@@ -646,14 +638,14 @@ function actualizarVistaTarea(fila, completada) {
     if (!fila) return;
     const span = fila.querySelector('span[style*="text-decoration"]') || fila.querySelector('td:nth-child(4) span');
     if (span) {
-        span.style.textDecoration  = completada ? 'line-through' : '';
+        span.style.textDecoration = completada ? 'line-through' : '';
         span.style.opacity = completada ? '0.6' : '1';
     }
     const badge = fila.querySelector('label > span');
     if (badge) {
         badge.textContent = completada ? 'Sí' : 'No';
         badge.style.background = completada ? '#dcfce7' : '#f1f5f9';
-        badge.style.color      = completada ? '#16a34a' : '#64748b';
+        badge.style.color = completada ? '#16a34a' : '#64748b';
     }
 }
 
@@ -663,8 +655,8 @@ function mostrarMensajeEjecucion(texto, tipo = 'info') {
     const el = document.getElementById('mensajeEjecucion');
     if (!el) return;
     el.style.backgroundColor = tipo === 'error' ? '#f8d7da' : '#fff3cd';
-    el.style.color           = tipo === 'error' ? '#721c24' : '#856404';
-    el.style.border          = tipo === 'error' ? '1px solid #f5c6cb' : '1px solid #ffeeba';
+    el.style.color = tipo === 'error' ? '#721c24' : '#856404';
+    el.style.border = tipo === 'error' ? '1px solid #f5c6cb' : '1px solid #ffeeba';
     el.textContent = texto;
     el.classList.remove('hidden');
 }
@@ -684,7 +676,7 @@ function esTareaCompletada(estado) {
 
 function claseResultado(resultado) {
     const valor = String(resultado || '').toLowerCase();
-    const base  = 'status-badge inline-flex whitespace-nowrap';
+    const base = 'status-badge inline-flex whitespace-nowrap';
     if (valor.includes('exitoso')) return `${base} success`;
     if (valor.includes('incidencia')) return `${base} bg-orange-100 text-orange-700`;
     return `${base} bg-slate-100 text-slate-700`;
