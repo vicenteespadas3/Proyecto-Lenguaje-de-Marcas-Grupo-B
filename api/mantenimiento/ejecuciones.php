@@ -26,15 +26,19 @@ require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 
 // Obtener el método HTTP de la petición (GET, POST, PUT, DELETE, etc.)
-$m = $_SERVER['REQUEST_METHOD'];
+$m = $_SERVER['REQUEST_METHOD'] ?? '';
 // Obtener el parámetro 'action' de la URL para determinar subrutás
 $action = $_GET['action'] ?? '';
+
+// Instanciar la conexión a la base de datos para los endpoints que usan mysqli
+$conn = conectar();
 
 // ==============================================================================
 // ENDPOINT: GET /ejecuciones.php?action=get_tareas
 // DESCRIPCIÓN: Obtiene las tareas ejecutadas de una ejecución específica
 //               o todas las tareas ejecutadas si no se proporciona ID
 // ==============================================================================
+if ($m === 'GET' && $action === 'get_tareas') {
     // Obtener el ID de ejecución de los parámetros (si se proporciona)
     $idEjecucion = isset($_GET['id_ejecucion']) ? (int)$_GET['id_ejecucion'] : 0;
 
@@ -62,6 +66,7 @@ $action = $_GET['action'] ?? '';
 // ENDPOINT: POST /ejecuciones.php?action=update_tarea
 // DESCRIPCIÓN: Actualiza el estado de una tarea ejecutada (completada o no)
 // ==============================================================================
+if ($m === 'POST' && $action === 'update_tarea') {
     // Decodificar el JSON del cuerpo de la petición
     $body = json_decode(file_get_contents('php://input'), true) ?? [];
     
@@ -90,6 +95,7 @@ $action = $_GET['action'] ?? '';
 // DESCRIPCIÓN: Obtiene lista de ejecuciones con filtros opcionales
 //               o detalles de una ejecución específica si se proporciona ID
 // ==============================================================================
+if ($m === 'GET' && $action === '') {
     if (isset($_GET['id'])) {
         // Obtener ID de la ejecución a buscar
         $id = (int)$_GET['id'];
@@ -205,7 +211,7 @@ $action = $_GET['action'] ?? '';
 //   - observaciones: Notas sobre la intervención (opcional)
 //   - resultado: Resultado (exitoso o con_incidencias)
 // ==============================================================================
-if ($m === 'POST') {
+if ($m === 'POST' && $action === '') {
     $b = json_decode(file_get_contents('php://input'), true) ?? [];
 
     $id_orden = (int)($b['id_orden'] ?? 0);
@@ -279,6 +285,7 @@ respuestaError('Método no permitido', 405);
  * PDO proporciona una interfaz independiente del gestor de BD
  * @return PDO Objeto de conexión PDO a MySQL
  */
+function conectarPDOEjecuciones(): PDO {
     $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
 
     return new PDO($dsn, DB_USER, DB_PASS, [
@@ -295,6 +302,7 @@ respuestaError('Método no permitido', 405);
  * @param int $idEjecucion ID de la ejecución
  * @return array Lista de tareas ejecutadas normalizadas
  */
+function obtenerTareasEjecutadas(PDO $pdo, int $idEjecucion): array {
     $columnas = obtenerColumnasPDO($pdo, 'tareas_ejecutadas');
 
     if (empty($columnas)) {
@@ -318,6 +326,7 @@ respuestaError('Método no permitido', 405);
  * @param PDO $pdo Conexión a base de datos PDO
  * @return array Lista de todas las tareas ejecutadas normalizadas
  */
+function obtenerTodasTareasEjecutadas(PDO $pdo): array {
     $columnas = obtenerColumnasPDO($pdo, 'tareas_ejecutadas');
 
     if (empty($columnas)) {
@@ -344,6 +353,7 @@ respuestaError('Método no permitido', 405);
  * @param int $idTarea ID de la tarea
  * @param string $estadoTarea Estado a asignar ('Completada' o 'No Completada')
  */
+function actualizarTareaEjecutada(PDO $pdo, int $idTareaEjecutada, int $idEjecucion, int $idTarea, string $estadoTarea): void {
     $columnas = obtenerColumnasPDO($pdo, 'tareas_ejecutadas');
 
     if (empty($columnas)) {
@@ -400,6 +410,7 @@ respuestaError('Método no permitido', 405);
  * @param array $tarea Datos de tarea desde la BD
  * @return array Tarea normalizada con estructura uniforme
  */
+function normalizarTareaEjecutada(array $tarea): array {
     $estado = $tarea['estado_tarea'] ?? ($tarea['completada'] ?? 0);
 
     return [
@@ -420,6 +431,7 @@ respuestaError('Método no permitido', 405);
  * @param mixed $estado Estado de la tarea
  * @return bool true si la tarea está completada
  */
+function tareaEstaCompletada(mixed $estado): bool {
     if ($estado === true || $estado === 1 || $estado === '1') {
         return true;
     }
@@ -434,6 +446,7 @@ respuestaError('Método no permitido', 405);
  * @param string $tabla Nombre de la tabla
  * @return array Lista de nombres de columnas
  */
+function obtenerColumnasPDO(PDO $pdo, string $tabla): array {
     $stmt = $pdo->prepare(
         'SELECT COLUMN_NAME
          FROM information_schema.columns
@@ -450,6 +463,7 @@ respuestaError('Método no permitido', 405);
  * @param string $tabla Nombre de la tabla
  * @return bool true si la tabla existe
  */
+function tablaExistePDO(PDO $pdo, string $tabla): bool {
     $stmt = $pdo->prepare(
         'SELECT COUNT(*)
          FROM information_schema.tables
@@ -467,6 +481,7 @@ respuestaError('Método no permitido', 405);
  * @param string $columna Nombre de la columna
  * @return bool true si la columna es numérica
  */
+function columnaEsNumericaPDO(PDO $pdo, string $tabla, string $columna): bool {
     $stmt = $pdo->prepare(
         'SELECT DATA_TYPE
          FROM information_schema.columns

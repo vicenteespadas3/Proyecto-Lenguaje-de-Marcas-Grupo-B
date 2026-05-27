@@ -14,36 +14,24 @@
 //   - Tabla: ordenes_trabajo
 //   - Tabla: maquinas (para referencia)
 //   - Tabla: definiciones (para tipos, estados, prioridades)
-// FUNCIONALIDADES:
-//   1. Listar órdenes con filtros (búsqueda, estado, prioridad)
-//   2. Crear nuevas órdenes de trabajo
-//   3. Modificar órdenes existentes
-//   4. Eliminar órdenes
-//   5. Resolver IDs de máquinas, tipos y prioridades automáticamente
 // ==============================================================================
 
-// Cargar archivo de configuración con variables de conexión
 require_once '../config/db_config.php';
 
-// Configurar headers HTTP para respuestas JSON
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
 
-// Responder a peticiones OPTIONS (pre-flight de CORS)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
 
 try {
-    // Crear conexión PDO a la base de datos
     $pdo = conectarPDO();
-    // Obtener el método HTTP de la petición (GET, POST, PUT, DELETE)
     $metodo = $_SERVER['REQUEST_METHOD'];
 
-    // Enrutar a la función correspondiente según el método HTTP
     if ($metodo === 'GET') {
         listarOrdenes($pdo);
     }
@@ -60,13 +48,10 @@ try {
         eliminarOrden($pdo);
     }
 
-    // Si llegamos aquí, el método HTTP no es soportado
     responderError('Metodo no permitido.', 405);
 } catch (PDOException $e) {
-    // Capturar errores de la base de datos
     responderError('Error de base de datos: ' . $e->getMessage(), 500);
 } catch (Throwable $e) {
-    // Capturar cualquier otro error
     responderError($e->getMessage(), 500);
 }
 
@@ -76,31 +61,26 @@ try {
 
 /**
  * Crea una conexión a la base de datos usando PDO
- * PDO proporciona una interfaz independiente del gestor de BD
  * @return PDO Objeto de conexión PDO a MySQL
  */
+function conectarPDO(): PDO
+{
     $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
 
     return new PDO($dsn, DB_USER, DB_PASS, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
+        PDO::ATTR_EMULATE_PREPARES   => false,
     ]);
 }
 
 // ==============================================================================
 // ENDPOINT: GET /ordenes.php
-// DESCRIPCIÓN: Lista todas las órdenes de trabajo con filtros opcionales
-// PARÁMETROS QUERY (opcionales):
-//   - buscar: Texto para buscar en ID, máquina u observaciones
-//   - estado: Filtrar por estado de la orden
-//   - prioridad: Filtrar por prioridad
 // ==============================================================================
 function listarOrdenes(PDO $pdo): void
 {
-    // Obtener y validar parámetros de filtro de la URL
-    $buscar = isset($_GET['buscar']) ? trim((string)$_GET['buscar']) : '';
-    $estado = isset($_GET['estado']) ? trim((string)$_GET['estado']) : '';
+    $buscar    = isset($_GET['buscar'])    ? trim((string)$_GET['buscar'])    : '';
+    $estado    = isset($_GET['estado'])    ? trim((string)$_GET['estado'])    : '';
     $prioridad = isset($_GET['prioridad']) ? trim((string)$_GET['prioridad']) : '';
 
     $whereClauses = [];
@@ -109,12 +89,12 @@ function listarOrdenes(PDO $pdo): void
     if ($buscar !== '') {
         if (ctype_digit($buscar)) {
             $whereClauses[] = '(ot.id_orden = :buscar_id OR ot.id_maquina = :buscar_maq OR ot.observaciones LIKE :buscar_text)';
-            $params[':buscar_id'] = (int)$buscar;
-            $params[':buscar_maq'] = (int)$buscar;
+            $params[':buscar_id']   = (int)$buscar;
+            $params[':buscar_maq']  = (int)$buscar;
             $params[':buscar_text'] = '%' . $buscar . '%';
         } else {
             $whereClauses[] = '(ot.observaciones LIKE :buscar_text OR m.nombre LIKE :buscar_maq_nombre)';
-            $params[':buscar_text'] = '%' . $buscar . '%';
+            $params[':buscar_text']       = '%' . $buscar . '%';
             $params[':buscar_maq_nombre'] = '%' . $buscar . '%';
         }
     }
@@ -122,7 +102,7 @@ function listarOrdenes(PDO $pdo): void
     if ($estado !== '') {
         $id_estado = resolverIdDefinicion($pdo, $estado, 0);
         if ($id_estado > 0) {
-            $whereClauses[] = 'ot.id_estado = :id_estado';
+            $whereClauses[]      = 'ot.id_estado = :id_estado';
             $params[':id_estado'] = $id_estado;
         }
     }
@@ -130,7 +110,7 @@ function listarOrdenes(PDO $pdo): void
     if ($prioridad !== '') {
         $id_prioridad = resolverIdDefinicion($pdo, $prioridad, 0);
         if ($id_prioridad > 0) {
-            $whereClauses[] = 'ot.id_prioridad = :id_prioridad';
+            $whereClauses[]         = 'ot.id_prioridad = :id_prioridad';
             $params[':id_prioridad'] = $id_prioridad;
         }
     }
@@ -164,35 +144,19 @@ function listarOrdenes(PDO $pdo): void
     $ordenes = $stmt->fetchAll();
 
     responderJson([
-        'success' => true,
-        'tabla' => 'ordenes_trabajo',
+        'success'  => true,
+        'tabla'    => 'ordenes_trabajo',
         'columnas' => [
-            'id_orden',
-            'id_maquina',
-            'id_plan',
-            'id_tipo',
-            'id_estado',
-            'id_prioridad',
-            'id_rol_asignado',
-            'fecha_programada',
-            'fecha_inicio',
-            'fecha_finalizacion',
-            'tiempo_estimado',
-            'tiempo_real',
-            'observaciones',
+            'id_orden', 'id_maquina', 'id_plan', 'id_tipo', 'id_estado',
+            'id_prioridad', 'id_rol_asignado', 'fecha_programada', 'fecha_inicio',
+            'fecha_finalizacion', 'tiempo_estimado', 'tiempo_real', 'observaciones',
         ],
-        'ordenes' => $ordenes,
+        'ordenes'  => $ordenes,
     ]);
 }
 
 // ==============================================================================
 // ENDPOINT: POST /ordenes.php
-// DESCRIPCIÓN: Crea una nueva orden de trabajo
-// PARÁMETROS (JSON):
-//   - descripcion (requerido): Descripción de la averia o intervención
-//   - maquina (requerido): Nombre o ID de la máquina
-//   - tipo (requerido): Tipo (Correctivo, Preventivo, Predictivo)
-//   - prioridad (requerido): Prioridad (Baja, Media, Alta)
 // ==============================================================================
 function crearOrden(PDO $pdo): void
 {
@@ -203,15 +167,15 @@ function crearOrden(PDO $pdo): void
     }
 
     $descripcion = trim((string)($body['descripcion'] ?? ''));
-    $maquina = trim((string)($body['maquina'] ?? ''));
-    $tipo = trim((string)($body['tipo'] ?? ''));
-    $prioridad = trim((string)($body['prioridad'] ?? ''));
+    $maquina     = trim((string)($body['maquina']     ?? ''));
+    $tipo        = trim((string)($body['tipo']        ?? ''));
+    $prioridad   = trim((string)($body['prioridad']   ?? ''));
 
     if ($descripcion === '' || $maquina === '' || $tipo === '' || $prioridad === '') {
         responderError('Descripcion, maquina, tipo y prioridad son obligatorios.');
     }
 
-    $tiposPermitidos = ['Correctivo', 'Preventivo', 'Predictivo'];
+    $tiposPermitidos      = ['Correctivo', 'Preventivo', 'Predictivo'];
     $prioridadesPermitidas = ['Baja', 'Media', 'Alta'];
 
     if (!in_array($tipo, $tiposPermitidos, true)) {
@@ -231,21 +195,21 @@ function crearOrden(PDO $pdo): void
             responderError('No se ha encontrado la tabla ordenes_trabajo en la base de datos configurada.', 500);
         }
 
-        $codigo = in_array('codigo', $columnas, true) ? generarCodigoOrden($pdo) : null;
+        $codigo     = in_array('codigo', $columnas, true) ? generarCodigoOrden($pdo) : null;
         $datosInsert = construirDatosInsert($pdo, $columnas, [
-            'codigo' => $codigo,
+            'codigo'      => $codigo,
             'descripcion' => $descripcion,
-            'maquina' => $maquina,
-            'tipo' => $tipo,
-            'prioridad' => $prioridad,
-            'estado' => 'Pendiente',
+            'maquina'     => $maquina,
+            'tipo'        => $tipo,
+            'prioridad'   => $prioridad,
+            'estado'      => 'Pendiente',
         ]);
 
         if (empty($datosInsert)) {
             responderError('La tabla ordenes_trabajo no tiene columnas compatibles para crear ordenes.', 500);
         }
 
-        $campos = array_keys($datosInsert);
+        $campos       = array_keys($datosInsert);
         $placeholders = array_map('crearPlaceholder', $campos);
         $stmt = $pdo->prepare(
             'INSERT INTO ordenes_trabajo (' . implode(', ', $campos) . ')
@@ -259,14 +223,13 @@ function crearOrden(PDO $pdo): void
 
         responderJson([
             'success' => true,
-            'id' => $id,
-            'codigo' => $codigo ?? ('OT-' . str_pad((string)$id, 3, '0', STR_PAD_LEFT)),
+            'id'      => $id,
+            'codigo'  => $codigo ?? ('OT-' . str_pad((string)$id, 3, '0', STR_PAD_LEFT)),
         ], 201);
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-
         throw $e;
     }
 }
@@ -276,7 +239,9 @@ function crearOrden(PDO $pdo): void
  * @param PDO $pdo Conexión a base de datos
  * @return string Código generado para la nueva orden
  */
-    $anio = date('Y');
+function generarCodigoOrden(PDO $pdo): string
+{
+    $anio    = date('Y');
     $prefijo = 'OT-' . $anio . '-';
 
     $stmt = $pdo->prepare(
@@ -296,6 +261,8 @@ function crearOrden(PDO $pdo): void
  * @param string $campo Nombre del campo
  * @return string Placeholder en formato :campo
  */
+function crearPlaceholder(string $campo): string
+{
     return ':' . $campo;
 }
 
@@ -305,6 +272,8 @@ function crearOrden(PDO $pdo): void
  * @param string $tabla Nombre de la tabla
  * @return array Lista de nombres de columnas
  */
+function obtenerColumnas(PDO $pdo, string $tabla): array
+{
     $stmt = $pdo->prepare(
         'SELECT COLUMN_NAME
          FROM information_schema.columns
@@ -317,28 +286,29 @@ function crearOrden(PDO $pdo): void
 
 /**
  * Construye una consulta SELECT completa con columnas flexibles
- * Maneja diferentes nombres de columnas posibles en la tabla
  * @param array $columnas Lista de columnas disponibles en la tabla
  * @return string Consulta SQL SELECT
  */
-    $id = columna($columnas, ['id', 'id_orden'], 'NULL');
-    $codigo = in_array('codigo', $columnas, true)
+function construirSelectFlexible(array $columnas): string
+{
+    $id          = columna($columnas, ['id', 'id_orden'], 'NULL');
+    $codigo      = in_array('codigo', $columnas, true)
         ? 'codigo'
         : "CONCAT('OT-', LPAD(" . columna($columnas, ['id_orden', 'id'], '0') . ", 3, '0'))";
     $descripcion = columna($columnas, ['descripcion', 'observaciones'], "'Orden de mantenimiento'");
-    $maquina = in_array('maquina', $columnas, true)
+    $maquina     = in_array('maquina', $columnas, true)
         ? 'maquina'
         : (in_array('id_maquina', $columnas, true) ? 'CAST(id_maquina AS CHAR)' : "'Sin maquina'");
-    $tipo = in_array('tipo', $columnas, true)
+    $tipo        = in_array('tipo', $columnas, true)
         ? 'tipo'
         : (in_array('id_tipo', $columnas, true) ? 'CAST(id_tipo AS CHAR)' : "'Mantenimiento'");
-    $prioridad = in_array('prioridad', $columnas, true)
+    $prioridad   = in_array('prioridad', $columnas, true)
         ? 'prioridad'
         : (in_array('id_prioridad', $columnas, true) ? 'CAST(id_prioridad AS CHAR)' : "'Media'");
-    $estado = in_array('estado', $columnas, true)
+    $estado      = in_array('estado', $columnas, true)
         ? 'estado'
         : (in_array('id_estado', $columnas, true) ? 'CAST(id_estado AS CHAR)' : "'Pendiente'");
-    $fecha = columna($columnas, ['fecha_creacion', 'fecha_programada', 'fecha'], 'NULL');
+    $fecha       = columna($columnas, ['fecha_creacion', 'fecha_programada', 'fecha'], 'NULL');
 
     return "SELECT
                 $id AS id,
@@ -357,40 +327,42 @@ function crearOrden(PDO $pdo): void
  * @param array $columnas Lista de columnas disponibles
  * @return string Nombre de columna para ordenamiento
  */
+function obtenerCampoOrden(array $columnas): string
+{
     foreach (['fecha_creacion', 'fecha_programada', 'fecha', 'id_orden', 'id'] as $campo) {
         if (in_array($campo, $columnas, true)) {
             return $campo;
         }
     }
-
     return '1';
 }
 
 /**
  * Busca un nombre de columna en una lista de candidatos
- * Útil para manejar diferentes esquemas de tabla
  * @param array $columnas Lista de columnas disponibles
  * @param array $candidatas Nombres candidatos a buscar
  * @param string $fallback Valor por defecto si ninguno se encuentra
  * @return string Nombre de columna encontrado o fallback
  */
+function columna(array $columnas, array $candidatas, string $fallback): string
+{
     foreach ($candidatas as $candidata) {
         if (in_array($candidata, $columnas, true)) {
             return $candidata;
         }
     }
-
     return $fallback;
 }
 
 /**
  * Construye un array de datos para insertar en la BD
- * Mapea los datos ingresados a las columnas disponibles en la tabla
  * @param PDO $pdo Conexión a base de datos
  * @param array $columnas Nombres de columnas disponibles
  * @param array $datos Datos a insertar
  * @return array Array con datos mapeados a columnas
  */
+function construirDatosInsert(PDO $pdo, array $columnas, array $datos): array
+{
     $insert = [];
 
     foreach (['codigo', 'descripcion', 'maquina', 'tipo', 'prioridad', 'estado'] as $campo) {
@@ -434,6 +406,8 @@ function crearOrden(PDO $pdo): void
  * @param string $maquina Nombre o ID de la máquina
  * @return int ID de la máquina
  */
+function resolverIdMaquina(PDO $pdo, string $maquina): int
+{
     if (ctype_digit($maquina)) {
         return (int)$maquina;
     }
@@ -447,19 +421,20 @@ function crearOrden(PDO $pdo): void
     }
 
     $stmt = $pdo->query('SELECT id_maquina FROM maquinas ORDER BY id_maquina ASC LIMIT 1');
-    $id = $stmt->fetchColumn();
+    $id   = $stmt->fetchColumn();
 
     return $id !== false ? (int)$id : 1;
 }
 
 /**
  * Resuelve el ID de una definición (tipo, estado, prioridad) a partir de su descripción
- * Busca en la tabla 'definiciones' por descripción o código
  * @param PDO $pdo Conexión a base de datos
  * @param string $texto Descripción o código de la definición
  * @param int $fallback ID por defecto si no se encuentra
  * @return int ID de la definición o fallback
  */
+function resolverIdDefinicion(PDO $pdo, string $texto, int $fallback): int
+{
     $stmt = $pdo->prepare(
         'SELECT id_definicion
          FROM definiciones
@@ -478,6 +453,8 @@ function crearOrden(PDO $pdo): void
  * @param array $datos Datos a enviar en la respuesta
  * @param int $codigoHttp Código HTTP de respuesta (default: 200)
  */
+function responderJson(array $datos, int $codigoHttp = 200): void
+{
     http_response_code($codigoHttp);
     echo json_encode($datos, JSON_UNESCAPED_UNICODE);
     exit;
@@ -488,21 +465,16 @@ function crearOrden(PDO $pdo): void
  * @param string $mensaje Mensaje de error
  * @param int $codigoHttp Código HTTP de error (default: 400)
  */
+function responderError(string $mensaje, int $codigoHttp = 400): void
+{
     responderJson([
         'success' => false,
-        'error' => $mensaje,
+        'error'   => $mensaje,
     ], $codigoHttp);
 }
 
 // ==============================================================================
 // ENDPOINT: PUT /ordenes.php
-// DESCRIPCIÓN: Modifica una orden de trabajo existente
-// PARÁMETROS (JSON):
-//   - id_orden (requerido): ID de la orden a modificar
-//   - descripcion (requerido): Nueva descripción
-//   - maquina (requerido): Nueva máquina
-//   - tipo (requerido): Nuevo tipo
-//   - prioridad (requerido): Nueva prioridad
 // ==============================================================================
 function actualizarOrden(PDO $pdo): void
 {
@@ -518,15 +490,15 @@ function actualizarOrden(PDO $pdo): void
     }
 
     $descripcion = trim((string)($body['descripcion'] ?? ''));
-    $maquina = trim((string)($body['maquina'] ?? ''));
-    $tipo = trim((string)($body['tipo'] ?? ''));
-    $prioridad = trim((string)($body['prioridad'] ?? ''));
+    $maquina     = trim((string)($body['maquina']     ?? ''));
+    $tipo        = trim((string)($body['tipo']        ?? ''));
+    $prioridad   = trim((string)($body['prioridad']   ?? ''));
 
     if ($descripcion === '' || $maquina === '' || $tipo === '' || $prioridad === '') {
         responderError('Descripcion, maquina, tipo y prioridad son obligatorios.');
     }
 
-    $tiposPermitidos = ['Correctivo', 'Preventivo', 'Predictivo'];
+    $tiposPermitidos      = ['Correctivo', 'Preventivo', 'Predictivo'];
     $prioridadesPermitidas = ['Baja', 'Media', 'Alta'];
 
     if (!in_array($tipo, $tiposPermitidos, true)) {
@@ -537,15 +509,14 @@ function actualizarOrden(PDO $pdo): void
         responderError('Prioridad no valida.');
     }
 
-    // Verificar si existe la orden
     $stmt = $pdo->prepare('SELECT id_orden FROM ordenes_trabajo WHERE id_orden = :id');
     $stmt->execute([':id' => $id_orden]);
     if (!$stmt->fetch()) {
         responderError('La orden de trabajo no existe.', 404);
     }
 
-    $id_maquina = resolverIdMaquina($pdo, $maquina);
-    $id_tipo = resolverIdDefinicion($pdo, $tipo, 1);
+    $id_maquina  = resolverIdMaquina($pdo, $maquina);
+    $id_tipo     = resolverIdDefinicion($pdo, $tipo, 1);
     $id_prioridad = resolverIdDefinicion($pdo, $prioridad, 2);
 
     $stmtUpdate = $pdo->prepare(
@@ -558,28 +529,22 @@ function actualizarOrden(PDO $pdo): void
     );
 
     $ok = $stmtUpdate->execute([
-        ':id_maquina' => $id_maquina,
-        ':id_tipo' => $id_tipo,
+        ':id_maquina'   => $id_maquina,
+        ':id_tipo'      => $id_tipo,
         ':id_prioridad' => $id_prioridad,
         ':observaciones' => $descripcion,
-        ':id_orden' => $id_orden
+        ':id_orden'     => $id_orden,
     ]);
 
     if (!$ok) {
         responderError('Error al modificar la orden.', 500);
     }
 
-    responderJson([
-        'success' => true,
-        'msg' => 'Orden modificada correctamente.'
-    ]);
+    responderJson(['success' => true, 'msg' => 'Orden modificada correctamente.']);
 }
 
 // ==============================================================================
 // ENDPOINT: DELETE /ordenes.php
-// DESCRIPCIÓN: Elimina una orden de trabajo
-// PARÁMETROS (JSON):
-//   - id_orden (requerido): ID de la orden a eliminar
 // ==============================================================================
 function eliminarOrden(PDO $pdo): void
 {
@@ -594,7 +559,6 @@ function eliminarOrden(PDO $pdo): void
         responderError('El ID de la orden es obligatorio.');
     }
 
-    // Verificar si existe la orden
     $stmt = $pdo->prepare('SELECT id_orden FROM ordenes_trabajo WHERE id_orden = :id');
     $stmt->execute([':id' => $id_orden]);
     if (!$stmt->fetch()) {
@@ -608,8 +572,5 @@ function eliminarOrden(PDO $pdo): void
         responderError('Error al eliminar la orden.', 500);
     }
 
-    responderJson([
-        'success' => true,
-        'msg' => 'Orden eliminada correctamente.'
-    ]);
+    responderJson(['success' => true, 'msg' => 'Orden eliminada correctamente.']);
 }
