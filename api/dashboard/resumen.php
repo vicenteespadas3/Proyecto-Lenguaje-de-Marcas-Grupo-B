@@ -27,10 +27,9 @@ if ($res_inc) {
 $tareas = [];
 $hoy = date('Y-m-d');
 
-// Buscamos tareas para hoy o en el futuro
+// Buscamos tareas activas
 $query_tareas = "SELECT id_orden, maquina, tipo, prioridad, fecha_programada, estado 
                     FROM v_ordenes_activas 
-                    WHERE fecha_programada >= '$hoy' 
                     ORDER BY fecha_programada ASC LIMIT 4";
 $res_tar = $conn->query($query_tareas);
 
@@ -39,10 +38,10 @@ if ($res_tar && $res_tar->num_rows > 0) {
         $tareas[] = $row;
     }
 } else {
-    // Si no hay ista o falla, intentamos leer de ordenes_trabajo directamente
+    // Si no hay vista o falla, intentamos leer de ordenes_trabajo directamente
+    // Asumimos estado no completado (ej. != 'completada' o != 'cerrada', vamos a limitar a las no cerradas si podemos, pero no sabemos el id exacto)
     $query_fallback = "SELECT id_orden, id_maquina as maquina, 'Mantenimiento' as tipo, id_prioridad as prioridad, fecha_programada, id_estado as estado 
                     FROM ordenes_trabajo 
-                    WHERE fecha_programada >= '$hoy' 
                     ORDER BY fecha_programada ASC LIMIT 4";
     $res_fall = $conn->query($query_fallback);
     if ($res_fall) {

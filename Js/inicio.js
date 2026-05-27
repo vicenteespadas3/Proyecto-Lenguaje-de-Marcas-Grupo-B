@@ -44,8 +44,8 @@ async function cargarResumenDashboard() {
         
         // Agrupar por hoy vs próximas
         const hoyStr = new Date().toISOString().split('T')[0];
-        let tareasHoy = res.tareas.filter(t => t.fecha_programada.startsWith(hoyStr));
-        let tareasProximas = res.tareas.filter(t => !t.fecha_programada.startsWith(hoyStr));
+        let tareasHoy = res.tareas.filter(t => t.fecha_programada && t.fecha_programada.startsWith(hoyStr));
+        let tareasProximas = res.tareas.filter(t => !t.fecha_programada || !t.fecha_programada.startsWith(hoyStr));
 
         // Mostrar etiqueta si hay de hoy, o si solo mostramos próximas
         let mostrar = tareasHoy.length > 0 ? tareasHoy : tareasProximas;
@@ -54,12 +54,13 @@ async function cargarResumenDashboard() {
         contTareas.innerHTML += `<div class="inicio-tareas-titulo">${tituloExtra}</div>`;
 
         mostrar.slice(0, 4).forEach(t => {
+            let prioridadColor = t.prioridad === 'Crítica' ? '#e74c3c' : (t.prioridad === 'Alta' ? '#e67e22' : '#f1c40f');
             contTareas.innerHTML += `
-                <div class="inicio-item" style="border-left-color: #3498db;">
+                <div class="inicio-item" style="border-left-color: ${prioridadColor};">
                     <div class="inicio-item-titulo">OT-${t.id_orden}: ${t.tipo || 'Mantenimiento'}</div>
                     <div class="inicio-item-detalles">
-                        <span>Para: ${new Date(t.fecha_programada).toLocaleDateString()}</span>
-                        <span>Prioridad: ${t.prioridad}</span>
+                        <span>Para: ${t.fecha_programada ? new Date(t.fecha_programada).toLocaleDateString() : 'N/A'}</span>
+                        <span class="inicio-item-estado">${t.estado ? t.estado.replace('_', ' ') : 'pendiente'}</span>
                     </div>
                 </div>
             `;
