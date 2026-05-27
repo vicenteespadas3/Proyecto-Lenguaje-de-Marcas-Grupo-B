@@ -19,9 +19,15 @@
                 </div>
                 <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
                     <div class="search-bar" style="display: flex; gap: 5px;">
+                        <!-- Entrada de búsqueda global por texto -->
                         <input type="text" id="busquedaHerramienta" placeholder="Buscar por ID o Nombre..." 
                                onkeyup="filtrarHerramientas()"
                                style="padding: 10px; border: 1px solid #bdc3c7; border-radius: 5px; min-width: 250px;">
+                        <!-- Filtro Desplegable Adicional (Filtro por campos) -->
+                        <select id="filtroHerramientas" onchange="filtrarHerramientas()"
+                                style="padding: 10px; border: 1px solid #bdc3c7; border-radius: 5px; background: white; cursor: pointer; min-width: 200px;">
+                            <option value="todos">Todos los campos (Sin filtro)</option>
+                        </select>
                         <button class="btn btn-primary" onclick="filtrarHerramientas()">Buscar</button>
                     </div>
                     <button class="btn btn-primary" onclick="abrirModalHerramienta()">

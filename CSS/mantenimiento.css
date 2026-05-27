@@ -1,0 +1,392 @@
+/* ==========================================================================
+   MANTENIMIENTO.CSS
+   Estilos compartidos para las páginas del módulo de mantenimiento:
+   - planes.html, gamas.html, ordenes.html, tareas_mant.html, ejecuciones.html
+   ========================================================================== */
+
+
+/* ── MODAL: Overlay y contenedor ─────────────────────────────────────────── */
+
+.modal-overlay {
+    backdrop-filter: blur(6px);
+    background-color: rgba(15, 23, 42, 0.6);
+    transition: all 0.3s ease;
+}
+
+.modal-content {
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: visible;
+    background: linear-gradient(to bottom, #ffffff, #f8fafc);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+}
+
+body.dark-mode .modal-content {
+    background: linear-gradient(to bottom, #1e293b, #0f172a);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+
+/* ── MODAL: Header ───────────────────────────────────────────────────────── */
+
+.modal-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 24px 30px;
+    flex-shrink: 0;
+}
+
+body.dark-mode .modal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.modal-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+}
+
+body.dark-mode .modal-header h2 {
+    background: linear-gradient(135deg, #60a5fa, #93c5fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+
+/* ── MODAL: Formularios con scroll ───────────────────────────────────────── */
+
+#formPlan,
+#formGama {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    padding: 24px 30px;
+}
+
+
+/* ── MODAL: Secciones internas (solo en planes) ───────────────────────────── */
+
+.modal-section {
+    background: white;
+    border-radius: 12px;
+    margin: 0 0 16px 0;
+    padding: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.modal-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+}
+
+body.dark-mode .modal-section {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .modal-section:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+}
+
+.modal-section-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px dashed #e2e8f0;
+    padding-bottom: 12px;
+}
+
+body.dark-mode .modal-section-header {
+    color: #cbd5e1;
+    border-bottom-color: #334155;
+}
+
+.modal-section-icon {
+    background: #eff6ff;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.03);
+}
+
+body.dark-mode .modal-section-icon {
+    background: #0f172a;
+    box-shadow: inset 0 2px 4px 0 rgba(255, 255, 255, 0.02);
+}
+
+.modal-section-body {
+    padding-top: 4px;
+}
+
+
+/* ── FORMULARIOS: Labels e inputs ────────────────────────────────────────── */
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #475569;
+    margin-bottom: 8px;
+    display: block;
+}
+
+body.dark-mode .form-group label {
+    color: #94a3b8;
+}
+
+.campo-opcional {
+    font-weight: 400;
+    font-size: 0.82em;
+    color: #94a3b8;
+    margin-left: 4px;
+}
+
+.required {
+    color: #e74c3c;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    padding: 10px 14px;
+    background-color: #f8fafc;
+    transition: all 0.2s;
+    font-size: 0.95rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    background-color: #ffffff;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    outline: none;
+}
+
+body.dark-mode .form-group input,
+body.dark-mode .form-group select,
+body.dark-mode .form-group textarea {
+    background-color: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+body.dark-mode .form-group input:focus,
+body.dark-mode .form-group select:focus,
+body.dark-mode .form-group textarea:focus {
+    background-color: #1e293b;
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+
+/* ── MODAL: Actions (pie del modal) ──────────────────────────────────────── */
+
+.modal-actions {
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0 !important;
+    padding: 20px 30px !important;
+    border-radius: 0 0 16px 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+body.dark-mode .modal-actions {
+    background: #0f172a;
+    border-top-color: #334155 !important;
+}
+
+
+/* ── BOTONES ─────────────────────────────────────────────────────────────── */
+
+.btn {
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 10px 20px;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-primary {
+    background: linear-gradient(to right, #2563eb, #3b82f6);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.3);
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.btn-secondary:hover {
+    background: #cbd5e1;
+    color: #334155;
+}
+
+body.dark-mode .btn-secondary {
+    background: #334155;
+    color: #e2e8f0;
+}
+
+body.dark-mode .btn-secondary:hover {
+    background: #475569;
+    color: #f8fafc;
+}
+
+
+/* ── PLANES: Filas de tabla ──────────────────────────────────────────────── */
+
+tr.fila-plan:hover td {
+    background-color: #fef9f5;
+}
+
+body.dark-mode tr.fila-plan:hover td {
+    background-color: #2a2218;
+}
+
+tr.fila-plan td:first-child {
+    border-left: 3px solid transparent;
+    transition: border-color 0.15s;
+}
+
+tr.fila-plan:hover td:first-child {
+    border-left-color: var(--primary);
+}
+
+.plan-expand-icon {
+    transition: color 0.2s;
+    cursor: default;
+}
+
+tr.fila-plan:hover .plan-expand-icon {
+    color: var(--primary) !important;
+}
+
+
+/* ── PLANES: Panel expandible de tareas ─────────────────────────────────── */
+
+.tareas-plan-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px 20px;
+    background: #fafafa;
+    animation: slidePlan 0.18s ease-out;
+}
+
+body.dark-mode .tareas-plan-panel {
+    background: #1c1c1c;
+}
+
+@keyframes slidePlan {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tarea-mini-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: white;
+    border: 1px solid #edf2f7;
+    border-radius: 8px;
+    padding: 10px 14px;
+    min-width: 240px;
+    max-width: 320px;
+    flex: 1;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+body.dark-mode .tarea-mini-card {
+    background: #252525;
+    border-color: #383838;
+}
+
+.tarea-mini-paso {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    font-weight: bold;
+    font-size: 0.85em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+    margin-top: 1px;
+}
+
+.tarea-mini-body {
+    font-size: 0.88em;
+    line-height: 1.4;
+}
+
+
+/* ── CHIPS ───────────────────────────────────────────────────────────────── */
+
+.chip {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: 600;
+    margin-right: 3px;
+}
+
+.chip-epi {
+    background: #fce4d6;
+    color: #c0392b;
+    border: 1px solid #f5a982;
+}
+
+.chip-seguridad {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffd666;
+}
+
+.chip-medamb {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #b8dacc;
+}

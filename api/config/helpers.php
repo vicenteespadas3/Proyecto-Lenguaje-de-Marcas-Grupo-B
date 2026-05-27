@@ -30,7 +30,8 @@ header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
 
 // Manejar la petición 'preflight' (OPTIONS) que hacen los navegadores
 // antes de enviar un POST, PUT o DELETE por seguridad CORS.
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+$method = $_SERVER['REQUEST_METHOD'] ?? '';
+if ($method === 'OPTIONS') {
     http_response_code(204); // Responde con 'No Content' y detiene la ejecución
     exit;
 }

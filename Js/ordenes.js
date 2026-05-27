@@ -1,18 +1,45 @@
-// =========================================================================
+// ==============================================================================
 // ARCHIVO: Js/ordenes.js
+<<<<<<< HEAD
 // PROPÓSITO: Gestión asíncrona de la pantalla de Órdenes de Trabajo.
 // REFERENCIA WEB: HTML/mantenimientoMenu/ordenes.html
 // =========================================================================
 //Jordi Martinez Diaz
+=======
+// PROPÓSITO: Controlador principal para la gestión de Órdenes de Trabajo.
+// Gestiona la carga, visualización, creación, edición y eliminación de
+// órdenes de mantenimiento (correctivas, preventivas o predictivas).
+// RELACIONES:
+//   - HTML: HTML/mantenimientoMenu/ordenes.html
+//   - API: api/mantenimiento/ordenes.php
+//   - Datos: Tabla 'ordenes_trabajo' en la BD
+// FUNCIONALIDADES PRINCIPALES:
+//   1. Cargar y mostrar lista de órdenes en tabla
+//   2. Buscar y filtrar órdenes por texto, estado y prioridad
+//   3. Crear nuevas órdenes de trabajo
+//   4. Modificar órdenes existentes
+//   5. Eliminar órdenes
+//   6. Ver detalles de una orden
+// ==============================================================================
+
+// URL del API REST para operaciones CRUD de órdenes
+>>>>>>> 76768b96258ac15ff99076c38feb273d4fc50781
 const API_ORDENES_URL = '../../api/mantenimiento/ordenes.php';
+
+// Cache en memoria de órdenes cargadas (para no recargar innecesariamente)
 let ordenesCache = [];
+
+// ID de la orden que se está editando (null si es nuevo registro)
 let editandoId = null;
 
+// EVENT LISTENER PRINCIPAL: Se ejecuta cuando el DOM está listo
 document.addEventListener('DOMContentLoaded', () => {
+    // Renderiza el menú lateral si existe la función (definida en app.js)
     if (typeof renderMenu === 'function') {
         renderMenu();
     }
 
+    // ========== REFERENCIAS A ELEMENTOS DEL DOM ==========
     const modal = document.getElementById('modalOrden');
     const btnNuevaOrden = document.getElementById('btnNuevaOrden');
     const btnCerrarModal = document.getElementById('btnCerrarModal');
@@ -23,25 +50,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnCerrarDetalle = document.getElementById('btnCerrarDetalle');
     const btnCerrarDetalleInferior = document.getElementById('btnCerrarDetalleInferior');
 
+    // ========== EVENT LISTENERS PARA MODAL ==========
+    // Abrir modal para crear nueva orden
     btnNuevaOrden?.addEventListener('click', abrirModalOrden);
+    
+    // Cerrar modal al hacer clic en botones o fuera
     btnCerrarModal?.addEventListener('click', cerrarModalOrden);
     btnCancelarOrden?.addEventListener('click', cerrarModalOrden);
     btnCerrarDetalle?.addEventListener('click', cerrarDetalleOrden);
     btnCerrarDetalleInferior?.addEventListener('click', cerrarDetalleOrden);
 
+    // ========== EVENT LISTENERS PARA ACCIONES EN LA TABLA ==========
+    // Usa delegación de eventos en el tbody de la tabla
     tablaOrdenesBody?.addEventListener('click', (event) => {
+        // Botón para ver detalle de la orden
         const btnVer = event.target.closest('[data-accion="ver-orden"]');
         if (btnVer) {
             abrirDetalleOrden(btnVer.dataset.id);
             return;
         }
 
+        // Botón para editar la orden
         const btnModificar = event.target.closest('[data-accion="modificar-orden"]');
         if (btnModificar) {
             abrirModificarOrden(btnModificar.dataset.id);
             return;
         }
 
+        // Botón para eliminar la orden
         const btnBorrar = event.target.closest('[data-accion="borrar-orden"]');
         if (btnBorrar) {
             borrarOrden(btnBorrar.dataset.id);
@@ -49,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Cerrar modal al hacer clic fuera de su contenido
     modal?.addEventListener('click', (event) => {
         if (event.target === modal) cerrarModalOrden();
     });
@@ -57,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target === modalDetalle) cerrarDetalleOrden();
     });
 
+    // ========== TECLA ESCAPE CIERRA MODALES ==========
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && modal?.classList.contains('show')) {
             cerrarModalOrden();
@@ -67,24 +105,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ========== SUBMIT DEL FORMULARIO ==========
     formOrden?.addEventListener('submit', guardarOrden);
     
-    // Controles de búsqueda y filtros
+    // ========== EVENT LISTENERS PARA BÚSQUEDA Y FILTROS ==========
     const btnBuscarOrden = document.getElementById('btnBuscarOrden');
     const inputBuscarOrden = document.getElementById('inputBuscarOrden');
     const selectFiltroEstado = document.getElementById('selectFiltroEstado');
     const selectFiltroPrioridad = document.getElementById('selectFiltroPrioridad');
 
+    // Ejecutar búsqueda al hacer clic en el botón Filtrar
     btnBuscarOrden?.addEventListener('click', cargarOrdenes);
+    
+    // Permitir buscar presionando Enter en el campo de texto
     inputBuscarOrden?.addEventListener('keyup', (e) => {
         if (e.key === 'Enter') cargarOrdenes();
     });
+    
+    // Recargar tabla al cambiar los filtros de estado o prioridad
     selectFiltroEstado?.addEventListener('change', cargarOrdenes);
     selectFiltroPrioridad?.addEventListener('change', cargarOrdenes);
 
+    // Carga inicial de órdenes al abrir la página
     cargarOrdenes();
 });
 
+// ==============================================================================
+// SECCIÓN: MODALES
+// ==============================================================================
+
+/**
+ * Abre el modal para crear una nueva orden de trabajo
+ * Limpia el formulario y reinicia el estado de edición
+ */
 function abrirModalOrden() {
     const modal = document.getElementById('modalOrden');
     const titulo = document.getElementById('modalOrdenTitulo');
@@ -99,12 +152,28 @@ function abrirModalOrden() {
     document.getElementById('descripcion')?.focus();
 }
 
+/**
+ * Cierra el modal de crear/editar orden
+ * Limpia el formulario y cualquier mensaje de error
+ */
 function cerrarModalOrden() {
     const modal = document.getElementById('modalOrden');
     modal?.classList.remove('show');
     limpiarMensaje();
 }
 
+// ==============================================================================
+// SECCIÓN: CARGA Y MOSTRADO DE DATOS
+// ==============================================================================
+
+/**
+ * Carga todas las órdenes del servidor (con filtros si se especifican)
+ * y las muestra en la tabla. Se llama:
+ * - Al cargar la página por primera vez
+ * - Al presionar el botón Filtrar
+ * - Al cambiar los filtros de estado o prioridad
+ * - Después de crear, editar o eliminar una orden
+ */
 async function cargarOrdenes() {
     const tbody = document.getElementById('tablaOrdenesBody');
     if (!tbody) return;
@@ -162,6 +231,12 @@ async function cargarOrdenes() {
     }
 }
 
+/**
+ * Genera el HTML de una fila de la tabla para una orden
+ * Incluye todos los datos y botones de acción (ver, editar, borrar)
+ * @param {Object} orden - Objeto orden con todos sus datos
+ * @returns {String} HTML de la fila para insertar en la tabla
+ */
 function renderFilaOrden(orden) {
     return `
         <tr>
@@ -187,6 +262,11 @@ function renderFilaOrden(orden) {
     `;
 }
 
+/**
+ * Convierte el tipo de mantenimiento numérico a texto
+ * @param {number|string} id_tipo - ID del tipo (1=Preventivo, 2=Correctivo, etc)
+ * @returns {string} Nombre del tipo de mantenimiento
+ */
 function getTipoText(id_tipo) {
     id_tipo = String(id_tipo);
     if (id_tipo === '1') return 'Preventivo';
@@ -194,6 +274,11 @@ function getTipoText(id_tipo) {
     return 'Predictivo';
 }
 
+/**
+ * Convierte el ID de prioridad numérico a texto
+ * @param {number|string} id_prioridad - ID de prioridad (8=Baja, 9=Media, 10=Alta, etc)
+ * @returns {string} Nombre de la prioridad
+ */
 function getPrioridadText(id_prioridad) {
     id_prioridad = String(id_prioridad);
     if (id_prioridad === '8') return 'Baja';
@@ -202,6 +287,15 @@ function getPrioridadText(id_prioridad) {
     return 'Media';
 }
 
+// ==============================================================================
+// SECCIÓN: MODAL MODIFICAR ORDEN
+// ==============================================================================
+
+/**
+ * Abre el modal en modo edición para una orden existente
+ * Carga los datos de la orden en los campos del formulario
+ * @param {number|string} id - ID de la orden a editar
+ */
 function abrirModificarOrden(id) {
     const orden = ordenesCache.find((item) => String(item.id_orden) === String(id));
     if (!orden) return;
@@ -234,6 +328,14 @@ function abrirModificarOrden(id) {
     document.getElementById('descripcion')?.focus();
 }
 
+// ==============================================================================
+// SECCIÓN: MODAL DETALLE ORDEN
+// ==============================================================================
+
+/**
+ * Abre el modal de solo lectura para ver todos los detalles de una orden
+ * @param {number|string} id - ID de la orden a mostrar
+ */
 function abrirDetalleOrden(id) {
     const orden = ordenesCache.find((item) => String(item.id_orden) === String(id));
     const modal = document.getElementById('modalDetalleOrden');
@@ -269,11 +371,20 @@ function abrirDetalleOrden(id) {
     modal.classList.add('show');
 }
 
+/**
+ * Cierra el modal de detalle de orden
+ */
 function cerrarDetalleOrden() {
     const modal = document.getElementById('modalDetalleOrden');
     modal?.classList.remove('show');
 }
 
+/**
+ * Genera el HTML para mostrar un campo en el modal de detalle
+ * @param {string} etiqueta - Título o nombre del campo
+ * @param {*} valor - Valor a mostrar
+ * @returns {string} HTML del campo formateado
+ */
 function detalleCampo(etiqueta, valor) {
     return `
         <div class="detalle-fila">
@@ -283,6 +394,11 @@ function detalleCampo(etiqueta, valor) {
     `;
 }
 
+/**
+ * Formatea una fecha para mostrarla en formato local (DD/MM/YYYY)
+ * @param {string|Date} fecha - Fecha a formatear
+ * @returns {string} Fecha formateada o fecha original si no es válida
+ */
 function formatearFecha(fecha) {
     if (!fecha) return '';
 
@@ -292,11 +408,26 @@ function formatearFecha(fecha) {
     return fechaObjeto.toLocaleDateString('es-ES');
 }
 
+/**
+ * Formatea un valor de minutos para mostrar con etiqueta 'min'
+ * @param {number|string|null} valor - Número de minutos
+ * @returns {string} Valor formateado o '---' si es vacío
+ */
 function formatoMinutos(valor) {
     if (valor === null || valor === undefined || valor === '') return '---';
     return `${escaparHtml(valor)} min`;
 }
 
+// ==============================================================================
+// SECCIÓN: GUARDAR ORDEN (POST / PUT)
+// ==============================================================================
+
+/**
+ * Guarda una nueva orden o actualiza una existente
+ * Valida que los campos obligatorios estén rellenos antes de enviar
+ * Usa POST para crear (editandoId = null) o PUT para actualizar
+ * @param {Event} event - Evento del submit del formulario
+ */
 async function guardarOrden(event) {
     event.preventDefault();
 
@@ -352,6 +483,14 @@ async function guardarOrden(event) {
     }
 }
 
+// ==============================================================================
+// SECCIÓN: BORRAR ORDEN (DELETE)
+// ==============================================================================
+
+/**
+ * Elimina una orden después de confirmar con el usuario
+ * @param {number|string} id - ID de la orden a eliminar
+ */
 async function borrarOrden(id) {
     if (confirm(`¿Seguro que quieres borrar la orden con ID: ${id}?`)) {
         try {
@@ -378,6 +517,15 @@ async function borrarOrden(id) {
     }
 }
 
+// ==============================================================================
+// SECCIÓN: FUNCIONES AUXILIARES
+// ==============================================================================
+
+/**
+ * Muestra un mensaje de error o info en el modal
+ * @param {string} texto - Texto del mensaje a mostrar
+ * @param {string} tipo - Tipo de mensaje: 'error' o 'info' (default: 'info')
+ */
 function mostrarMensaje(texto, tipo = 'info') {
     const mensaje = document.getElementById('mensajeOrden');
     if (!mensaje) return;
@@ -393,6 +541,9 @@ function mostrarMensaje(texto, tipo = 'info') {
     mensaje.classList.remove('hidden');
 }
 
+/**
+ * Limpia cualquier mensaje mostrado en el modal
+ */
 function limpiarMensaje() {
     const mensaje = document.getElementById('mensajeOrden');
     if (!mensaje) return;
@@ -401,6 +552,12 @@ function limpiarMensaje() {
     mensaje.className = 'hidden';
 }
 
+/**
+ * Escapa caracteres especiales de HTML para evitar XSS
+ * Convierte: & < > " '
+ * @param {*} valor - Valor a escapar
+ * @returns {string} Valor escapado seguro para HTML
+ */
 function escaparHtml(valor) {
     return String(valor ?? '')
         .replaceAll('&', '&amp;')
@@ -410,19 +567,33 @@ function escaparHtml(valor) {
         .replaceAll("'", '&#039;');
 }
 /* Swipe detection to open sidebar on right swipe */
-let touchStartX = 0;
-let touchEndX = 0;
-const minSwipeDist = 50; // minimum distance in px for a swipe
+// ==============================================================================
+// SECCIÓN: DETECCIÓN DE GESTOS (SWIPE) PARA MÓVIL
+// ==============================================================================
+// Permitir abrir la barra lateral con un gesto de deslizamiento hacia la derecha
 
+// Variable para guardar la posición X inicial del toque
+let touchStartX = 0;
+// Variable para guardar la posición X final del toque
+let touchEndX = 0;
+// Distancia mínima en píxeles para considerar un gesto de deslizamiento
+const minSwipeDist = 50;
+
+// Event listener para detectar el inicio del toque en pantalla táctil
 document.addEventListener('touchstart', e => {
   touchStartX = e.changedTouches[0].screenX;
 });
 
+// Event listener para detectar el final del toque
 document.addEventListener('touchend', e => {
   touchEndX = e.changedTouches[0].screenX;
-  handleSwipe();
+  handleSwipe(); // Procesar el gesto detectado
 });
 
+/**
+ * Procesa el gesto de deslizamiento detectado
+ * Si es un deslizamiento hacia la derecha, expande la barra lateral
+ */
 function handleSwipe() {
   const diffX = touchEndX - touchStartX;
   if (diffX > minSwipeDist) {

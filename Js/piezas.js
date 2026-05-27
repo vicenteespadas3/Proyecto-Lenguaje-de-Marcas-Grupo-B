@@ -73,6 +73,8 @@ async function cargarPiezas() {
                 // Añadimos la fila al cuerpo de la tabla
                 tbody.appendChild(fila);
             });
+            // Una vez cargadas las piezas, inicializamos las opciones del desplegable de filtrado
+            cargarFiltrosPiezas();
         } else {
             // Si la base de datos está vacía
             tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">No hay piezas registradas.</td></tr>';
@@ -88,24 +90,73 @@ async function cargarPiezas() {
 // --- FUNCIONES DEL BUSCADOR ---
 
 /**
- * Filtra dinámicamente las piezas mostradas en la tabla al escribir en el buscador.
- * Busca coincidencias en ID, Código Interno, Código Proveedor y Nombre.
+ * Rellena el desplegable de filtros con opciones basadas en todos los campos disponibles.
+ */
+function cargarFiltrosPiezas() {
+    const select = document.getElementById("filtroPiezas");
+    if (!select) return;
+
+    select.innerHTML = `
+        <option value="todos">Mostrar Todo (Sin filtros)</option>
+        <optgroup label="Filtrar por Estado">
+            <option value="estado:exito">En Stock</option>
+            <option value="estado:advertencia">Stock Bajo</option>
+            <option value="estado:peligro">Agotado</option>
+        </optgroup>
+        <optgroup label="Filtrar por Existencias">
+            <option value="stock:con">Con existencias (>0)</option>
+            <option value="stock:sin">Sin existencias (=0)</option>
+        </optgroup>
+        <optgroup label="Filtrar por Códigos">
+            <option value="codigo:si">Con Código Interno</option>
+            <option value="codigo:no">Sin Código Interno</option>
+        </optgroup>
+    `;
+}
+
+/**
+ * Filtra las piezas mostradas en la tabla según la opción del desplegable único.
  */
 function filtrarPiezas() {
     const input = document.getElementById("busquedaPieza");
     const textoBuscado = input.value.toUpperCase(); // Pasamos a mayúsculas para comparar sin importar minúsculas
+    const filtro = document.getElementById("filtroPiezas").value; // Obtenemos el filtro seleccionado
     const filas = document.getElementById("tabla-piezas-body").getElementsByTagName("tr");
 
-    // Recorremos todas las filas de la tabla
+    // Recorremos todas las filas de la tabla de piezas
     for (let i = 0; i < filas.length; i++) {
-        // Obtenemos el texto de toda la fila para que busque en todas las columnas
-        const textoFila = filas[i].textContent || filas[i].innerText;
+        const fila = filas[i];
         
-        // Si el texto escrito está dentro de la fila, la mostramos
-        if (textoFila.toUpperCase().includes(textoBuscado)) {
-            filas[i].style.display = "";
+        // Omitimos filas especiales que no contienen datos (ej. "Cargando..." o "No hay piezas...")
+        if (fila.cells.length === 1) continue;
+
+        // 1. Comprobamos la coincidencia del texto en cualquier campo de la fila
+        const textoFila = fila.textContent || fila.innerText;
+        const coincideTexto = textoFila.toUpperCase().includes(textoBuscado);
+
+        // 2. Comprobamos si coincide con el filtro desplegable seleccionado
+        let coincideFiltro = true;
+        if (filtro !== "todos") {
+            const [criterio, valor] = filtro.split(":");
+            if (criterio === "estado") {
+                const etiqueta = fila.querySelector(".etiqueta-estado");
+                coincideFiltro = etiqueta && etiqueta.classList.contains(valor);
+            } else if (criterio === "stock") {
+                const stockTexto = fila.cells[4].textContent.trim(); // Quinta celda: "X uds."
+                const stockVal = parseInt(stockTexto) || 0;
+                coincideFiltro = (valor === "con" && stockVal > 0) || (valor === "sin" && stockVal === 0);
+            } else if (criterio === "codigo") {
+                const codigoVal = fila.cells[1].textContent.trim(); // Segunda celda: Código Interno
+                const tieneCodigo = codigoVal !== "" && codigoVal !== "-";
+                coincideFiltro = (valor === "si" && tieneCodigo) || (valor === "no" && !tieneCodigo);
+            }
+        }
+
+        // Mostramos la fila solo si cumple con ambos criterios (texto y filtro desplegable)
+        if (coincideTexto && coincideFiltro) {
+            fila.style.display = "";
         } else {
-            filas[i].style.display = "none"; // Si no coincide, la ocultamos
+            fila.style.display = "none";
         }
     }
 }
@@ -185,7 +236,8 @@ async function guardarPieza(evento) {
     if (res && res.ok !== false) {
         cerrarModal();          // 1. Ocultamos el modal
         cargarPiezas();         // 2. Recargamos la tabla para ver los cambios
-        document.getElementById('busquedaPieza').value = ''; // 3. Vaciamos el buscador
+        document.getElementById('busquedaPieza').value = '';     // 3. Limpiamos la búsqueda por texto
+        document.getElementById('filtroPiezas').value = 'todos'; // 4. Reiniciamos el filtro
     } else {
         alert('Error: ' + (res.error || 'No se pudo guardar la pieza'));
     }

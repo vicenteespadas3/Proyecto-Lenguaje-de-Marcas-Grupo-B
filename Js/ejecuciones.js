@@ -1,81 +1,122 @@
-// =========================================================================
+// ==============================================================================
 // ARCHIVO: Js/ejecuciones.js
+<<<<<<< HEAD
 // PROPÓSITO: CRUD completo de ejecuciones de mantenimiento.
 // REFERENCIA WEB: HTML/mantenimientoMenu/ejecuciones.html
 // =========================================================================
 //Jordi Martinez Diaz
 
+=======
+// PROPÓSITO: Controlador principal para la gestión completa (CRUD) de 
+// ejecuciones de mantenimiento. Gestiona la carga, visualización, creación,
+// edición y eliminación de registros de ejecuciones.
+// RELACIONES:
+//   - HTML: HTML/mantenimientoMenu/ejecuciones.html
+//   - API: api/mantenimiento/ejecuciones.php
+//   - Datos: Tabla 'ejecuciones_mantenimiento' en la BD
+// FUNCIONALIDADES PRINCIPALES:
+//   1. Cargar y mostrar lista de ejecuciones en tabla
+//   2. Buscar y filtrar ejecuciones por ID, resultado y fecha
+//   3. Crear nuevas ejecuciones
+//   4. Modificar ejecuciones existentes
+//   5. Eliminar ejecuciones
+//   6. Ver detalles de una ejecución
+//   7. Ver y actualizar tareas ejecutadas
+// ==============================================================================
+>>>>>>> 76768b96258ac15ff99076c38feb273d4fc50781
 
+// URL del API REST para operaciones CRUD de ejecuciones
 const API_EJECUCIONES_URL = '../../api/mantenimiento/ejecuciones.php';
+
+// Cache en memoria de ejecuciones cargadas (para no recargar innecesariamente)
 let ejecucionesCache = [];
+
+// ID de la ejecución que se está editando (null si es nuevo registro)
 let editandoEjecucionId = null;
 
+// EVENT LISTENER PRINCIPAL: Se ejecuta cuando el DOM está listo
 document.addEventListener('DOMContentLoaded', () => {
+    // Renderiza el menú lateral si existe la función (definida en app.js)
     if (typeof renderMenu === 'function') renderMenu();
 
-    // Referencias a elementos
+    // ========== REFERENCIAS A ELEMENTOS DEL DOM ==========
+    // Modales
     const modalEjecucion       = document.getElementById('modalEjecucion');
     const modalDetalle         = document.getElementById('modalDetalleEjecucion');
     const modalTareas          = document.getElementById('modalTareas');
+    
+    // Botones de acción principales
     const btnNuevaEjecucion    = document.getElementById('btnNuevaEjecucion');
     const btnVerTodasTareas    = document.getElementById('btnVerTodasTareas');
+    
+    // Botones de cierre de modales
     const btnCerrarModal       = document.getElementById('btnCerrarModalEjecucion');
     const btnCancelar          = document.getElementById('btnCancelarEjecucion');
-    const formEjecucion        = document.getElementById('formEjecucion');
     const btnCerrarDetalle     = document.getElementById('btnCerrarDetalleEjecucion');
     const btnCerrarDetalleInf  = document.getElementById('btnCerrarDetalleEjecucionInferior');
     const btnCerrarTareas      = document.getElementById('btnCerrarModalTareas');
     const btnCerrarTareasInf   = document.getElementById('btnCerrarModalTareasInferior');
-    const listaTareas          = document.getElementById('listaTareasContainer');
+    
+    // Formulario y tabla
+    const formEjecucion        = document.getElementById('formEjecucion');
     const tbody                = document.getElementById('tabla-ejecuciones-body');
+    const listaTareas          = document.getElementById('listaTareasContainer');
 
-    // Botones de búsqueda
+    // Controles de búsqueda y filtrado
     const btnBuscar        = document.getElementById('btnBuscarEjecucion');
     const inputBuscar      = document.getElementById('inputBuscarEjecucion');
     const filtroResultado  = document.getElementById('filtroResultadoEjecucion');
     const filtroOrden      = document.getElementById('filtroOrdenEjecucion');
 
-    // Eventos de búsqueda y filtros
+    // ========== EVENT LISTENERS PARA BÚSQUEDA Y FILTROS ==========
+    // Permitir solo números en el input de búsqueda
     if (inputBuscar) {
         inputBuscar.addEventListener('input', () => {
-            inputBuscar.value = inputBuscar.value.replace(/\D/g, '');
+            inputBuscar.value = inputBuscar.value.replace(/\D/g, ''); // Remove non-digits
         });
+        // Presionar Enter ejecuta la búsqueda
         inputBuscar.addEventListener('keyup', (e) => {
             if (e.key === 'Enter') cargarEjecuciones();
         });
     }
+    
+    // Ejecutar búsqueda al hacer clic en el botón Filtrar
     btnBuscar?.addEventListener('click', () => cargarEjecuciones());
+    
+    // Recargar tabla cuando cambian los filtros de resultado u orden
     filtroResultado?.addEventListener('change', () => cargarEjecuciones());
     filtroOrden?.addEventListener('change', () => cargarEjecuciones());
 
-    // Abrir modal nueva ejecución
+    // ========== EVENT LISTENERS PARA MODALES ==========
+    // Abrir modal para crear nueva ejecución
     btnNuevaEjecucion?.addEventListener('click', abrirModalNuevaEjecucion);
-
-    // Abrir modal todas las tareas
+    
+    // Abrir modal de todas las tareas ejecutadas
     btnVerTodasTareas?.addEventListener('click', () => verTareas(null));
 
-    // Cerrar modal edición
+    // CERRAR MODAL DE EDICIÓN/CREACIÓN
     btnCerrarModal?.addEventListener('click', cerrarModalEjecucion);
     btnCancelar?.addEventListener('click', cerrarModalEjecucion);
+    // Cerrar al hacer clic fuera del modal
     modalEjecucion?.addEventListener('click', (e) => {
         if (e.target === modalEjecucion) cerrarModalEjecucion();
     });
 
-    // Cerrar modal detalle
+    // CERRAR MODAL DE DETALLE
     btnCerrarDetalle?.addEventListener('click', cerrarDetalleEjecucion);
     btnCerrarDetalleInf?.addEventListener('click', cerrarDetalleEjecucion);
     modalDetalle?.addEventListener('click', (e) => {
         if (e.target === modalDetalle) cerrarDetalleEjecucion();
     });
 
-    // Cerrar modal tareas
+    // CERRAR MODAL DE TAREAS
     btnCerrarTareas?.addEventListener('click', cerrarModalTareas);
     btnCerrarTareasInf?.addEventListener('click', cerrarModalTareas);
     modalTareas?.addEventListener('click', (e) => {
         if (e.target === modalTareas) cerrarModalTareas();
     });
 
-    // Escape cierra cualquier modal abierto
+    // TECLA ESCAPE cierra cualquier modal abierto
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (modalEjecucion?.classList.contains('show')) cerrarModalEjecucion();
@@ -84,36 +125,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Delegación de clicks en la tabla
+    // ========== EVENT LISTENERS PARA ACCIONES EN LA TABLA ==========
+    // Usa delegación de eventos: el listener se define en el tbody
+    // pero solo responde a clics en botones específicos
     tbody?.addEventListener('click', (event) => {
+        // Botón para ver detalle de la ejecución
         const btnVer = event.target.closest('[data-accion="ver-ejecucion"]');
         if (btnVer) { abrirDetalleEjecucion(btnVer.dataset.id); return; }
 
+        // Botón para editar la ejecución
         const btnEditar = event.target.closest('[data-accion="modificar-ejecucion"]');
         if (btnEditar) { abrirModificarEjecucion(btnEditar.dataset.id); return; }
 
+        // Botón para eliminar la ejecución
         const btnBorrar = event.target.closest('[data-accion="borrar-ejecucion"]');
         if (btnBorrar) { borrarEjecucion(btnBorrar.dataset.id); return; }
 
+        // Botón para ver tareas de esta ejecución
         const btnTareas = event.target.closest('[data-accion="ver-tareas"]');
         if (btnTareas) { verTareas(btnTareas.dataset.idEjecucion); return; }
     });
 
-    // Delegación de cambios en la lista de tareas (checkboxes)
+    // EVENT LISTENER para cambios en checkboxes de tareas
     listaTareas?.addEventListener('change', (event) => {
         const checkbox = event.target.closest('[data-action="toggle-tarea"]');
         if (checkbox) actualizarEstadoTarea(checkbox);
     });
 
-    // Submit del formulario
+    // Submit del formulario para guardar ejecución
     formEjecucion?.addEventListener('submit', guardarEjecucion);
 
-    // Carga inicial
+    // Carga inicial de ejecuciones al abrir la página
     cargarEjecuciones();
 });
 
-// ─── CARGA DE DATOS ───────────────────────────────────────────────────────────
+// ==============================================================================
+// SECCIÓN: CARGA Y MOSTRADO DE DATOS
+// ==============================================================================
 
+/**
+ * Carga todas las ejecuciones del servidor (con filtros si se especifican)
+ * y las muestra en la tabla. Esta función se llama:
+ * - Al cargar la página por primera vez
+* - Al presionar el botón Filtrar
+ * - Al cambiar los filtros de resultado u orden
+ * - Después de crear, editar o eliminar una ejecución
+ */
 async function cargarEjecuciones() {
     const tbody = document.getElementById('tabla-ejecuciones-body');
     if (!tbody) return;
@@ -150,6 +207,10 @@ async function cargarEjecuciones() {
     }
 }
 
+/**
+ * Obtiene los valores actuales de los filtros del formulario
+ * @returns {Object} Objeto con filtros: idEjecucion, resultado, orden
+ */
 function obtenerFiltros() {
     return {
         idEjecucion: document.getElementById('inputBuscarEjecucion')?.value.trim() || '',
@@ -158,8 +219,16 @@ function obtenerFiltros() {
     };
 }
 
-// ─── RENDER FILA ──────────────────────────────────────────────────────────────
+// ==============================================================================
+// SECCIÓN: RENDER Y VISUALIZACIÓN DE TABLA
+// ==============================================================================
 
+/**
+ * Genera el HTML de una fila de la tabla para una ejecución
+ * Incluye todos los datos y botones de acción (ver, editar, borrar, ver tareas)
+ * @param {Object} e - Objeto ejecución con todos sus datos
+ * @returns {String} HTML de la fila para insertar en la tabla
+ */
 function renderFilaEjecucion(e) {
     return `
         <tr>
@@ -181,8 +250,14 @@ function renderFilaEjecucion(e) {
     `;
 }
 
-// ─── MODAL NUEVA EJECUCIÓN ────────────────────────────────────────────────────
+// ==============================================================================
+// SECCIÓN: MODAL NUEVA EJECUCIÓN
+// ==============================================================================
 
+/**
+ * Abre el modal para crear una nueva ejecución
+ * Limpia el formulario, reinicia el estado de edición y muestra el modal
+ */
 function abrirModalNuevaEjecucion() {
     editandoEjecucionId = null;
     const titulo = document.getElementById('modalEjecucionTitulo');
@@ -193,13 +268,24 @@ function abrirModalNuevaEjecucion() {
     document.getElementById('ejecucionIdOrden')?.focus();
 }
 
+/**
+ * Cierra el modal de crear/editar ejecución
+ * Limpia el formulario y cualquier mensaje de error
+ */
 function cerrarModalEjecucion() {
     document.getElementById('modalEjecucion')?.classList.remove('show');
     limpiarMensajeEjecucion();
 }
 
-// ─── MODAL MODIFICAR EJECUCIÓN ────────────────────────────────────────────────
+// ==============================================================================
+// SECCIÓN: MODAL MODIFICAR EJECUCIÓN
+// ==============================================================================
 
+/**
+ * Abre el modal en modo edición para una ejecución existente
+ * Carga los datos de la ejecución en los campos del formulario
+ * @param {number|string} id - ID de la ejecución a editar
+ */
 function abrirModificarEjecucion(id) {
     const e = ejecucionesCache.find(item => String(item.id_ejecucion) === String(id));
     if (!e) return;
@@ -232,8 +318,14 @@ function abrirModificarEjecucion(id) {
     document.getElementById('ejecucionIdOrden')?.focus();
 }
 
-// ─── MODAL DETALLE EJECUCIÓN ──────────────────────────────────────────────────
+// ==============================================================================
+// SECCIÓN: MODAL DETALLE EJECUCIÓN
+// ==============================================================================
 
+/**
+ * Abre el modal de solo lectura para ver todos los detalles de una ejecución
+ * @param {number|string} id - ID de la ejecución a mostrar
+ */
 function abrirDetalleEjecucion(id) {
     const e = ejecucionesCache.find(item => String(item.id_ejecucion) === String(id));
     const modal    = document.getElementById('modalDetalleEjecucion');
@@ -263,10 +355,19 @@ function abrirDetalleEjecucion(id) {
     modal.classList.add('show');
 }
 
+/**
+ * Cierra el modal de detalle de ejecución
+ */
 function cerrarDetalleEjecucion() {
     document.getElementById('modalDetalleEjecucion')?.classList.remove('show');
 }
 
+/**
+ * Genera el HTML para mostrar un campo en el modal de detalle
+ * @param {string} etiqueta - Título o nombre del campo
+ * @param {*} valor - Valor a mostrar en el campo
+ * @returns {string} HTML del campo formateado
+ */
 function campoDet(etiqueta, valor) {
     return `
         <div>
@@ -276,8 +377,16 @@ function campoDet(etiqueta, valor) {
     `;
 }
 
-// ─── GUARDAR (POST / PUT) ─────────────────────────────────────────────────────
+// ==============================================================================
+// SECCIÓN: GUARDAR EJECUCIÓN (POST / PUT)
+// ==============================================================================
 
+/**
+ * Guarda una nueva ejecución o actualiza una existente
+ * Valida que los campos obligatorios estén rellenos antes de enviar
+ * Usa POST para crear (editandoEjecucionId = null) o PUT para actualizar
+ * @param {Event} event - Evento del submit del formulario
+ */
 async function guardarEjecucion(event) {
     event.preventDefault();
 
@@ -328,8 +437,14 @@ async function guardarEjecucion(event) {
     }
 }
 
-// ─── BORRAR (DELETE) ──────────────────────────────────────────────────────────
+// ==============================================================================
+// SECCIÓN: BORRAR EJECUCIÓN (DELETE)
+// ==============================================================================
 
+/**
+ * Elimina una ejecución después de confirmar con el usuario
+ * @param {number|string} id - ID de la ejecución a eliminar
+ */
 async function borrarEjecucion(id) {
     if (!confirm(`¿Seguro que quieres borrar la ejecución con ID: ${id}?`)) return;
 
@@ -354,8 +469,16 @@ async function borrarEjecucion(id) {
     }
 }
 
-// ─── MODAL VER TAREAS ─────────────────────────────────────────────────────────
+// ==============================================================================
+// SECCIÓN: MODAL VER TAREAS EJECUTADAS
+// ==============================================================================
 
+/**
+ * Abre el modal que muestra todas las tareas ejecutadas de una ejecución
+ * o de todas las ejecuciones si idEjecucion es null
+ * Las tareas pueden ser marcadas como completadas o no (guardan automáticamente)
+ * @param {number|string|null} idEjecucion - ID de ejecución o null para todas
+ */
 async function verTareas(idEjecucion = null) {
     const modal       = document.getElementById('modalTareas');
     const container   = document.getElementById('listaTareasContainer');
@@ -429,10 +552,20 @@ async function verTareas(idEjecucion = null) {
     }
 }
 
+/**
+ * Cierra el modal de tareas ejecutadas
+ */
 function cerrarModalTareas() {
     document.getElementById('modalTareas')?.classList.remove('show');
 }
 
+/**
+ * Genera el HTML de una fila de tarea para mostrar en la tabla de tareas
+ * Incluye checkbox para marcar como completada
+ * @param {Object} tarea - Objeto tarea con datos
+ * @param {number|string} idEjecucion - ID de la ejecución padre
+ * @returns {string} HTML de la fila de tarea
+ */
 function renderTarea(tarea, idEjecucion) {
     const completada = esTareaCompletada(tarea.estado_tarea);
     return `
@@ -463,6 +596,12 @@ function renderTarea(tarea, idEjecucion) {
     `;
 }
 
+/**
+ * Actualiza el estado (completada/no completada) de una tarea ejecutada
+ * Se ejecuta automáticamente cuando el usuario marca/desmarca un checkbox
+ * Envía un POST al API con el nuevo estado
+ * @param {HTMLElement} checkbox - Elemento checkbox de la tarea
+ */
 async function actualizarEstadoTarea(checkbox) {
     const estadoGuard = document.getElementById('estadoGuardadoTareas');
     const fila = checkbox.closest('tr');
@@ -498,6 +637,11 @@ async function actualizarEstadoTarea(checkbox) {
     }
 }
 
+/**
+ * Actualiza la vista visual de una tarea después de cambiar su estado
+ * @param {HTMLElement} fila - Elemento <tr> de la tarea
+ * @param {boolean} completada - true si la tarea está completada
+ */
 function actualizarVistaTarea(fila, completada) {
     if (!fila) return;
     const span = fila.querySelector('span[style*="text-decoration"]') || fila.querySelector('td:nth-child(4) span');
