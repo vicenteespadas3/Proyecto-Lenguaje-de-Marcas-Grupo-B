@@ -517,20 +517,20 @@ async function verTareas(idEjecucion = null) {
         const columnas = Array.isArray(res.columnas) ? res.columnas.join(', ') : 'id_tarea_ejecutada, id_ejecucion, id_tarea, completada, observaciones, tiempo_empleado';
 
         container.innerHTML = `
-            <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:6px; padding:10px 14px; margin-bottom:12px;">
-                <p style="font-size:0.75rem; font-weight:bold; color:#c2410c; margin:0;">Tabla: tareas_ejecutadas</p>
-                <p style="font-size:0.75rem; color:#555; margin:4px 0 0;">Columnas: ${escaparHtml(columnas)}</p>
+            <div class="info-box-tareas" style="border-radius:6px; padding:10px 14px; margin-bottom:12px;">
+                <p class="info-title-tareas" style="font-size:0.75rem; font-weight:bold; margin:0;">Tabla: tareas_ejecutadas</p>
+                <p class="info-desc-tareas" style="font-size:0.75rem; margin:4px 0 0;">Columnas: ${escaparHtml(columnas)}</p>
             </div>
-            <div style="overflow-x:auto; border:1px solid #e2e8f0; border-radius:6px;">
+            <div class="table-container tabla-compacta" style="border-radius:6px; overflow-x:auto;">
                 <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
-                    <thead style="background:#f8fafc;">
+                    <thead>
                         <tr>
-                            <th style="padding:10px 12px; text-align:left; font-size:0.75rem; text-transform:uppercase; color:#64748b;">ID Ejec.</th>
-                            <th style="padding:10px 12px; text-align:left; font-size:0.75rem; text-transform:uppercase; color:#64748b;">ID Tarea Ejec.</th>
-                            <th style="padding:10px 12px; text-align:left; font-size:0.75rem; text-transform:uppercase; color:#64748b;">ID Tarea</th>
-                            <th style="padding:10px 12px; text-align:left; font-size:0.75rem; text-transform:uppercase; color:#64748b;">Observaciones</th>
-                            <th style="padding:10px 12px; text-align:left; font-size:0.75rem; text-transform:uppercase; color:#64748b;">Tiempo</th>
-                            <th style="padding:10px 12px; text-align:left; font-size:0.75rem; text-transform:uppercase; color:#64748b;">Completada</th>
+                            <th style="font-size:0.75rem; text-transform:uppercase;">ID Ejec.</th>
+                            <th style="font-size:0.75rem; text-transform:uppercase;">ID Tarea Ejec.</th>
+                            <th style="font-size:0.75rem; text-transform:uppercase;">ID Tarea</th>
+                            <th style="font-size:0.75rem; text-transform:uppercase;">Observaciones</th>
+                            <th style="font-size:0.75rem; text-transform:uppercase;">Tiempo</th>
+                            <th style="font-size:0.75rem; text-transform:uppercase;">Completada</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -561,15 +561,15 @@ function cerrarModalTareas() {
 function renderTarea(tarea, idEjecucion) {
     const completada = esTareaCompletada(tarea.estado_tarea);
     return `
-        <tr style="border-top:1px solid #f1f5f9;">
-            <td style="padding:10px 12px; color:#1e293b; font-weight:600;">${escaparHtml(tarea.id_ejecucion || idEjecucion)}</td>
-            <td style="padding:10px 12px; color:#475569;">${escaparHtml(tarea.id_tarea_ejecutada || tarea.id || '---')}</td>
-            <td style="padding:10px 12px; color:#475569;">${escaparHtml(tarea.id_tarea || '---')}</td>
-            <td style="padding:10px 12px; color:#475569; min-width:200px;">
+        <tr>
+            <td style="font-weight:600;">${escaparHtml(tarea.id_ejecucion || idEjecucion)}</td>
+            <td>${escaparHtml(tarea.id_tarea_ejecutada || tarea.id || '---')}</td>
+            <td>${escaparHtml(tarea.id_tarea || '---')}</td>
+            <td style="min-width:200px;">
                 <span style="${completada ? 'text-decoration:line-through; opacity:0.6;' : ''}">${escaparHtml(tarea.observaciones || 'Sin observaciones')}</span>
             </td>
-            <td style="padding:10px 12px; color:#475569; white-space:nowrap;">${escaparHtml(tarea.tiempo_empleado || 0)} min</td>
-            <td style="padding:10px 12px;">
+            <td style="white-space:nowrap;">${escaparHtml(tarea.tiempo_empleado || 0)} min</td>
+            <td>
                 <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
                     <input type="checkbox"
                         data-action="toggle-tarea"
