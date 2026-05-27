@@ -6,6 +6,9 @@ let maquinasData = [];
 let ordenAsc = true;
 let criterioOrden = 'id';
 
+/**
+ * Carga el inventario de máquinas desde la API y renderiza la tabla.
+ */
 async function cargarMaquinas() {
     const tbody = document.getElementById('tabla-maquinas-body');
     tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">Cargando inventario... ⚙️</td></tr>';
@@ -20,16 +23,27 @@ async function cargarMaquinas() {
     }
 }
 
+/**
+ * Muestra u oculta el panel de filtros avanzados.
+ */
 function togglePanelFiltros() {
     const p = document.getElementById('panelFiltros');
     p.style.display = p.style.display === 'none' ? 'block' : 'none';
 }
 
+/**
+ * Alterna la visibilidad del menú desplegable de ordenación.
+ * @param {Event} event - Evento del clic.
+ */
 function toggleDropdownOrden(event) {
     event.stopPropagation();
     document.getElementById('dropdownOrden').classList.toggle('show');
 }
 
+/**
+ * Cambia el criterio por el cual se ordenan las máquinas y refresca la vista.
+ * @param {string} criterio - Nuevo criterio de ordenación.
+ */
 function cambiarCriterioOrden(criterio) {
     if (criterioOrden === criterio) { ordenAsc = !ordenAsc; }
     else { criterioOrden = criterio; ordenAsc = true; }
@@ -39,11 +53,19 @@ function cambiarCriterioOrden(criterio) {
     document.getElementById('dropdownOrden').classList.remove('show');
 }
 
+/**
+ * Obtiene un valor numérico para ordenar los estados de máquina por prioridad.
+ * @param {string} estado - Estado de la máquina.
+ * @returns {number} Valor numérico asignado al estado.
+ */
 function obtenerRangoEstado(estado) {
     const map = { 'disponible': 1, 'en_mantenimiento': 2, 'averia': 3, 'desactivada': 4 };
     return map[estado] || 5;
 }
 
+/**
+ * Aplica el orden seleccionado al array maquinasData.
+ */
 function aplicarOrden() {
     maquinasData.sort((a, b) => {
         let valA, valB;
@@ -63,6 +85,9 @@ function aplicarOrden() {
     });
 }
 
+/**
+ * Actualiza la interfaz de usuario para mostrar qué criterio de ordenación está activo.
+ */
 function actualizarUIOrden() {
     document.querySelectorAll('.dropdown-orden-item').forEach(i => i.classList.remove('active'));
     document.querySelectorAll('.check-icon').forEach(i => i.textContent = '');
@@ -79,6 +104,9 @@ window.addEventListener('click', (e) => {
     if (dropdown && !e.target.closest('.dropdown-ordenar-container')) dropdown.classList.remove('show');
 });
 
+/**
+ * Limpia los campos del panel de filtros y vuelve a filtrar las máquinas.
+ */
 function limpiarFiltros() {
     document.getElementById('searchMaquina').value = '';
     document.getElementById('filtroEstado').value = '';
@@ -87,6 +115,9 @@ function limpiarFiltros() {
     filtrarMaquinas();
 }
 
+/**
+ * Filtra las máquinas según los criterios especificados y actualiza la tabla.
+ */
 function filtrarMaquinas() {
     const search = document.getElementById('searchMaquina').value.toLowerCase();
     const estadoF = document.getElementById('filtroEstado').value;
@@ -132,6 +163,9 @@ function filtrarMaquinas() {
     });
 }
 
+/**
+ * Abre el modal en modo creación para añadir una nueva máquina.
+ */
 function abrirModalAlta() {
     document.getElementById('modalTitulo').textContent = 'Añadir Nueva Máquina';
     document.getElementById('formMaquina').reset();
@@ -139,6 +173,10 @@ function abrirModalAlta() {
     document.getElementById('modalMaquina').classList.add('show');
 }
 
+/**
+ * Abre el modal en modo edición con los datos de una máquina existente.
+ * @param {number|string} id - ID de la máquina a editar.
+ */
 function editarMaquina(id) {
     const m = maquinasData.find(x => x.id_maquina == id);
     if (!m) return;
@@ -153,10 +191,18 @@ function editarMaquina(id) {
     document.getElementById('modalMaquina').classList.add('show');
 }
 
+/**
+ * Cierra el modal especificado.
+ * @param {string} id - ID del elemento modal.
+ */
 function cerrarModal(id = 'modalMaquina') {
     document.getElementById(id).classList.remove('show');
 }
 
+/**
+ * Guarda una nueva máquina o actualiza una existente enviando los datos a la API.
+ * @param {Event} e - Evento del submit del formulario.
+ */
 async function guardarMaquina(e) {
     e.preventDefault();
     const id = document.getElementById('maq_id').value;
@@ -173,6 +219,10 @@ async function guardarMaquina(e) {
     else alert(res.error || 'Error al guardar');
 }
 
+/**
+ * Elimina una máquina previa confirmación del usuario.
+ * @param {number|string} id - ID de la máquina a borrar.
+ */
 async function borrarMaquina(id) {
     if (!confirm('¿Seguro?')) return;
     const res = await api('DELETE', '../../api/activos/maquinas.php', { id_maquina: id });
@@ -185,6 +235,10 @@ async function borrarMaquina(id) {
 // ========================================================================
 let maquinaActual = null;
 
+/**
+ * Abre un modal para gestionar las piezas asignadas a una máquina.
+ * @param {number|string} id - ID de la máquina.
+ */
 async function abrirModalPiezas(id) {
     maquinaActual = id;
     document.getElementById('modalPiezas').classList.add('show');
@@ -201,12 +255,20 @@ async function abrirModalPiezas(id) {
     }
 }
 
+/**
+ * Desvincula una pieza de la máquina actual y refresca el modal.
+ * @param {number|string} id - ID de la pieza a quitar.
+ */
 async function quitarAsignacion(id) {
     if (await api('DELETE', `../../api/inventario/piezas.php?id_maquina=${maquinaActual}&id_pieza=${id}`)) {
         abrirModalPiezas(maquinaActual);
     }
 }
 
+/**
+ * Muestra u oculta la sección para añadir una nueva pieza a la máquina.
+ * Carga el select de opciones de piezas disponibles desde la API.
+ */
 async function mostrarSeccionAnadirPieza() {
     const s = document.getElementById('seccionAnadirPieza');
     s.style.display = s.style.display === 'none' ? 'block' : 'none';
@@ -217,6 +279,9 @@ async function mostrarSeccionAnadirPieza() {
     }
 }
 
+/**
+ * Asigna la pieza seleccionada a la máquina actual y refresca el modal.
+ */
 async function asignarPiezaAMaquina() {
     const p = document.getElementById('selectNuevaPieza').value;
     if (await api('POST', '../../api/inventario/piezas.php', {id_maquina: maquinaActual, id_pieza: p})) {

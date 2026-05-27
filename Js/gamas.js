@@ -37,6 +37,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 //  TABLA PRINCIPAL
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Carga las gamas de mantenimiento desde la API y las muestra en la tabla.
+ * @param {string} query - Texto opcional para filtrar los resultados.
+ */
 async function cargarTabla(query = '') {
     const tbody = document.getElementById('cuerpoTablaGamas');
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Cargando... ⚙️</td></tr>';
@@ -87,6 +91,9 @@ async function cargarTabla(query = '') {
 //  MODAL: ABRIR / CERRAR
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Abre el modal en blanco para crear una nueva gama de mantenimiento.
+ */
 function abrirModalGama() {
     document.getElementById('modalGamaTitulo').textContent = '➕ Nueva Gama de Mantenimiento';
     document.getElementById('formGama').reset();
@@ -94,6 +101,10 @@ function abrirModalGama() {
     document.getElementById('modalGama').classList.add('show');
 }
 
+/**
+ * Abre el modal con los datos de una gama existente para editarla.
+ * @param {number|string} id - ID de la gama a editar.
+ */
 function editarGama(id) {
     const gama = gamasData.find(g => g.id_gama == id);
     if (!gama) { alert('No se encontraron los datos de la gama. Recarga la página.'); return; }
@@ -108,6 +119,9 @@ function editarGama(id) {
     document.getElementById('modalGama').classList.add('show');
 }
 
+/**
+ * Cierra el modal de creación/edición de gamas.
+ */
 function cerrarModalGama() {
     document.getElementById('modalGama').classList.remove('show');
 }
@@ -116,6 +130,10 @@ function cerrarModalGama() {
 //  CRUD A LA API
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Guarda o actualiza una gama enviando los datos del formulario a la API.
+ * @param {Event} evento - Evento de envío del formulario.
+ */
 async function guardarGama(evento) {
     evento.preventDefault();
 
@@ -150,6 +168,10 @@ async function guardarGama(evento) {
     }
 }
 
+/**
+ * Elimina permanentemente una gama previa confirmación del usuario.
+ * @param {number|string} id_gama - ID de la gama a borrar.
+ */
 async function borrarGama(id_gama) {
     const gama = gamasData.find(g => g.id_gama == id_gama);
     const nombre = gama ? `"${gama.nombre}"` : `ID ${id_gama}`;

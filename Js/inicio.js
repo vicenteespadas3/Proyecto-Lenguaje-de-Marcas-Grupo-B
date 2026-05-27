@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarResumenDashboard();
 });
 
+/**
+ * Carga el resumen del dashboard desde la API y renderiza las tareas e incidencias.
+ */
 async function cargarResumenDashboard() {
     const res = await api('GET', '../api/dashboard/resumen.php');
     const contIncidencias = document.getElementById('dashboard-incidencias');
@@ -19,9 +22,15 @@ async function cargarResumenDashboard() {
     if (res.incidencias && res.incidencias.length > 0) {
         contIncidencias.innerHTML = '';
         res.incidencias.forEach(inc => {
-            let prioridadColor = inc.prioridad === 'Crítica' ? '#e74c3c' : (inc.prioridad === 'Alta' ? '#e67e22' : '#f1c40f');
+            let pColor = '#3498db';
+            const prio = (inc.prioridad || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            if (prio === 'critica') pColor = '#c0392b';
+            else if (prio === 'alta') pColor = '#e74c3c';
+            else if (prio === 'media') pColor = '#e67e22';
+            else if (prio === 'baja') pColor = '#27ae60';
+            
             contIncidencias.innerHTML += `
-                <div class="inicio-item" style="border-left-color: ${prioridadColor};">
+                <div class="inicio-item" style="border-left-color: ${pColor};">
                     <div class="inicio-item-titulo">${inc.titulo || inc.descripcion.substring(0, 40) + '...'}</div>
                     <div class="inicio-item-detalles">
                         <span>Reporte: ${new Date(inc.fecha_reporte).toLocaleDateString()}</span>
@@ -54,9 +63,15 @@ async function cargarResumenDashboard() {
         contTareas.innerHTML += `<div class="inicio-tareas-titulo">${tituloExtra}</div>`;
 
         mostrar.slice(0, 4).forEach(t => {
-            let prioridadColor = t.prioridad === 'Crítica' ? '#e74c3c' : (t.prioridad === 'Alta' ? '#e67e22' : '#f1c40f');
+            let pColor = '#3498db';
+            const prio = String(t.prioridad || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            if (prio === 'critica' || prio === '11') pColor = '#c0392b';
+            else if (prio === 'alta' || prio === '10') pColor = '#e74c3c';
+            else if (prio === 'media' || prio === '9') pColor = '#e67e22';
+            else if (prio === 'baja' || prio === '8') pColor = '#27ae60';
+
             contTareas.innerHTML += `
-                <div class="inicio-item" style="border-left-color: ${prioridadColor};">
+                <div class="inicio-item" style="border-left-color: ${pColor};">
                     <div class="inicio-item-titulo">OT-${t.id_orden}: ${t.tipo || 'Mantenimiento'}</div>
                     <div class="inicio-item-detalles">
                         <span>Para: ${t.fecha_programada ? new Date(t.fecha_programada).toLocaleDateString() : 'N/A'}</span>

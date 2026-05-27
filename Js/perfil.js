@@ -1,5 +1,8 @@
 let userData = null;
 
+/**
+ * Carga los datos del perfil de usuario autenticado desde la API.
+ */
 async function cargarPerfil() {
     const res = await api('GET', '../api/auth/perfil.php');
     if (res && res.usuario) {
@@ -10,6 +13,9 @@ async function cargarPerfil() {
     }
 }
 
+/**
+ * Renderiza los datos del usuario en la interfaz del perfil.
+ */
 function renderPerfil() {
     const u = userData;
     const letra = u.nombre ? u.nombre[0].toUpperCase() : u.email[0].toUpperCase();
@@ -25,6 +31,9 @@ function renderPerfil() {
     document.getElementById('perf-acceso').textContent = u.ultimo_acceso || 'Ahora mismo';
 }
 
+/**
+ * Abre el modal para editar los datos del perfil del usuario.
+ */
 function abrirModalPerfil() {
     if (!userData) return;
     document.getElementById('editNombre').value = userData.nombre || '';
@@ -34,10 +43,17 @@ function abrirModalPerfil() {
     document.getElementById('modalPerfil').classList.add('show');
 }
 
+/**
+ * Cierra el modal de edición del perfil.
+ */
 function cerrarModalPerfil() {
     document.getElementById('modalPerfil').classList.remove('show');
 }
 
+/**
+ * Envía los datos actualizados del perfil a la API.
+ * @param {Event} e - Evento de envío del formulario.
+ */
 async function guardarPerfil(e) {
     e.preventDefault();
     const payload = {

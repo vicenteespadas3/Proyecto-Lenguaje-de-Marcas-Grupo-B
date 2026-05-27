@@ -54,6 +54,12 @@ function actualizarMirada(machine, objetivoX, objetivoY) {
     pupilas.forEach(pupila => moverPupilaHacia(pupila, objetivoX, objetivoY));
 }
 
+/**
+ * Calcula y aplica la posición de las pupilas para que miren hacia un objetivo (X, Y).
+ * @param {HTMLElement} pupila - Elemento DOM que representa la pupila.
+ * @param {number} x - Coordenada X del objetivo.
+ * @param {number} y - Coordenada Y del objetivo.
+ */
 function moverPupilaHacia(pupila, x, y) {
     const rect = pupila.getBoundingClientRect();
     const ojoX = rect.left + rect.width / 2;

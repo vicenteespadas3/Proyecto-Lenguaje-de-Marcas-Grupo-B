@@ -12,6 +12,9 @@ let ordenAsc = true;
 /** Campo por el que se ordena actualmente (por defecto: id) */
 let criterioOrden = 'id';
 
+/**
+ * Carga los registros de análisis desde la API y renderiza la tabla.
+ */
 async function cargarAnalisis() {
     const tbody = document.getElementById('tabla-analisis-body');
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px;">Cargando análisis... 📊</td></tr>';
@@ -26,11 +29,17 @@ async function cargarAnalisis() {
     }
 }
 
+/**
+ * Muestra u oculta el panel de filtros avanzados.
+ */
 function togglePanelFiltros() {
     const panel = document.getElementById('panelFiltros');
     panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
 }
 
+/**
+ * Limpia los campos de filtro y actualiza la tabla de análisis.
+ */
 function limpiarFiltros() {
     document.getElementById('searchAnalisis').value    = '';
     document.getElementById('filtroRango').value       = '';
@@ -40,11 +49,19 @@ function limpiarFiltros() {
     filtrarAnalisis();
 }
 
+/**
+ * Alterna el menú desplegable de ordenación.
+ * @param {Event} event - Evento del clic.
+ */
 function toggleDropdownOrden(event) {
     event.stopPropagation();
     document.getElementById('dropdownOrden').classList.toggle('show');
 }
 
+/**
+ * Cambia el criterio por el cual se ordenan los análisis.
+ * @param {string} criterio - Criterio seleccionado.
+ */
 function cambiarCriterioOrden(criterio) {
     if (criterioOrden === criterio) { ordenAsc = !ordenAsc; }
     else { criterioOrden = criterio; ordenAsc = true; }
@@ -54,6 +71,9 @@ function cambiarCriterioOrden(criterio) {
     document.getElementById('dropdownOrden').classList.remove('show');
 }
 
+/**
+ * Ordena el array de datos de análisis según el criterio actual.
+ */
 function aplicarOrden() {
     analisisData.sort((a, b) => {
         let valA, valB;
@@ -77,6 +97,9 @@ function aplicarOrden() {
     });
 }
 
+/**
+ * Actualiza la UI para mostrar la selección activa en el dropdown de ordenación.
+ */
 function actualizarUIOrden() {
     document.querySelectorAll('.dropdown-orden-item').forEach(i => i.classList.remove('active'));
     document.querySelectorAll('.check-icon').forEach(i => i.textContent = '');
@@ -93,6 +116,9 @@ window.addEventListener('click', (e) => {
     if (dropdown && !e.target.closest('.dropdown-ordenar-container')) dropdown.classList.remove('show');
 });
 
+/**
+ * Filtra los datos de análisis y los muestra en la tabla.
+ */
 function filtrarAnalisis() {
     const search     = document.getElementById('searchAnalisis').value.toLowerCase().trim();
     const rangoF     = document.getElementById('filtroRango').value;
@@ -155,6 +181,9 @@ function filtrarAnalisis() {
     });
 }
 
+/**
+ * Abre el modal para agregar un nuevo registro de análisis.
+ */
 function abrirModalNuevo() {
     document.getElementById('modalTituloAnal').textContent = 'Nuevo Análisis';
     document.getElementById('formAnalisis').reset();
@@ -162,6 +191,10 @@ function abrirModalNuevo() {
     document.getElementById('modalAnalisis').classList.add('show');
 }
 
+/**
+ * Abre el modal con los datos de un análisis existente para editarlo.
+ * @param {number|string} id - ID del análisis.
+ */
 function editarAnalisis(id) {
     const a = analisisData.find(x => x.id_analisis == id);
     if (!a) return;
@@ -179,10 +212,17 @@ function editarAnalisis(id) {
     document.getElementById('modalAnalisis').classList.add('show');
 }
 
+/**
+ * Cierra el modal de creación/edición de análisis.
+ */
 function cerrarModal() {
     document.getElementById('modalAnalisis').classList.remove('show');
 }
 
+/**
+ * Guarda o actualiza un registro de análisis en la API.
+ * @param {Event} e - Evento de formulario.
+ */
 async function guardarAnalisis(e) {
     e.preventDefault();
     const id       = document.getElementById('anal_id').value;
@@ -207,6 +247,10 @@ async function guardarAnalisis(e) {
     else alert('Error: ' + (res.error || 'No se pudo guardar el análisis'));
 }
 
+/**
+ * Elimina un registro de análisis.
+ * @param {number|string} id - ID del análisis a borrar.
+ */
 async function borrarAnalisis(id) {
     if (!confirm(`¿Eliminar el análisis ANL-${id}? Esta acción no se puede deshacer.`)) return;
     const res = await api('DELETE', '../../api/incidencias/analisis_maquinas.php', { id_analisis: id });

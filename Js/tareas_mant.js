@@ -43,6 +43,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 //  SELECTOR DE PLANES (modal + filtro)
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Carga los selectores de planes en el modal y en los filtros desde la API.
+ */
 async function cargarSelectorPlanes() {
     const res = await api('GET', '../../api/mantenimiento/tareas_mant.php?planes=1');
 
@@ -76,6 +79,10 @@ async function cargarSelectorPlanes() {
 //  CARGA DE DATOS DESDE LA API
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Carga las tareas desde la API y las muestra en la tabla.
+ * @param {string} query - Filtro opcional por texto.
+ */
 async function cargarTabla(query = '') {
     const tbody = document.getElementById('cuerpoTablaTareas');
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Cargando... ⚙️</td></tr>';
@@ -259,6 +266,10 @@ function pintarTabla() {
 //  COLAPSAR / EXPANDIR GRUPOS
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Alterna la visibilidad de un grupo de tareas asociado a un plan.
+ * @param {number|string} idPlan - ID del plan.
+ */
 function toggleGrupo(idPlan) {
     gruposVisibles[idPlan] = !gruposVisibles[idPlan];
     const visible = gruposVisibles[idPlan];
@@ -292,6 +303,9 @@ function toggleDetalle(idTarea, trDetalle) {
 }
 
 let todoExpandido = true;
+/**
+ * Expande o colapsa todas las filas agrupadas.
+ */
 function toggleTodo() {
     todoExpandido = !todoExpandido;
     const idPlanes = [...new Set(tareasData.map(t => t.id_plan))];
@@ -305,12 +319,18 @@ function toggleTodo() {
 //  MODAL: ABRIR / CERRAR / EPI
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Muestra u oculta el bloque de EPI dependiendo de si se marca el checkbox.
+ */
 function toggleBloqueEpi() {
     const checked = document.getElementById('tarea_requiere_epi').checked;
     document.getElementById('bloqueEpi').style.display = checked ? 'block' : 'none';
     if (!checked) document.getElementById('tarea_epis_necesarios').value = '';
 }
 
+/**
+ * Abre el modal en modo creación para una nueva tarea.
+ */
 function abrirModalTarea() {
     document.getElementById('modalTareaTitulo').textContent = '➕ Nueva Tarea de Mantenimiento';
     document.getElementById('formTarea').reset();
@@ -319,6 +339,10 @@ function abrirModalTarea() {
     document.getElementById('modalTarea').classList.add('show');
 }
 
+/**
+ * Abre el modal con los datos de una tarea existente para su edición.
+ * @param {number|string} id - ID de la tarea a editar.
+ */
 function editarTarea(id) {
     const tarea = tareasData.find(t => t.id_tarea == id);
     if (!tarea) { alert('No se encontraron los datos de la tarea. Recarga la página.'); return; }
@@ -338,6 +362,9 @@ function editarTarea(id) {
     document.getElementById('modalTarea').classList.add('show');
 }
 
+/**
+ * Cierra el modal de creación/edición de tareas.
+ */
 function cerrarModalTarea() {
     document.getElementById('modalTarea').classList.remove('show');
 }
@@ -346,6 +373,10 @@ function cerrarModalTarea() {
 //  CRUD A LA API
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Guarda o actualiza una tarea enviando los datos a la API.
+ * @param {Event} evento - Evento submit del formulario.
+ */
 async function guardarTarea(evento) {
     evento.preventDefault();
 
@@ -393,6 +424,10 @@ async function guardarTarea(evento) {
     }
 }
 
+/**
+ * Elimina una tarea tras confirmación del usuario.
+ * @param {number|string} id_tarea - ID de la tarea a eliminar.
+ */
 async function borrarTarea(id_tarea) {
     const tarea = tareasData.find(t => t.id_tarea == id_tarea);
     const desc  = tarea ? `"${tarea.descripcion.substring(0, 50)}"` : `ID ${id_tarea}`;

@@ -651,6 +651,11 @@ function actualizarVistaTarea(fila, completada) {
 
 // ─── MENSAJES DEL FORMULARIO ──────────────────────────────────────────────────
 
+/**
+ * Muestra un mensaje en el modal de ejecución.
+ * @param {string} texto - El mensaje a mostrar.
+ * @param {string} [tipo='info'] - El tipo de mensaje (info, error).
+ */
 function mostrarMensajeEjecucion(texto, tipo = 'info') {
     const el = document.getElementById('mensajeEjecucion');
     if (!el) return;
@@ -661,6 +666,9 @@ function mostrarMensajeEjecucion(texto, tipo = 'info') {
     el.classList.remove('hidden');
 }
 
+/**
+ * Oculta y limpia el mensaje en el modal de ejecución.
+ */
 function limpiarMensajeEjecucion() {
     const el = document.getElementById('mensajeEjecucion');
     if (!el) return;
@@ -670,10 +678,20 @@ function limpiarMensajeEjecucion() {
 
 // ─── UTILIDADES ───────────────────────────────────────────────────────────────
 
+/**
+ * Determina si una tarea está completada según su estado.
+ * @param {any} estado - El estado de la tarea.
+ * @returns {boolean} true si está completada, false de lo contrario.
+ */
 function esTareaCompletada(estado) {
     return estado === true || estado === 1 || estado === '1' || String(estado).toLowerCase() === 'completada';
 }
 
+/**
+ * Devuelve la clase CSS correspondiente según el resultado de la ejecución.
+ * @param {string} resultado - El resultado de la ejecución.
+ * @returns {string} Las clases CSS.
+ */
 function claseResultado(resultado) {
     const valor = String(resultado || '').toLowerCase();
     const base = 'status-badge inline-flex whitespace-nowrap';
@@ -682,6 +700,11 @@ function claseResultado(resultado) {
     return `${base} bg-slate-100 text-slate-700`;
 }
 
+/**
+ * Formatea el texto del resultado de la ejecución para mostrarlo al usuario.
+ * @param {string} resultado - El resultado en bruto.
+ * @returns {string} El resultado formateado.
+ */
 function formatearResultado(resultado) {
     const valor = String(resultado || '').trim().toLowerCase();
     if (valor === 'exitoso') return 'Exitoso';
@@ -690,6 +713,11 @@ function formatearResultado(resultado) {
     return valor.replaceAll('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
+/**
+ * Escapa los caracteres especiales de una cadena para prevenir ataques XSS.
+ * @param {string} valor - La cadena a escapar.
+ * @returns {string} La cadena escapada.
+ */
 function escaparHtml(valor) {
     return String(valor ?? '')
         .replaceAll('&', '&amp;')

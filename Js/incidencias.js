@@ -15,6 +15,9 @@ let ordenAsc = false;
 /** Campo por el que se ordena actualmente */
 let criterioOrden = 'id';
 
+/**
+ * Carga las incidencias desde la API y las muestra en la tabla.
+ */
 async function cargarIncidencias() {
     const tbody = document.getElementById('tabla-incidencias-body');
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px;">Cargando incidencias... 🛠️</td></tr>';
@@ -29,16 +32,25 @@ async function cargarIncidencias() {
     }
 }
 
+/**
+ * Carga las máquinas disponibles para su uso en los modales.
+ */
 async function cargarMaquinas() {
     const res = await api('GET', '../../api/activos/maquinas.php');
     if (res && res.ok) maquinasDisponibles = res.maquinas || [];
 }
 
+/**
+ * Muestra u oculta el panel de filtros avanzados.
+ */
 function togglePanelFiltros() {
     const panel = document.getElementById('panelFiltros');
     panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
 }
 
+/**
+ * Limpia los filtros seleccionados y recarga la vista.
+ */
 function limpiarFiltros() {
     document.getElementById('searchIncidencia').value = '';
     document.getElementById('filtroPrioridad').value  = '';
@@ -47,11 +59,19 @@ function limpiarFiltros() {
     filtrarIncidencias();
 }
 
+/**
+ * Alterna el dropdown de ordenación.
+ * @param {Event} event - Evento del clic.
+ */
 function toggleDropdownOrden(event) {
     event.stopPropagation();
     document.getElementById('dropdownOrden').classList.toggle('show');
 }
 
+/**
+ * Cambia el criterio por el cual se ordenan las incidencias.
+ * @param {string} criterio - Nuevo criterio seleccionado.
+ */
 function cambiarCriterioOrden(criterio) {
     if (criterioOrden === criterio) { ordenAsc = !ordenAsc; }
     else { criterioOrden = criterio; ordenAsc = criterio !== 'id'; }
@@ -64,6 +84,9 @@ function cambiarCriterioOrden(criterio) {
 const PRIO_RANK = { 'Critica': 4, 'Alta': 3, 'Media': 2, 'Baja': 1 };
 const ESTADO_RANK = { 'abierta': 1, 'en_curso': 2, 'resuelta': 3, 'cerrada': 4 };
 
+/**
+ * Aplica el criterio de ordenación al array de incidenciasData.
+ */
 function aplicarOrden() {
     incidenciasData.sort((a, b) => {
         let valA, valB;
@@ -87,6 +110,9 @@ function aplicarOrden() {
     });
 }
 
+/**
+ * Actualiza la UI marcando el criterio de ordenación actual.
+ */
 function actualizarUIOrden() {
     document.querySelectorAll('.dropdown-orden-item').forEach(i => i.classList.remove('active'));
     document.querySelectorAll('.check-icon').forEach(i => i.textContent = '');
@@ -103,6 +129,9 @@ window.addEventListener('click', (e) => {
     if (dropdown && !e.target.closest('.dropdown-ordenar-container')) dropdown.classList.remove('show');
 });
 
+/**
+ * Filtra las incidencias en base a los inputs y regenera la tabla.
+ */
 function filtrarIncidencias() {
     const search     = document.getElementById('searchIncidencia').value.toLowerCase().trim();
     const prioridadF = document.getElementById('filtroPrioridad').value;
@@ -166,6 +195,9 @@ function filtrarIncidencias() {
     });
 }
 
+/**
+ * Abre el modal para registrar una nueva incidencia.
+ */
 function abrirModalNueva() {
     document.getElementById('formNueva').reset();
     const sel = document.getElementById('nueva_maquina');
@@ -180,10 +212,17 @@ function abrirModalNueva() {
     document.getElementById('modalNueva').classList.add('show');
 }
 
+/**
+ * Cierra el modal de nueva incidencia.
+ */
 function cerrarModalNueva() {
     document.getElementById('modalNueva').classList.remove('show');
 }
 
+/**
+ * Guarda una nueva incidencia consumiendo la API.
+ * @param {Event} e - Evento submit.
+ */
 async function guardarNuevaIncidencia(e) {
     e.preventDefault();
     const payload = {
@@ -203,6 +242,10 @@ async function guardarNuevaIncidencia(e) {
     }
 }
 
+/**
+ * Abre el modal para gestionar o resolver una incidencia.
+ * @param {number|string} id - ID de la incidencia.
+ */
 function abrirModalGestionar(id) {
     const inc = incidenciasData.find(x => x.id_incidencia == id);
     if (!inc) return;
@@ -223,10 +266,17 @@ function abrirModalGestionar(id) {
     document.getElementById('modalGestionar').classList.add('show');
 }
 
+/**
+ * Cierra el modal de gestión de incidencias.
+ */
 function cerrarModalGestionar() {
     document.getElementById('modalGestionar').classList.remove('show');
 }
 
+/**
+ * Guarda los cambios realizados en el estado o solución de una incidencia.
+ * @param {Event} e - Evento de formulario.
+ */
 async function guardarGestion(e) {
     e.preventDefault();
     const payload = {
@@ -244,6 +294,10 @@ async function guardarGestion(e) {
     }
 }
 
+/**
+ * Elimina una incidencia definitivamente.
+ * @param {number|string} id - ID de la incidencia a eliminar.
+ */
 async function borrarIncidencia(id) {
     if (!confirm(`¿Eliminar la incidencia INC-${id}? Esta acción no se puede deshacer.`)) return;
     const res = await api('DELETE', '../../api/incidencias/incidencias.php', { id_incidencia: id });
