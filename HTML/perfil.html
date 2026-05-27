@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!-- ==================================================================
-     HTML/perfil.html
-     Perfil del usuario autenticado.
-     Interactúa con api/auth/perfil.php
-     ================================================================== -->
+HTML/perfil.html
+Perfil del usuario autenticado.
+Interactúa con api/auth/perfil.php
+================================================================== -->
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -11,104 +11,6 @@
     <title>ERP Mecatrónica - Perfil</title>
     <link rel="stylesheet" href="../CSS/menu.css">
     <link rel="stylesheet" href="../CSS/estilos.css">
-    <style>
-        .app-body {
-            /* Ensures space for the sidebar */
-        }
-        .perfil-container {
-            max-width: 800px;
-            margin: 40px auto;
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            font-family: Arial, sans-serif;
-            animation: fadeIn 0.4s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .perfil-header {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            border-bottom: 2px solid #f1f5f9;
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-        }
-        .perfil-avatar {
-            width: 80px;
-            height: 80px;
-            background-color: #3b82f6;
-            color: white;
-            font-size: 2.5em;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
-        }
-        .perfil-info h1 {
-            margin: 0;
-            color: #1e293b;
-            font-size: 2em;
-        }
-        .perfil-info p {
-            margin: 5px 0 0;
-            color: #7f8c8d;
-            font-size: 1.1em;
-        }
-        .perfil-detalles {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        .detalle-grupo {
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .detalle-grupo:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        }
-        .detalle-grupo label {
-            display: block;
-            font-weight: bold;
-            color: #64748b;
-            font-size: 0.9em;
-            margin-bottom: 5px;
-        }
-        .detalle-grupo p {
-            margin: 0;
-            color: #334155;
-            font-size: 1.1em;
-        }
-        .perfil-acciones {
-            margin-top: 30px;
-            text-align: right;
-            border-top: 2px solid #f1f5f9;
-            padding-top: 20px;
-        }
-        .btn-editar {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-size: 1em;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        .btn-editar:hover {
-            background-color: #2980b9;
-        }
-    </style>
 </head>
 <body>
     <div class="app-body theme-administracion">
@@ -166,8 +68,8 @@
     </div>
 
     <!-- ==================================================================
-         MODAL PARA EDITAR PERFIL
-         ================================================================== -->
+    MODAL PARA EDITAR PERFIL
+    ================================================================== -->
     <div id="modalPerfil" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -200,72 +102,6 @@
     </div>
 
     <script src="../Js/app.js"></script>
-    <script>
-        let userData = null;
-
-        async function cargarPerfil() {
-            const res = await api('GET', '../api/auth/perfil.php');
-            if (res && res.usuario) {
-                userData = res.usuario;
-                renderPerfil();
-            } else {
-                console.error('Error al cargar perfil:', res);
-            }
-        }
-
-        function renderPerfil() {
-            const u = userData;
-            const letra = u.nombre ? u.nombre[0].toUpperCase() : u.email[0].toUpperCase();
-            document.getElementById('perf-avatar').textContent = letra;
-            document.getElementById('perf-nombre-completo').textContent = `${u.nombre} ${u.apellidos}`.trim();
-            document.getElementById('perf-rol').textContent = u.rol.charAt(0).toUpperCase() + u.rol.slice(1);
-            
-            document.getElementById('perf-nombre').textContent = u.nombre || '-';
-            document.getElementById('perf-apellidos').textContent = u.apellidos || '-';
-            document.getElementById('perf-email').textContent = u.email;
-            document.getElementById('perf-rol-detalle').textContent = u.rol.toUpperCase();
-            document.getElementById('perf-registro').textContent = u.fecha_creacion || 'N/A';
-            document.getElementById('perf-acceso').textContent = u.ultimo_acceso || 'Ahora mismo';
-        }
-
-        function abrirModalPerfil() {
-            if (!userData) return;
-            document.getElementById('editNombre').value = userData.nombre || '';
-            document.getElementById('editApellidos').value = userData.apellidos || '';
-            document.getElementById('editEmail').value = userData.email || '';
-            document.getElementById('editPassword').value = '';
-            document.getElementById('modalPerfil').classList.add('show');
-        }
-
-        function cerrarModalPerfil() {
-            document.getElementById('modalPerfil').classList.remove('show');
-        }
-
-        async function guardarPerfil(e) {
-            e.preventDefault();
-            const payload = {
-                nombre: document.getElementById('editNombre').value,
-                apellidos: document.getElementById('editApellidos').value,
-                email: document.getElementById('editEmail').value,
-                password: document.getElementById('editPassword').value
-            };
-
-            const res = await api('PUT', '../api/auth/perfil.php', payload);
-            if (res && res.ok) {
-                alert(res.msg || 'Perfil actualizado correctamente.');
-                cerrarModalPerfil();
-                await cargarPerfil(); 
-                // Recargamos para que el topbar se actualice
-                location.reload();
-            } else {
-                alert('Error: ' + (res.error || 'No se pudo actualizar el perfil.'));
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            renderMenu('perfil'); 
-            cargarPerfil();
-        });
-    </script>
+    <script src="../Js/perfil.js"></script>
 </body>
 </html>
