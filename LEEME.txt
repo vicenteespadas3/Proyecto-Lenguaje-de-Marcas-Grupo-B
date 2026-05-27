@@ -1,0 +1,45 @@
+============================================================
+PROYECTO: ERP MECATRÓNICA - GESTIÓN INTEGRAL
+ALUMNA: Guadalupe MARIBEL GONZÁLEZ MÉNDEZ
+FECHA: Abril 2026
+============================================================
+
+NOTA SOBRE AUTORÍA:
+Todos los archivos listados a continuación han sido debidamente 
+etiquetados con comentarios de autoría (Guadalupe MGM) en su 
+encabezado, incluyendo archivos HTML, CSS, JavaScript y PHP.
+
+------------------------------------------------------------
+1. INTERFAZ Y LÓGICA DE CLIENTE (HTML, CSS y JS):
+------------------------------------------------------------
+- html/login.html + css/login.css + Js/login.js: 
+  Sistema de acceso con validación y diseño personalizado.
+- html/administracionMenu/usuarios.html + Js/usuarios.js: 
+  Gestión completa de usuarios (CRUD).
+- html/administracionMenu/horarioTrabajo.html + Js/horarioTrabajo.js: 
+  Configuración de turnos y cuadrantes semanales.
+- html/administracionMenu/definiciones.html: 
+  Diccionario y categorías del sistema.
+- css/estilos.css:
+  Contribución con los estilos específicos de administración.
+- Js/app.js: 
+  Configuración global y gestión dinámica del favicon.
+
+------------------------------------------------------------
+2. LÓGICA DE SERVIDOR Y API (PHP):
+------------------------------------------------------------
+- api/auth/login.php: 
+  Control de acceso, sesiones seguras y verificación de hash.
+- api/administracion/usuarios.php: 
+  Mantenimiento de la tabla usuarios en la BBDD oficial.
+- api/administracion/horarioTrabajo.php: 
+  Lógica de persistencia para turnos de trabajo.
+- api/administracion/definiciones.php: 
+  Gestión de categorías y códigos del sistema.
+
+------------------------------------------------------------
+NOTAS TÉCNICAS:
+- Se han sincronizado los scripts con los nombres de columna 
+  de la base de datos oficial (id_usuario, password_hash, etc.).
+- El sistema de login utiliza password_verify() para mayor seguridad.
+============================================================
