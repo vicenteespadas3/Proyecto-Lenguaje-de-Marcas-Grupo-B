@@ -2,6 +2,8 @@
 // ============================================================
 //  api/gamas.php  —  CRUD para Gamas de Mantenimiento
 // ============================================================
+// Referencia en la web:
+//   - Pantalla "Gamas de Mantenimiento" (HTML/mantenimientoMenu/gamas.html)
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 
@@ -75,6 +77,13 @@ if ($m === 'POST') {
     $tipo_gama          = trim($b['tipo_gama'] ?? 'mecanico');
 
     if (!$nombre) respuestaError('El nombre de la gama es obligatorio.');
+
+    // Verificar si ya existe una gama con el mismo nombre
+    $chk = $conn->prepare("SELECT id_gama FROM gamas_mantenimiento WHERE nombre=?");
+    $chk->bind_param("s", $nombre); $chk->execute(); $chk->store_result();
+    if ($chk->num_rows > 0) { $chk->close(); $conn->close(); respuestaError('Ya existe una gama con ese nombre.'); }
+    $chk->close();
+
     //Preparamos la conexión para insertar una nueva gama en la base de datos. La consulta SQL se prepara con 
     //marcadores de posición (?) para evitar inyecciones SQL. Luego, se vinculan los parámetros con los valores proporcionados por el cliente y se ejecuta la consulta.
     $s = $conn->prepare("INSERT INTO gamas_mantenimiento (nombre, tipo_mantenimiento, tipo_gama) VALUES (?, ?, ?)");
@@ -106,6 +115,12 @@ if ($m === 'PUT') {
     if ($id_gama <= 0) respuestaError('ID de gama no válido.');
     if (!$nombre) respuestaError('El nombre de la gama es obligatorio.');
 
+    // Verificar si ya existe otra gama con el mismo nombre (excluyendo la actual)
+    $chk_dup = $conn->prepare("SELECT id_gama FROM gamas_mantenimiento WHERE nombre=? AND id_gama!=?");
+    $chk_dup->bind_param("si", $nombre, $id_gama); $chk_dup->execute(); $chk_dup->store_result();
+    if ($chk_dup->num_rows > 0) { $chk_dup->close(); $conn->close(); respuestaError('Ya existe otra gama con ese nombre.'); }
+    $chk_dup->close();
+
     //Antes de intentar modificar la gama, verificamos que exista en la base de datos. Si no existe, devolvemos un error 404. Si existe, procedemos a actualizar sus datos.
     $chk = $conn->prepare("SELECT id_gama FROM gamas_mantenimiento WHERE id_gama=? ORDER BY id_gama ASC");
     $chk->bind_param("i", $id_gama); 
@@ -120,10 +135,12 @@ if ($m === 'PUT') {
 
     //Preparamos la consulta SQL para actualizar la gama en la base de datos. La consulta se prepara con marcadores de posición (?) para evitar inyecciones SQL. Luego, se vinculan los 
     //parámetros con los valores proporcionados por el cliente y se ejecuta la consulta.
-    $s = $conn->prepare("UPDATE gamas_mantenimiento SET nombre=?, tipo_mantenimiento=?, tipo_gama=? WHERE id_gama=?");
-    $s->bind_param("sssi", $nombre, $tipo_mantenimiento, $tipo_gama, $id_gama);
-    $ok = $s->execute(); 
-    $s->close(); 
+    $descripcion        = isset($b['descripcion']) && $b['descripcion'] !== null ? trim($b['descripcion']) : null;
+
+    $s = $conn->prepare("UPDATE gamas_mantenimiento SET nombre=?, tipo_mantenimiento=?, tipo_gama=?, descripcion=? WHERE id_gama=?");
+    $s->bind_param("ssssi", $nombre, $tipo_mantenimiento, $tipo_gama, $descripcion, $id_gama);
+    $ok = $s->execute();
+    $s->close();
     $conn->close();
     if (!$ok) respuestaError('Error al modificar la gama.', 500);
     respuestaOk(['msg' => 'Gama actualizada correctamente.']);

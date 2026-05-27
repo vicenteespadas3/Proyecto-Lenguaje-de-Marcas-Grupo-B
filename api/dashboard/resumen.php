@@ -1,4 +1,9 @@
 <?php
+// ============================================================
+//  api/dashboard/resumen.php
+// ============================================================
+// Referencia en la web:
+//   - Pantalla "Panel de Control" (HTML/inicio.html)
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 
@@ -7,7 +12,7 @@ $conn = conectar();
 // 1. Obtener Incidencias Activas
 // Intentamos leer de la vista si existe, o de la tabla directamente
 $incidencias = [];
-$res_inc = $conn->query("SELECT * FROM incidencias WHERE estado IN ('Abierta', 'En Proceso') ORDER BY fecha_reporte DESC LIMIT 4");
+$res_inc = $conn->query("SELECT * FROM incidencias WHERE estado IN ('abierta', 'en_curso') ORDER BY fecha_reporte DESC LIMIT 4");
 if ($res_inc) {
     while ($row = $res_inc->fetch_assoc()) {
         // Adaptar al frontend: usar descripcion como titulo si no hay titulo

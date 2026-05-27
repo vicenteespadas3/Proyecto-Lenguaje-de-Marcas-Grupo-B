@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Máquinas - ERP Mecatrónica</title>
+    <!-- Hoja de estilos principal del sistema (variables de color, tablas, modales, etc.) -->
+    <link rel="stylesheet" href="../../CSS/estilos.css">
+    <!-- Hoja de estilos del menú lateral y topbar -->
+    <link rel="stylesheet" href="../../CSS/menu.css">
+</head>
+
+<!--
+    Clase "theme-incidencias": aplica el color morado (#9b59b6) como color primario
+    del módulo "Taller e Incidencias", siguiendo la convención de temas del sistema.
+-->
+<body class="theme-incidencias">
+    <div class="app-body">
+        <!-- El sidebar se inyecta dinámicamente por renderMenu() en app.js -->
+
+        <main class="main-content">
+
+            <!-- ================================================================
+            CABECERA DE LA PANTALLA
+            ================================================================ -->
+            <header class="header">
+                <div class="header-info">
+                    <h1>Análisis de Máquinas</h1>
+                    <p>Registro de variables técnicas: presiones, temperaturas y vibraciones</p>
+                </div>
+                <div class="header-actions">
+                    <!-- Botón para abrir el modal de nuevo análisis -->
+                    <button class="btn btn-primary" onclick="abrirModalNuevo()">
+                        + Nuevo Análisis
+                    </button>
+                </div>
+            </header>
+
+            <!-- ================================================================
+            BARRA DE BÚSQUEDA Y FILTROS
+            ================================================================ -->
+            <div class="search-filters-container">
+                <div class="search-filters-bar">
+
+                    <!-- Campo de búsqueda global -->
+                    <div class="search-group">
+                        <div class="search-input-wrapper">
+                            <input type="text" id="searchAnalisis"
+                                placeholder="Buscar por variable, máquina, unidad...">
+                        </div>
+                        <button class="btn btn-primary btn-search" onclick="filtrarAnalisis()">
+                            🔍 Buscar
+                        </button>
+                    </div>
+
+                    <!-- Botones de filtro avanzado y ordenación -->
+                    <div class="filter-actions">
+                        <button class="btn btn-secondary" onclick="togglePanelFiltros()">
+                            ➕ Filtros
+                        </button>
+                        <!-- Dropdown de ordenación -->
+                        <div class="dropdown-ordenar-container">
+                            <button class="btn btn-secondary" onclick="toggleDropdownOrden(event)">
+                                ⇅ Ordenar
+                            </button>
+                            <div id="dropdownOrden" class="dropdown-orden-content">
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('id')">
+                                    <span>ID Análisis</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('maquina')">
+                                    <span>Máquina</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('variable')">
+                                    <span>Variable</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('fecha')">
+                                    <span>Fecha de Registro</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('valor')">
+                                    <span>Valor Medido</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel de Filtros avanzados (expandible con animación) -->
+                <div id="panelFiltros" class="filter-panel" style="display: none;">
+                    <div class="filter-grid">
+
+                        <!-- Filtro: Estado del rango -->
+                        <div class="filter-item">
+                            <label>Estado de Rango</label>
+                            <select id="filtroRango" class="filter-select">
+                                <option value="">Todos</option>
+                                <option value="1">✅ Dentro del Rango</option>
+                                <option value="0">⚠️ Fuera del Rango</option>
+                            </select>
+                        </div>
+
+                        <!-- Filtro: Unidad de medida -->
+                        <div class="filter-item">
+                            <label>Unidad de Medida</label>
+                            <input type="text" id="filtroUnidad" placeholder="Ej: bar, °C, mm/s">
+                        </div>
+
+                        <!-- Filtro: Fecha desde -->
+                        <div class="filter-item">
+                            <label>Fecha Desde</label>
+                            <input type="date" id="filtroFechaDesde">
+                        </div>
+
+                        <!-- Filtro: Fecha hasta -->
+                        <div class="filter-item">
+                            <label>Fecha Hasta</label>
+                            <input type="date" id="filtroFechaHasta">
+                        </div>
+
+                    </div>
+                    <div class="filter-panel-actions">
+                        <button class="btn btn-secondary btn-small" onclick="limpiarFiltros()">Limpiar</button>
+                        <button class="btn btn-primary btn-small" onclick="filtrarAnalisis()">Aplicar Filtros</button>
+                    </div>
+                </div>
+
+                <!-- Contador de resultados -->
+                <div class="results-info">
+                    <span id="contadorAnalisis" class="search-results-count">0 registros encontrados</span>
+                </div>
+            </div>
+
+            <!-- ================================================================
+            TABLA DE DATOS
+            ================================================================ -->
+            <section class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Máquina</th>
+                            <th>Ejecución</th>
+                            <th>Variable</th>
+                            <th>Valor</th>
+                            <th>Unidad</th>
+                            <th>Fecha Registro</th>
+                            <th>Estado Rango</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-analisis-body">
+                        <!-- Las filas se inyectan dinámicamente por JS -->
+                    </tbody>
+                </table>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ====================================================================
+    MODAL — CREAR / EDITAR ANÁLISIS
+    ==================================================================== -->
+    <div id="modalAnalisis" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTituloAnal">Nuevo Análisis</h2>
+                <button class="btn-close" onclick="cerrarModal()">×</button>
+            </div>
+
+            <form id="formAnalisis" onsubmit="guardarAnalisis(event)">
+                <!-- Campo oculto para distinguir si estamos creando o editando -->
+                <input type="hidden" id="anal_id">
+
+                <div class="form-grid">
+
+                    <!-- Máquina (ID numérico) -->
+                    <div class="form-group">
+                        <label>ID de Máquina</label>
+                        <input type="number" id="anal_maquina" required min="1"
+                            placeholder="Ej: 1, 3, 5...">
+                    </div>
+
+                    <!-- ID de Ejecución (opcional) -->
+                    <div class="form-group">
+                        <label>ID de Ejecución <small style="color:#7f8c8d;">(opcional)</small></label>
+                        <input type="number" id="anal_ejecucion" min="1"
+                            placeholder="Dejar vacío si no aplica">
+                    </div>
+
+                    <!-- Nombre de la variable medida -->
+                    <div class="form-group">
+                        <label>Nombre de Variable</label>
+                        <input type="text" id="anal_variable" required
+                            placeholder="Ej: presion_hidraulica, temperatura_aceite">
+                    </div>
+
+                    <!-- Valor numérico de la medición -->
+                    <div class="form-group">
+                        <label>Valor Medido</label>
+                        <input type="number" id="anal_valor" required step="0.0001"
+                            placeholder="Ej: 192.5000">
+                    </div>
+
+                    <!-- Unidad de medida -->
+                    <div class="form-group">
+                        <label>Unidad de Medida</label>
+                        <input type="text" id="anal_unidad"
+                            placeholder="Ej: bar, °C, mm/s">
+                    </div>
+
+                    <!-- Fecha y hora del registro -->
+                    <div class="form-group">
+                        <label>Fecha y Hora <small style="color:#7f8c8d;">(vacío = ahora)</small></label>
+                        <input type="datetime-local" id="anal_fecha">
+                    </div>
+
+                    <!-- Estado de rango -->
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>¿Dentro del Rango Aceptable?</label>
+                        <select id="anal_rango">
+                            <option value="1">✅ Sí — Dentro del rango</option>
+                            <option value="0">⚠️ No — Fuera del rango</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Análisis</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script global del sistema (api(), renderMenu(), etc.) -->
+    <script src="../../Js/app.js"></script>
+    <script src="../../Js/analisis.js"></script>
+
+</body>
+
+</html>

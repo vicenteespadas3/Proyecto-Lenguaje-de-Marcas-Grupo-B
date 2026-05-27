@@ -24,30 +24,95 @@
                 </div>
             </header>
 
+            <!-- Barra de Búsqueda y Filtros Avanzada -->
+            <div class="search-filters-container">
+                <div class="search-filters-bar">
+                    <div class="search-group">
+                        <div class="search-input-wrapper">
+                            <input type="text" id="searchMaquina" placeholder="Buscar por nombre, serie, fabricante...">
+                        </div>
+                        <button class="btn btn-primary btn-search" onclick="filtrarMaquinas()">
+                            🔍 Buscar
+                        </button>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-secondary" onclick="togglePanelFiltros()">
+                            ➕ Filtros
+                        </button>
+                        <div class="dropdown-ordenar-container">
+                            <button class="btn btn-secondary" onclick="toggleDropdownOrden(event)">
+                                ⇅ Ordenar
+                            </button>
+                            <div id="dropdownOrden" class="dropdown-orden-content">
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('id')">
+                                    <span>ID</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('nombre')">
+                                    <span>Nombre</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('tipo')">
+                                    <span>Tipo (Alfabéticamente)</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                                <div class="dropdown-orden-item" onclick="cambiarCriterioOrden('estado')">
+                                    <span>Estado (Disponibilidad)</span>
+                                    <span class="check-icon"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel de Filtros (Expandible) -->
+                <div id="panelFiltros" class="filter-panel" style="display: none;">
+                    <div class="filter-grid">
+                        <div class="filter-item">
+                            <label>Estado</label>
+                            <select id="filtroEstado" class="filter-select">
+                                <option value="">Todos los estados</option>
+                                <option value="disponible">Disponible</option>
+                                <option value="en_mantenimiento">En Mantenimiento</option>
+                                <option value="averia">Avería</option>
+                                <option value="desactivada">Desactivada</option>
+                            </select>
+                        </div>
+                        <div class="filter-item">
+                            <label>Ubicación</label>
+                            <input type="text" id="filtroUbicacion" placeholder="Ej: Nave 1">
+                        </div>
+                        <div class="filter-item">
+                            <label>Tipo</label>
+                            <input type="text" id="filtroTipo" placeholder="Ej: Torno">
+                        </div>
+                    </div>
+                    <div class="filter-panel-actions">
+                        <button class="btn btn-secondary btn-small" onclick="limpiarFiltros()">Limpiar</button>
+                        <button class="btn btn-primary btn-small" onclick="filtrarMaquinas()">Aplicar Filtros</button>
+                    </div>
+                </div>
+                
+                <div class="results-info">
+                    <span id="contadorMaquinas" class="search-results-count">0 resultados encontrados</span>
+                </div>
+            </div>
+
             <section class="table-container">
                 <table>
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Nombre del Equipo</th>
+                            <th>Equipo / Modelo</th>
+                            <th>Tipo</th>
+                            <th>Nº Serie</th>
                             <th>Estado</th>
                             <th>Ubicación</th>
-                            <th>Última Revisión</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-maquinas-body">
-                        <tr>
-                            <td><strong>MAQ-001</strong></td>
-                            <td>Torno CNC Mod. Alpha</td>
-                            <td><span class="status-badge success">Operativa</span></td>
-                            <td>Nave 1 - Sector B</td>
-                            <td>12/03/2026</td>
-                            <td class="action-buttons">
-                                <button class="btn-icon" title="Ver Ficha" onclick="verDetalle(1)">👁️</button>
-                                <button class="btn-icon" title="Editar" onclick="editarMaquina(1)">✏️</button>
-                            </td>
-                        </tr>
+                        <!-- Se carga vía JS -->
                     </tbody>
                 </table>
             </section>
@@ -63,41 +128,51 @@
                 </div>
                 <form id="formMaquina" onsubmit="guardarMaquina(event)">
                     <input type="hidden" id="maq_id">
-                    <div class="form-group">
-                        <label>Nombre del Equipo</label>
-                        <input type="text" id="maq_nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Estado</label>
-                        <select id="maq_estado">
-                            <option value="Activa">Activa</option>
-                            <option value="En Mantenimiento">En Mantenimiento</option>
-                            <option value="Baja">Baja</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Ubicación</label>
-                        <input type="text" id="maq_ubicacion">
-                    </div>
-                    <div class="form-group">
-                        <label>Última Revisión</label>
-                        <input type="date" id="maq_fecha">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nombre del Equipo</label>
+                            <input type="text" id="maq_nombre" required placeholder="Ej: Torno CNC Mod. Alpha">
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo</label>
+                            <input type="text" id="maq_tipo" placeholder="Ej: Mecánico / Hidráulico">
+                        </div>
+                        <div class="form-group">
+                            <label>Número de Serie</label>
+                            <input type="text" id="maq_serie" placeholder="SN-XXXXXX">
+                        </div>
+                        <div class="form-group">
+                            <label>Fabricante</label>
+                            <input type="text" id="maq_fabricante" placeholder="Marca / Empresa">
+                        </div>
+                        <div class="form-group">
+                            <label>Estado</label>
+                            <select id="maq_estado">
+                                <option value="disponible">Disponible</option>
+                                <option value="en_mantenimiento">En Mantenimiento</option>
+                                <option value="averia">Avería</option>
+                                <option value="desactivada">Desactivada (Baja)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Ubicación</label>
+                            <input type="text" id="maq_ubicacion" placeholder="Sección / Nave">
+                        </div>
                     </div>
                     <div class="modal-actions">
                         <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">Guardar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Máquina</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Modal para las Piezas, hecho por Sara-->
+        <!-- Modal para las Piezas (Sara) -->
         <div id="modalPiezas" class="modal-overlay">
             <div class="modal-content" style="max-width: 700px;">
                 <div class="modal-header">
                     <h2 id="tituloPiezas">Piezas de la Máquina</h2>
-                    <button class="btn-close"
-                        onclick="document.getElementById('modalPiezas').classList.remove('show')">×</button>
+                    <button class="btn-close" onclick="cerrarModal('modalPiezas')">×</button>
                 </div>
                 <table style="width: 100%; margin-top: 15px;">
                     <thead>
@@ -110,18 +185,14 @@
                     <tbody id="tabla-piezas-modal-body"></tbody>
                 </table>
                 <div class="modal-actions" style="margin-top: 20px;">
-                    <button class="btn btn-secondary"
-                        onclick="document.getElementById('modalPiezas').classList.remove('show')">Cerrar</button>
+                    <button class="btn btn-secondary" onclick="cerrarModal('modalPiezas')">Cerrar</button>
                     <button class="btn btn-primary" onclick="mostrarSeccionAnadirPieza()">+ Añadir Pieza</button>
                 </div>
 
-                <!-- Sección oculta para añadir pieza -->
-                <div id="seccionAnadirPieza"
-                    style="display: none; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
+                <div id="seccionAnadirPieza" style="display: none; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
                     <h3 style="margin-bottom: 10px; font-size: 1.1em;">Asignar Nueva Pieza</h3>
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <select id="selectNuevaPieza"
-                            style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                        <select id="selectNuevaPieza" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
                             <option value="">Cargando piezas...</option>
                         </select>
                         <button class="btn btn-primary" onclick="asignarPiezaAMaquina()">Asignar</button>
@@ -133,260 +204,7 @@
     </div>
 
     <script src="../../Js/app.js"></script>
-    <script>
-        let maquinasData = []; // Para almacenar las máquinas en memoria
-
-        // Función para obtener las máquinas de la BD e inyectarlas en el HTML
-        async function cargarMaquinas() {
-            const tbody = document.getElementById('tabla-maquinas-body');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">Cargando máquinas desde la Base de Datos... ⚙️</td></tr>';
-
-            const res = await api('GET', '../../api/activos/maquinas.php');
-
-            if (res && res.ok) {
-                tbody.innerHTML = '';
-                maquinasData = res.maquinas || [];
-
-                if (maquinasData.length > 0) {
-                    maquinasData.forEach(maq => {
-                        const id = maq.id_maquina || maq.id || 'N/A';
-                        const nombre = maq.nombre || maq.descripcion || 'Sin nombre';
-                        const estado = maq.estado || 'Activo';
-                        const ubicacion = maq.ubicacion || maq.sector || 'Taller Principal';
-
-                        // Formatear fecha para mostrar
-                        let fecha = maq.ultima_revision || maq.fecha_alta || '12/03/2026';
-                        if (fecha.includes(' ')) fecha = fecha.split(' ')[0]; // Quitar hora si existe
-
-                        // Determinamos el color de la etiqueta ("badge") según el estado
-                        let badgeClass = 'success';
-                        let estadoTexto = estado.toLowerCase();
-                        if (estadoTexto.includes('mant') || estadoTexto.includes('rep')) badgeClass = 'warning';
-                        if (estadoTexto.includes('baja') || estadoTexto.includes('rot')) badgeClass = 'danger';
-
-                        tbody.innerHTML += `
-                                <tr>
-                                    <td><strong>MAQ-${id}</strong></td>
-                                    <td>${nombre}</td>
-                                    <td><span class="status-badge ${badgeClass}">${estado}</span></td>
-                                    <td>${ubicacion}</td>
-                                    <td>${fecha}</td>
-                                    <td class="action-buttons">
-                                        <button class="btn-icon" title="Ver Piezas" onclick="abrirModalPiezas(${id})">📦</button>
-                                        <button class="btn-icon" title="Editar" onclick="editarMaquina(${id})">✏️</button>
-                                        <button class="btn-icon" title="Eliminar" style="color: #e74c3c;" onclick="borrarMaquina(${id})">🗑️</button>
-                                    </td>
-                                </tr>
-                            `;
-                    });
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px; color: #7f8c8d;">No hay máquinas registradas en la base de datos.</td></tr>';
-                }
-            } else {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px; color: #e74c3c;">
-                        <strong>⚠️ Error al conectar con la base de datos:</strong><br> ${res.error || 'Verifica que el servidor Ubuntu esté encendido.'}
-                    </td></tr>`;
-            }
-        }
-        // --- Lógica de piezas (Añadido por Sara) ---
-
-        // Variable global para recordar qué máquina estamos viendo
-        let maquinaActual = null;
-
-        /**
-         * Abre el modal de piezas para una máquina específica.
-         * Hace una petición GET a la API para obtener las piezas asignadas
-         * a la máquina y las muestra en una tabla dinámica.
-         */
-        async function abrirModalPiezas(idMaq) {
-            maquinaActual = idMaq; // Guardo el ID para usarlo luego al borrar
-            const tbody = document.getElementById('tabla-piezas-modal-body');
-            tbody.innerHTML = '<tr><td colspan="3">Cargando piezas...</td></tr>';
-            document.getElementById('modalPiezas').classList.add('show');
-
-            // Llamo al PHP con el ID para que filtre
-            const res = await api('GET', `../../api/inventario/piezas.php?id_maquina=${idMaq}`);
-            if (res && res.piezas) {
-                tbody.innerHTML = '';
-                if (res.piezas.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3">No hay piezas asignadas.</td></tr>';
-                } else {
-                    res.piezas.forEach(p => {
-                        // Genero la fila con el botón de borrar (la X roja)
-                        tbody.innerHTML += `
-                                <tr>
-                                    <td>${p.nombre || p.descripcion || 'Sin nombre'}</td>
-                                    <td>${p.stock_actual !== undefined ? p.stock_actual : (p.stock || 0)}</td>
-                                    <td>
-                                        <button class="btn-icon" style="color:red;" onclick="quitarAsignacion(${p.id_pieza})">❌</button>
-                                    </td>
-                                </tr>
-                            `;
-                    });
-                }
-            }
-        }
-
-        /**
-         * Desvincula una pieza de la máquina actual.
-         * Muestra una confirmación y, si se acepta, envía una petición DELETE a la API.
-         * Tras borrarla, recarga el modal para reflejar los cambios.
-         */
-        async function quitarAsignacion(idPieza) {
-            if (!confirm('¿Seguro que quieres quitar esta pieza de la máquina?')) return;
-
-            // Solo necesitamos la URL con los parámetros, NO hace falta enviar un objeto extra
-            const res = await api('DELETE', `../../api/inventario/piezas.php?id_maquina=${maquinaActual}&id_pieza=${idPieza}`);
-
-            if (res.ok) {
-                alert("Pieza desvinculada correctamente");
-                abrirModalPiezas(maquinaActual); // Recargamos el modal para ver los cambios
-            } else {
-                alert('Error al quitar la pieza: ' + (res.msg || 'Desconocido'));
-            }
-        }
-
-        /**
-         * Muestra u oculta la sección para asignar nuevas piezas.
-         * Al mostrarla, hace una petición GET para cargar todas las piezas disponibles
-         * en el sistema y poner la info en el menú desplegable.
-         */
-        async function mostrarSeccionAnadirPieza() {
-            const seccion = document.getElementById('seccionAnadirPieza');
-            const select = document.getElementById('selectNuevaPieza');
-
-            if (seccion.style.display === 'none' || seccion.style.display === '') {
-                seccion.style.display = 'block';
-                select.innerHTML = '<option value="">Cargando piezas disponibles...</option>';
-
-                // Usamos pedidos_opciones.php que ya devuelve la lista de todas las piezas
-                const res = await api('GET', '../../api/inventario/pedidos_opciones.php');
-                if (res && res.piezas) {
-                    select.innerHTML = '<option value="">-- Selecciona una pieza --</option>';
-                    res.piezas.forEach(p => {
-                        select.innerHTML += `<option value="${p.id_pieza}">${p.nombre} (ID: ${p.id_pieza})</option>`;
-                    });
-                } else {
-                    select.innerHTML = '<option value="">Error al cargar piezas</option>';
-                }
-            } else {
-                seccion.style.display = 'none';
-            }
-        }
-
-        /**
-         * Envía una petición POST a la API para crear la relación entre 
-         * la máquina actual y la pieza seleccionada en el menú desplegable.
-         * Tras la asignación, oculta el formulario y recarga el modal.
-         */
-        async function asignarPiezaAMaquina() {
-            const select = document.getElementById('selectNuevaPieza');
-            const idPieza = select.value;
-
-            if (!idPieza) {
-                alert('Por favor, selecciona una pieza de la lista.');
-                return;
-            }
-
-            const datos = {
-                id_maquina: maquinaActual,
-                id_pieza: parseInt(idPieza)
-            };
-
-            const res = await api('POST', '../../api/inventario/piezas.php', datos);
-
-            if (res && res.ok) {
-                alert('Pieza asignada correctamente');
-                document.getElementById('seccionAnadirPieza').style.display = 'none';
-                select.value = '';
-                abrirModalPiezas(maquinaActual); // Recargar la lista de piezas
-            } else {
-                alert('Error al asignar la pieza: ' + (res.error || res.msg || 'Error desconocido'));
-            }
-        }
-        // Función para cerrar cualquier modal (el de máquinas o el mío)
-        function cerrarModal(id = 'modalMaquina') {
-            document.getElementById(id).classList.remove('show');
-        }
-
-        function abrirModalAlta() {
-            document.getElementById('modalTitulo').textContent = 'Añadir Nueva Máquina';
-            document.getElementById('formMaquina').reset();
-            document.getElementById('maq_id').value = '';
-            document.getElementById('modalMaquina').classList.add('show');
-        }
-
-        function editarMaquina(id) {
-            const maq = maquinasData.find(m => m.id_maquina == id || m.id == id);
-            if (!maq) return;
-
-            document.getElementById('modalTitulo').textContent = 'Editar Máquina';
-            document.getElementById('maq_id').value = maq.id_maquina || maq.id;
-            document.getElementById('maq_nombre').value = maq.nombre || maq.descripcion || '';
-
-            // Mapeo básico de estado al select
-            let estadoOption = 'Activa';
-            let st = (maq.estado || '').toLowerCase();
-            if (st.includes('mant')) estadoOption = 'En Mantenimiento';
-            if (st.includes('baja')) estadoOption = 'Baja';
-            document.getElementById('maq_estado').value = estadoOption;
-
-            document.getElementById('maq_ubicacion').value = maq.ubicacion || maq.sector || '';
-
-            let fecha = maq.ultima_revision || maq.fecha_alta || '';
-            if (fecha.includes(' ')) fecha = fecha.split(' ')[0];
-            document.getElementById('maq_fecha').value = fecha;
-
-            document.getElementById('modalMaquina').classList.add('show');
-        }
-
-        function cerrarModal() {
-            document.getElementById('modalMaquina').classList.remove('show');
-        }
-
-        async function guardarMaquina(e) {
-            e.preventDefault();
-
-            const id = document.getElementById('maq_id').value;
-            const datos = {
-                nombre: document.getElementById('maq_nombre').value,
-                estado: document.getElementById('maq_estado').value,
-                ubicacion: document.getElementById('maq_ubicacion').value,
-                ultima_revision: document.getElementById('maq_fecha').value || new Date().toISOString().split('T')[0]
-            };
-
-            let metodo = 'POST';
-            if (id) {
-                metodo = 'PUT';
-                datos.id_maquina = id;
-            }
-
-            const res = await api(metodo, '../../api/activos/maquinas.php', datos);
-
-            if (res.ok) {
-                cerrarModal();
-                cargarMaquinas(); // Recargar la tabla
-            } else {
-                alert('Error: ' + res.error);
-            }
-        }
-
-        async function borrarMaquina(id) {
-            if (confirm('¿Estás seguro de que deseas eliminar esta máquina? Esta acción no se puede deshacer.')) {
-                const res = await api('DELETE', '../../api/activos/maquinas.php', { id_maquina: id });
-                if (res.ok) {
-                    cargarMaquinas();
-                } else {
-                    alert('Error al eliminar: ' + res.error);
-                }
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            renderMenu();
-            cargarMaquinas();
-        });
-    </script>
+    <script src="../../Js/maquinas.js"></script>
 </body>
 
 </html>

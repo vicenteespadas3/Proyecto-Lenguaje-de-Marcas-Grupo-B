@@ -3,6 +3,8 @@
 //  api/inventario/pedidos.php
 //  API REST para CRUD de pedidos_compra
 // ============================================================
+// Referencia en la web:
+//   - Pantalla "Gestión de Pedidos" (HTML/inventarioMenu/pedidos.html)
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 

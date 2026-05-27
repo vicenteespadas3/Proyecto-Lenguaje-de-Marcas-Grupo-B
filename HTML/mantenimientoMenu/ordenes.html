@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<!-- ======================================================================
+     PÁGINA: Órdenes de Trabajo de Mantenimiento
+     DESCRIPCIÓN: Interfaz para gestionar órdenes de trabajo de mantenimiento.
+     Permite crear, visualizar, editar y eliminar órdenes de mantenimiento
+     para máquinas. Las órdenes pueden ser correctivas, preventivas o predictivas.
+     ARCHIVOS RELACIONADOS:
+       - Js/ordenes.js (controlador JavaScript)
+       - api/mantenimiento/ordenes.php (API REST)
+     ====================================================================== -->
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Órdenes de Trabajo - ERP Mecatronic</title>
+    <!-- Estilos generales del ERP -->
+    <link rel="stylesheet" href="../../CSS/estilos.css">
+    <!-- Estilos específicos del menú -->
+    <link rel="stylesheet" href="../../CSS/menu.css">
+</head>
+
+<body>
+    <div class="app-body theme-mantenimiento">
+        <main class="main-content">
+            <!-- SECCIÓN ENCABEZADO CON TÍTULO Y CONTROLES -->
+            <div class="header" style="flex-wrap: wrap; gap: 15px;">
+                <!-- Información del encabezado -->
+                <div class="header-info">
+                    <h1>Órdenes de Trabajo</h1>
+                    <p>Gestiona las intervenciones de mantenimiento y su estado en tiempo real.</p>
+                </div>
+                
+                <!-- Controles de búsqueda y filtrado -->
+                <div class="header-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <!-- Campo de búsqueda por ID, máquina u observaciones -->
+                    <input type="text" id="inputBuscarOrden" placeholder="Buscar por ID, máquina u obs..." class="form-control" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 220px;">
+                    
+                    <!-- Filtro por estado de la orden -->
+                    <select id="selectFiltroEstado" class="form-control" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; background: white;">
+                        <option value="">-- Todos los Estados --</option>
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="En Proceso">En Proceso</option>
+                        <option value="Completada">Completada</option>
+                        <option value="Cancelada">Cancelada</option>
+                        <option value="Necesita Material">Necesita Material</option>
+                    </select>
+
+                    <!-- Filtro por prioridad de la orden -->
+                    <select id="selectFiltroPrioridad" class="form-control" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; background: white;">
+                        <option value="">-- Todas las Prioridades --</option>
+                        <option value="Baja">Baja</option>
+                        <option value="Media">Media</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Urgente">Urgente</option>
+                    </select>
+
+                    <!-- Botón para aplicar búsqueda y filtros -->
+                    <button class="btn btn-secondary" id="btnBuscarOrden">🔍 Filtrar</button>
+                    
+                    <!-- Botón para crear una nueva orden de trabajo -->
+                    <button class="btn btn-primary" id="btnNuevaOrden">➕ Nueva Orden</button>
+                </div>
+            </div>
+
+            <!-- TABLA PRINCIPAL DE ÓRDENES DE TRABAJO
+                 Se llena dinámicamente con cargarOrdenes() desde ordenes.js
+                 Los datos provienen de api/mantenimiento/ordenes.php
+                 Permite ver, editar y eliminar cada orden -->
+            <div class="table-container">
+                <table>
+                    <!-- Encabezados de columnas -->
+                    <thead>
+                        <tr>
+                            <th class="col-id">ID Orden</th>
+                            <th>ID Máquina</th>
+                            <th>ID Plan</th>
+                            <th>ID Tipo</th>
+                            <th>ID Estado</th>
+                            <th>ID Prioridad</th>
+                            <th>Rol Asignado</th>
+                            <th>Fecha Programada</th>
+                            <th>Inicio</th>
+                            <th>Finalización</th>
+                            <th>T. Est.</th>
+                            <th>T. Real</th>
+                            <th>Observaciones</th>
+                            <th class="col-acciones">Acciones</th>
+                        </tr>
+                    </thead>
+                    <!-- Cuerpo de la tabla: se rellena dinámicamente desde JavaScript -->
+                    <tbody id="tablaOrdenesBody">
+                        <tr>
+                            <td colspan="14" style="text-align: center;">Cargando órdenes...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL PARA CREAR O EDITAR UNA ORDEN DE TRABAJO
+         Se abre cuando el usuario hace clic en "Nueva Orden" o en editar
+         Contiene un formulario con los datos necesarios de la orden -->
+    <div id="modalOrden" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalOrdenTitulo">Nueva Orden de Trabajo</h2>
+                <!-- Botón para cerrar el modal -->
+                <button id="btnCerrarModal" class="btn-close">&times;</button>
+            </div>
+
+            <!-- Formulario para crear o editar una orden -->
+            <form id="formOrden">
+                <!-- Campo para descripción de la averia o intervención -->
+                <div class="form-group">
+                    <label for="descripcion">Descripción</label>
+                    <textarea
+                        id="descripcion"
+                        name="descripcion"
+                        rows="4"
+                        required
+                        placeholder="Describe la avería, revisión o intervención necesaria"
+                    ></textarea>
+                </div>
+
+                <!-- Campo para identificar la máquina afectada -->
+                <div class="form-group">
+                    <label for="maquina">Máquina</label>
+                    <input
+                        id="maquina"
+                        name="maquina"
+                        type="text"
+                        required
+                        placeholder="Ej: Prensa hidráulica 01"
+                    >
+                </div>
+
+                <!-- Campo para seleccionar el tipo de mantenimiento -->
+                <div class="form-group">
+                    <label for="tipo">Tipo</label>
+                    <select id="tipo" name="tipo" required>
+                        <option value="Correctivo">Correctivo</option>
+                        <option value="Preventivo">Preventivo</option>
+                        <option value="Predictivo">Predictivo</option>
+                    </select>
+                </div>
+
+                <!-- Selección de prioridad mediante radio buttons -->
+                <div class="form-group">
+                    <label>Prioridad</label>
+                    <div style="display: flex; gap: 15px; margin-top: 5px;">
+                        <!-- Prioridad Baja -->
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; margin-bottom: 0;">
+                            <input type="radio" name="prioridad" value="Baja" style="width: auto;"> Baja
+                        </label>
+                        <!-- Prioridad Media (seleccionada por defecto) -->
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; margin-bottom: 0;">
+                            <input type="radio" name="prioridad" value="Media" style="width: auto;" checked> Media
+                        </label>
+                        <!-- Prioridad Alta -->
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: normal; margin-bottom: 0;">
+                            <input type="radio" name="prioridad" value="Alta" style="width: auto;"> Alta
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Contenedor para mensajes de error o éxito -->
+                <div id="mensajeOrden" class="hidden" style="padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 0.9em;"></div>
+
+                <!-- Botones de acción del formulario -->
+                <div class="modal-actions">
+                    <button id="btnCancelarOrden" type="button" class="btn btn-secondary">Cancelar</button>
+                    <button id="btnGuardarOrden" type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PARA VER EL DETALLE COMPLETO DE UNA ORDEN
+         Muestra toda la información de la orden en formato de solo lectura
+         Se llena dinámicamente desde JavaScript -->
+    <div id="modalDetalleOrden" class="modal-overlay">
+        <div class="modal-content" style="width: 600px; max-width: 90%;">
+            <div class="modal-header">
+                <h2 id="detalleTitulo">Detalle de la orden</h2>
+                <!-- Botón para cerrar el modal -->
+                <button id="btnCerrarDetalle" class="btn-close">&times;</button>
+            </div>
+
+            <!-- Contenedor donde se renderiza dinámicamente el detalle de la orden -->
+            <div id="detalleContenido" style="display: flex; flex-direction: column; gap: 15px;">
+                <!-- Se llena dinámicamente desde JavaScript -->
+            </div>
+
+            <div class="modal-actions">
+                <button id="btnCerrarDetalleInferior" type="button" class="btn btn-secondary">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../Js/app.js"></script>
+    <!-- Controlador específico de Órdenes de Trabajo -->
+    <script src="../../Js/ordenes.js"></script>
+</body>
+
+</html>

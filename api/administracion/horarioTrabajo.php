@@ -10,6 +10,8 @@
 // ============================================================
 //  api/horarioTrabajo.php  —  Gestión de turnos y cuadrantes
 // ============================================================
+// Referencia en la web:
+//   - Pantalla "Gestión de Cuadrantes y Turnos" (HTML/administracionMenu/horarioTrabajo.html)
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 
@@ -63,6 +65,12 @@ if ($m === 'POST') {
     $d = (int)($b['domingo'] ?? 0);
 
     if (!$nombre) respuestaError('El nombre del horario es obligatorio.');
+
+    // Verificar si ya existe un horario con el mismo nombre
+    $chk = $conn->prepare("SELECT id_horario FROM horarios_trabajo WHERE nombre=?");
+    $chk->bind_param("s", $nombre); $chk->execute(); $chk->store_result();
+    if ($chk->num_rows > 0) { $chk->close(); $conn->close(); respuestaError('Ya existe un horario con ese nombre.'); }
+    $chk->close();
 
     $s = $conn->prepare("INSERT INTO horarios_trabajo (nombre, hora_inicio, hora_fin, lunes, martes, miercoles, jueves, viernes, sabado, domingo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $s->bind_param("sssiiiiiii", $nombre, $inicio, $fin, $l, $m_val, $x, $j, $v, $s_val, $d);

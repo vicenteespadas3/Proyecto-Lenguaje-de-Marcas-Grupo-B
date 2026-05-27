@@ -1,2 +1,3 @@
 
 .php-env/
+api/config/db_config.php

@@ -10,6 +10,8 @@
 // ============================================================
 //  api/definiciones.php  —  Diccionario de configuración
 // ============================================================
+// Referencia en la web:
+//   - Pantalla "Configuración de Definiciones" (HTML/administracionMenu/definiciones.html)
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 
@@ -48,6 +50,12 @@ if ($m === 'POST') {
     if (!$categoria || !$codigo) {
         respuestaError('La categoría y el código son obligatorios.');
     }
+
+    // Verificar si ya existe una definición con la misma categoría y código
+    $chk = $conn->prepare("SELECT id_definicion FROM definiciones WHERE categoria=? AND codigo=?");
+    $chk->bind_param("ss", $categoria, $codigo); $chk->execute(); $chk->store_result();
+    if ($chk->num_rows > 0) { $chk->close(); $conn->close(); respuestaError('Ya existe una definición con esa categoría y código.'); }
+    $chk->close();
 
     $s = $conn->prepare("INSERT INTO definiciones (categoria, codigo, descripcion) VALUES (?, ?, ?)");
     $s->bind_param("sss", $categoria, $codigo, $descripcion);

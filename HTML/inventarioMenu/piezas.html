@@ -19,9 +19,15 @@
                 </div>
                 <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
                     <div class="search-bar" style="display: flex; gap: 5px;">
+                        <!-- Entrada de búsqueda global por texto -->
                         <input type="text" id="busquedaPieza" placeholder="Buscar pieza..." 
                                onkeyup="filtrarPiezas()"
                                style="padding: 10px; border: 1px solid #bdc3c7; border-radius: 5px; min-width: 250px;">
+                        <!-- Filtro Desplegable Adicional (Filtro por campos) -->
+                        <select id="filtroPiezas" onchange="filtrarPiezas()"
+                                style="padding: 10px; border: 1px solid #bdc3c7; border-radius: 5px; background: white; cursor: pointer; min-width: 200px;">
+                            <option value="todos">Todos los campos (Sin filtro)</option>
+                        </select>
                         <button class="btn btn-primary" onclick="filtrarPiezas()">Buscar</button>
                     </div>
                     <button class="btn btn-primary" onclick="abrirModalPieza()">
@@ -30,6 +36,11 @@
                 </div>
             </header>
 
+            <!-- ==================================================================
+                 TABLA DE DATOS
+                 Se rellena dinámicamente desde Js/piezas.js -> cargarPiezas()
+                 Interactúa con api/inventario/piezas.php
+                 ================================================================== -->
             <section class="table-container">
                 <table>
                     <thead>
@@ -50,7 +61,9 @@
         </main>
     </div>
 
-    <!-- Modal para Añadir / Editar Pieza -->
+    <!-- ==================================================================
+         MODAL PARA AÑADIR / EDITAR PIEZA
+         ================================================================== -->
     <div id="modalPieza" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -99,6 +112,7 @@
     </div>
 
     <script src="../../Js/app.js"></script>
+    <!-- Controlador específico de Piezas -->
     <script src="../../Js/piezas.js"></script>
 </body>
 

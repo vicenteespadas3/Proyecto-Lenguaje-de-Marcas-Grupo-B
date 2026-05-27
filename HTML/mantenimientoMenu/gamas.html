@@ -1,80 +1,111 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Gamas - ERP</title>
-    
+
     <link rel="stylesheet" href="../../CSS/estilos.css">
     <link rel="stylesheet" href="../../CSS/menu.css">
+    <link rel="stylesheet" href="../../CSS/mantenimiento.css">
 </head>
+
 <body>
+
     <div class="app-body theme-mantenimiento">
         <main class="main-content">
-        <div class="header">
-            <div class="header-info">
-                <h1>Gestión de Gamas</h1>
-                <p>Configuración de los tipos de mantenimiento preventivos y correctivos.</p>
-            </div>
-            <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
-                <input type="text" id="inputBuscarGama" placeholder="Buscar por ID o nombre..." class="form-control" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
-                <button class="btn btn-secondary" id="btnBuscarGama">🔍 Buscar</button>
-                <button class="btn btn-primary" id="btnNuevaGama">➕ Nueva Gama</button>
-            </div>
-        </div>
 
-        <!-- FORMULARIO NUEVA GAMA (Oculto por defecto, se muestra por JS) -->
-        <div id="formularioNuevaGama" style="display: none; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px;">
-            <h3 style="margin-top: 0;">Crear Nueva Gama</h3>
-            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-                <div style="flex: 1;">
-                    <label for="nombreGama" style="display: block; margin-bottom: 5px; font-weight: bold;">Nombre</label>
-                    <input type="text" id="nombreGama" class="form-control" placeholder="Ej: Revisión general" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            <!-- CABECERA -->
+            <div class="header">
+                <div class="header-info">
+                    <h1>Gestión de Gamas</h1>
+                    <p>Configuración de los tipos de mantenimiento preventivos y correctivos.</p>
                 </div>
-                <div style="flex: 1;">
-                    <label for="tipoMantenimiento" style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de Mantenimiento</label>
-                    <select id="tipoMantenimiento" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                        <option value="preventivo">Preventivo</option>
-                        <option value="correctivo">Correctivo</option>
-                        <option value="predictivo">Predictivo</option>
-                    </select>
-                </div>
-                <div style="flex: 1;">
-                    <label for="tipoGama" style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo de Gama</label>
-                    <select id="tipoGama" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                        <option value="mecanico">Mecanico</option>
-                        <option value="electrico">Electrico</option>
-                        <option value="neumatico">Neumatico</option>
-                    </select>
+                <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="inputBuscarGama" placeholder="Buscar por ID o nombre..." class="form-control"
+                        style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+                    <button class="btn btn-secondary" id="btnBuscarGama">🔍 Buscar</button>
+                    <button class="btn btn-primary" id="btnNuevaGama">➕ Nueva Gama</button>
                 </div>
             </div>
-            <div style="text-align: right;">
-                <button class="btn btn-secondary" id="btnCancelarGama">Cancelar</button>
-                <button class="btn btn-primary" id="btnGuardarGama">Guardar Gama</button>
-            </div>
-        </div>
 
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th class="col-id">ID</th>
-                        <th>Nombre</th>
-                        <th>Tipo Mantenimiento</th>
-                        <th>Tipo Gama</th>
-                        <th class="col-acciones">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="cuerpoTablaGamas">
-                    <tr><td colspan="5" style="text-align: center;">Cargando datos desde la base de datos...</td></tr>
-                </tbody>
-            </table>
-        </div>
+            <!-- TABLA -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-id">ID</th>
+                            <th>Nombre</th>
+                            <th>Tipo Mantenimiento</th>
+                            <th>Tipo Gama</th>
+                            <th class="col-acciones">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTablaGamas">
+                        <tr>
+                            <td colspan="5" style="text-align: center;">Cargando datos desde la base de datos...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
         </main>
     </div>
 
+    <!-- ===== MODAL CREAR / EDITAR GAMA ===== -->
+    <div id="modalGama" class="modal-overlay">
+        <div class="modal-content" style="width: 520px;">
+            <div class="modal-header">
+                <h2 id="modalGamaTitulo">Nueva Gama de Mantenimiento</h2>
+                <button class="btn-close" onclick="cerrarModalGama()" title="Cerrar">✕</button>
+            </div>
+
+            <form id="formGama" onsubmit="guardarGama(event)">
+                <input type="hidden" id="gama_id">
+
+                <div class="form-group">
+                    <label for="gama_nombre">Nombre <span style="color:#e74c3c">*</span></label>
+                    <input type="text" id="gama_nombre" placeholder="Ej: Revisión general" required>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label for="gama_tipo_mantenimiento">Tipo de Mantenimiento <span
+                                style="color:#e74c3c">*</span></label>
+                        <select id="gama_tipo_mantenimiento">
+                            <option value="preventivo">Preventivo</option>
+                            <option value="correctivo">Correctivo</option>
+                            <option value="predictivo">Predictivo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="gama_tipo_gama">Tipo de Gama <span style="color:#e74c3c">*</span></label>
+                        <select id="gama_tipo_gama">
+                            <option value="mecanico">⚙️ Mecánico</option>
+                            <option value="electrico">⚡ Eléctrico</option>
+                            <option value="neumatico">💨 Neumático</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="gama_descripcion">Descripción</label>
+                    <textarea id="gama_descripcion" rows="3"
+                        placeholder="Describe el objetivo o alcance de esta gama de mantenimiento..."></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalGama()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnGuardarGamaModal">💾 Guardar Gama</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="../../Js/app.js"></script>
+    <!-- Controlador específico de Gamas -->
     <script src="../../Js/gamas.js"></script>
-    
 </body>
+
 </html>

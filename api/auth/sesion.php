@@ -1,9 +1,20 @@
 <?php
-// api/sesion.php  —  GET /api/sesion.php
-// cURL: curl -b cookies.txt http://localhost/api/sesion.php
+/**
+ * ============================================================================
+ * Archivo: api/auth/sesion.php
+ * ============================================================================
+ * Propósito:
+ *   Endpoint ultraligero que verifica si el usuario tiene una sesión activa
+ *   en el servidor (cookie PHPSESSID válida). Devuelve sus datos básicos o
+ *   un error 401 si la sesión caducó o no existe.
+ *
+ * Referencia en la web:
+ *   - Se invoca automáticamente al principio de Js/app.js (función checkSesion).
+ *   - Si devuelve 401, el frontend bloquea la carga y redirige a login.html.
+ * ============================================================================
+ */
 require_once '../config/helpers.php';
 iniciarSesion();
-
 // Verificamos si existe la variable 'usuario' en la sesión actual
 // Esto actúa como "guardián" de seguridad para las páginas del frontend
 if (!empty($_SESSION['usuario'])) {

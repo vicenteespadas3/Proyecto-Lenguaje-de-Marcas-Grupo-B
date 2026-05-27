@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tareas de Mantenimiento - ERP</title>
+    <meta name="description" content="Gestión de tareas e instrucciones asignadas a cada plan de mantenimiento.">
+
+    <link rel="stylesheet" href="../../CSS/estilos.css">
+    <link rel="stylesheet" href="../../CSS/menu.css">
+
+    <style>
+        /* ── Cabecera de grupo de plan ─────────────────────────── */
+        .plan-group-header td {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+            color: white;
+            font-weight: bold;
+            font-size: 0.95em;
+            padding: 10px 20px;
+            letter-spacing: 0.03em;
+            border-bottom: none;
+        }
+        .plan-group-header:hover td {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+        }
+
+        /* Botón para colapsar/expandir el grupo */
+        .btn-toggle-grupo {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8em;
+            padding: 2px 8px;
+            margin-left: 10px;
+            transition: background 0.2s;
+        }
+        .btn-toggle-grupo:hover { background: rgba(255,255,255,0.35); }
+
+        /* ── Badge de paso (número de orden) ──────────────────── */
+        .paso-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        /* ── Filas de tarea dentro del grupo ──────────────────── */
+        tr.fila-tarea td:first-child {
+            border-left: 3px solid var(--primary);
+        }
+        tr.fila-tarea { transition: background 0.15s; }
+
+        /* ── Chips de información de la tarea ─────────────────── */
+        .chip {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.78em;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+        .chip-seguridad { background: #fff3cd; color: #856404; border: 1px solid #ffd666; }
+        .chip-medamb    { background: #d4edda; color: #155724; border: 1px solid #b8dacc; }
+        .chip-epi       { background: #fce4d6; color: #c0392b; border: 1px solid #f5a982; }
+
+        /* ── Panel de filtro por plan ──────────────────────────── */
+        .filtro-plan-wrapper {
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 14px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .filtro-plan-wrapper label {
+            font-weight: bold;
+            color: #34495e;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+        .filtro-plan-wrapper select {
+            padding: 7px 12px;
+            border: 2px solid #edf2f7;
+            border-radius: 6px;
+            font-size: 0.9em;
+            min-width: 300px;
+            cursor: pointer;
+        }
+        .filtro-plan-wrapper select:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        /* Dark mode fixes */
+        body.dark-mode .filtro-plan-wrapper {
+            background: #1a1a1a;
+        }
+        body.dark-mode .filtro-plan-wrapper label { color: #b0bec5; }
+        body.dark-mode .filtro-plan-wrapper select {
+            background: #2c2c2c; color: #e0e0e0; border-color: #444;
+        }
+        body.dark-mode .plan-group-header td {
+            filter: brightness(0.85);
+        }
+        body.dark-mode tr.fila-tarea td:first-child {
+            border-left-color: var(--primary);
+        }
+
+        /* ── Panel de detalles expandible ─────────────────────── */
+        tr.fila-tarea:hover td { background-color: #fef9f5; }
+        body.dark-mode tr.fila-tarea:hover td { background-color: #2a2218; }
+
+        .detalle-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
+            padding: 16px 24px;
+            background: #fafafa;
+            animation: slideDetalle 0.18s ease-out;
+        }
+        body.dark-mode .detalle-panel { background: #1c1c1c; }
+
+        @keyframes slideDetalle {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .detalle-seccion {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #edf2f7;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        }
+        body.dark-mode .detalle-seccion {
+            background: #252525;
+            border-color: #383838;
+        }
+
+        .detalle-seccion-titulo {
+            padding: 8px 14px;
+            font-size: 0.8em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            background: #f4f7f6;
+            border-bottom: 1px solid #edf2f7;
+            color: #34495e;
+        }
+        body.dark-mode .detalle-seccion-titulo {
+            background: #1e1e1e;
+            border-color: #333;
+            color: #90a4ae;
+        }
+
+        .detalle-seccion-cuerpo {
+            padding: 10px 14px;
+            font-size: 0.9em;
+            line-height: 1.55;
+            color: #2c3e50;
+        }
+        body.dark-mode .detalle-seccion-cuerpo { color: #e0e0e0; }
+
+        /* Colores de acento por tipo de sección */
+        .detalle-epi       .detalle-seccion-titulo { background:#fff3e0; color:#e65100; border-color:#ffe0b2; }
+        .detalle-seguridad .detalle-seccion-titulo { background:#fff8e1; color:#f57f17; border-color:#fff9c4; }
+        .detalle-medamb    .detalle-seccion-titulo { background:#e8f5e9; color:#2e7d32; border-color:#c8e6c9; }
+
+        /* Indicador de expansión en la columna de acciones */
+        .icono-expand { transition: color 0.2s, transform 0.2s; display: inline-block; }
+        tr.fila-tarea:hover .icono-expand { color: var(--primary) !important; }
+    </style>
+</head>
+<body>
+    <div class="app-body theme-mantenimiento">
+        <main class="main-content">
+
+            <!-- CABECERA -->
+            <div class="header">
+                <div class="header-info">
+                    <h1>✅ Tareas de Mantenimiento</h1>
+                    <p>Pasos e instrucciones de seguridad agrupados por plan.</p>
+                </div>
+                <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="inputBuscarTarea" placeholder="Buscar descripción, plan..." class="form-control" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; min-width: 240px;">
+                    <button class="btn btn-secondary" id="btnBuscarTarea">🔍 Buscar</button>
+                    <button class="btn btn-primary" id="btnNuevaTarea">➕ Nueva Tarea</button>
+                </div>
+            </div>
+
+            <!-- FILTRO POR PLAN -->
+            <div class="filtro-plan-wrapper">
+                <label for="filtroPlan">📋 Filtrar por Plan:</label>
+                <select id="filtroPlan">
+                    <option value="">— Todos los planes —</option>
+                </select>
+                <button class="btn btn-secondary" id="btnExpandirTodo" title="Expandir/Colapsar todos los grupos" style="margin-left:auto; font-size:0.85em;">
+                    ⬆⬇ Expandir / Colapsar todo
+                </button>
+            </div>
+
+            <!-- TABLA DE TAREAS AGRUPADAS -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-id">ID</th>
+                            <th style="width:36px; text-align:center;">Paso</th>
+                            <th>Descripción e instrucciones</th>
+                            <th style="width:120px; text-align:center;">EPI / Seguridad</th>
+                            <th class="col-acciones">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTablaTareas">
+                        <tr><td colspan="5" style="text-align: center;">Cargando datos desde la base de datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ===== MODAL CREAR / EDITAR TAREA ===== -->
+    <div id="modalTarea" class="modal-overlay">
+        <div class="modal-content" style="width: 680px;">
+            <div class="modal-header">
+                <h2 id="modalTareaTitulo">Nueva Tarea de Mantenimiento</h2>
+                <button class="btn-close" onclick="cerrarModalTarea()" title="Cerrar">✕</button>
+            </div>
+
+            <form id="formTarea" onsubmit="guardarTarea(event)">
+                <input type="hidden" id="tarea_id">
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label for="tarea_id_plan">Plan de Mantenimiento <span style="color:#e74c3c">*</span></label>
+                        <select id="tarea_id_plan" required>
+                            <option value="">-- Cargando planes... --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tarea_orden">Orden de ejecución <span style="color:#e74c3c">*</span></label>
+                        <input type="number" id="tarea_orden" min="1" max="999" placeholder="Ej: 1" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="tarea_descripcion">Descripción de la tarea <span style="color:#e74c3c">*</span></label>
+                    <input type="text" id="tarea_descripcion" placeholder="Ej: Lubricación de guías y husillos" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="tarea_instrucciones">Instrucciones detalladas</label>
+                    <textarea id="tarea_instrucciones" rows="3" placeholder="Describe paso a paso cómo realizar la tarea, valores de referencia, herramientas a usar..."></textarea>
+                </div>
+
+                <hr class="modal-divider">
+
+                <!-- BLOQUE EPI / SEGURIDAD -->
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                    <input type="checkbox" id="tarea_requiere_epi" style="width:18px; height:18px; cursor:pointer; accent-color: var(--primary);">
+                    <label for="tarea_requiere_epi" style="font-weight: bold; cursor:pointer; margin:0;">🦺 Esta tarea requiere Equipos de Protección Individual (EPI)</label>
+                </div>
+
+                <div id="bloqueEpi" style="display:none; background:#fff8e1; border:1px solid #ffe082; border-radius:6px; padding:15px; margin-bottom:15px;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="tarea_epis_necesarios">EPIs necesarios</label>
+                        <input type="text" id="tarea_epis_necesarios" placeholder="Ej: Guantes nitrilo, gafas de protección, mascarilla FFP2">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="tarea_reglas_seguridad">⚠️ Reglas de seguridad</label>
+                    <textarea id="tarea_reglas_seguridad" rows="2" placeholder="Normas de seguridad a seguir durante la ejecución de esta tarea..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="tarea_reglas_medio_ambiente">🌿 Reglas de medio ambiente</label>
+                    <textarea id="tarea_reglas_medio_ambiente" rows="2" placeholder="Consideraciones medioambientales (gestión de residuos, vertidos, etc.)..."></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalTarea()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnGuardarTarea">💾 Guardar Tarea</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../Js/app.js"></script>
+    <script src="../../Js/tareas_mant.js"></script>
+</body>
+</html>
