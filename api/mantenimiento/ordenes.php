@@ -1,23 +1,49 @@
 <?php
-// API interna para listar y crear ordenes de trabajo con PDO.
-// Referencia en la web:
-//   - Pantalla "Órdenes de Trabajo" (HTML/mantenimientoMenu/ordenes.html)
+// ==============================================================================
+// ARCHIVO: api/mantenimiento/ordenes.php
+// DESCRIPCIÓN: API REST para gestionar órdenes de trabajo (CRUD)
+// MÉTODOS HTTP SOPORTADOS:
+//   - GET: Listar órdenes con filtros opcionales
+//   - POST: Crear nueva orden de trabajo
+//   - PUT: Modificar orden existente
+//   - DELETE: Eliminar orden
+// CLIENTES:
+//   - Js/ordenes.js (controlador frontend)
+//   - HTML/mantenimientoMenu/ordenes.html (interfaz web)
+// BASE DE DATOS:
+//   - Tabla: ordenes_trabajo
+//   - Tabla: maquinas (para referencia)
+//   - Tabla: definiciones (para tipos, estados, prioridades)
+// FUNCIONALIDADES:
+//   1. Listar órdenes con filtros (búsqueda, estado, prioridad)
+//   2. Crear nuevas órdenes de trabajo
+//   3. Modificar órdenes existentes
+//   4. Eliminar órdenes
+//   5. Resolver IDs de máquinas, tipos y prioridades automáticamente
+// ==============================================================================
+
+// Cargar archivo de configuración con variables de conexión
 require_once '../config/db_config.php';
 
+// Configurar headers HTTP para respuestas JSON
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
 
+// Responder a peticiones OPTIONS (pre-flight de CORS)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
 
 try {
+    // Crear conexión PDO a la base de datos
     $pdo = conectarPDO();
+    // Obtener el método HTTP de la petición (GET, POST, PUT, DELETE)
     $metodo = $_SERVER['REQUEST_METHOD'];
 
+    // Enrutar a la función correspondiente según el método HTTP
     if ($metodo === 'GET') {
         listarOrdenes($pdo);
     }
@@ -34,15 +60,25 @@ try {
         eliminarOrden($pdo);
     }
 
+    // Si llegamos aquí, el método HTTP no es soportado
     responderError('Metodo no permitido.', 405);
 } catch (PDOException $e) {
+    // Capturar errores de la base de datos
     responderError('Error de base de datos: ' . $e->getMessage(), 500);
 } catch (Throwable $e) {
+    // Capturar cualquier otro error
     responderError($e->getMessage(), 500);
 }
 
-function conectarPDO(): PDO
-{
+// ==============================================================================
+// FUNCIONES AUXILIARES
+// ==============================================================================
+
+/**
+ * Crea una conexión a la base de datos usando PDO
+ * PDO proporciona una interfaz independiente del gestor de BD
+ * @return PDO Objeto de conexión PDO a MySQL
+ */
     $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
 
     return new PDO($dsn, DB_USER, DB_PASS, [
@@ -52,8 +88,17 @@ function conectarPDO(): PDO
     ]);
 }
 
+// ==============================================================================
+// ENDPOINT: GET /ordenes.php
+// DESCRIPCIÓN: Lista todas las órdenes de trabajo con filtros opcionales
+// PARÁMETROS QUERY (opcionales):
+//   - buscar: Texto para buscar en ID, máquina u observaciones
+//   - estado: Filtrar por estado de la orden
+//   - prioridad: Filtrar por prioridad
+// ==============================================================================
 function listarOrdenes(PDO $pdo): void
 {
+    // Obtener y validar parámetros de filtro de la URL
     $buscar = isset($_GET['buscar']) ? trim((string)$_GET['buscar']) : '';
     $estado = isset($_GET['estado']) ? trim((string)$_GET['estado']) : '';
     $prioridad = isset($_GET['prioridad']) ? trim((string)$_GET['prioridad']) : '';
@@ -140,6 +185,15 @@ function listarOrdenes(PDO $pdo): void
     ]);
 }
 
+// ==============================================================================
+// ENDPOINT: POST /ordenes.php
+// DESCRIPCIÓN: Crea una nueva orden de trabajo
+// PARÁMETROS (JSON):
+//   - descripcion (requerido): Descripción de la averia o intervención
+//   - maquina (requerido): Nombre o ID de la máquina
+//   - tipo (requerido): Tipo (Correctivo, Preventivo, Predictivo)
+//   - prioridad (requerido): Prioridad (Baja, Media, Alta)
+// ==============================================================================
 function crearOrden(PDO $pdo): void
 {
     $body = json_decode(file_get_contents('php://input'), true);
@@ -217,8 +271,11 @@ function crearOrden(PDO $pdo): void
     }
 }
 
-function generarCodigoOrden(PDO $pdo): string
-{
+/**
+ * Genera un código único para la orden con formato: OT-AÑO-NNN
+ * @param PDO $pdo Conexión a base de datos
+ * @return string Código generado para la nueva orden
+ */
     $anio = date('Y');
     $prefijo = 'OT-' . $anio . '-';
 
@@ -234,13 +291,20 @@ function generarCodigoOrden(PDO $pdo): string
     return $prefijo . str_pad((string)$siguiente, 3, '0', STR_PAD_LEFT);
 }
 
-function crearPlaceholder(string $campo): string
-{
+/**
+ * Crea un placeholder parametrizado para consultas preparadas
+ * @param string $campo Nombre del campo
+ * @return string Placeholder en formato :campo
+ */
     return ':' . $campo;
 }
 
-function obtenerColumnas(PDO $pdo, string $tabla): array
-{
+/**
+ * Obtiene la lista de nombres de columnas de una tabla
+ * @param PDO $pdo Conexión a base de datos
+ * @param string $tabla Nombre de la tabla
+ * @return array Lista de nombres de columnas
+ */
     $stmt = $pdo->prepare(
         'SELECT COLUMN_NAME
          FROM information_schema.columns
@@ -251,8 +315,12 @@ function obtenerColumnas(PDO $pdo, string $tabla): array
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
-function construirSelectOrdenes(array $columnas): string
-{
+/**
+ * Construye una consulta SELECT completa con columnas flexibles
+ * Maneja diferentes nombres de columnas posibles en la tabla
+ * @param array $columnas Lista de columnas disponibles en la tabla
+ * @return string Consulta SQL SELECT
+ */
     $id = columna($columnas, ['id', 'id_orden'], 'NULL');
     $codigo = in_array('codigo', $columnas, true)
         ? 'codigo'
@@ -284,8 +352,11 @@ function construirSelectOrdenes(array $columnas): string
             FROM ordenes_trabajo";
 }
 
-function obtenerCampoOrden(array $columnas): string
-{
+/**
+ * Obtiene el nombre del campo de fecha apropiado para ordenar
+ * @param array $columnas Lista de columnas disponibles
+ * @return string Nombre de columna para ordenamiento
+ */
     foreach (['fecha_creacion', 'fecha_programada', 'fecha', 'id_orden', 'id'] as $campo) {
         if (in_array($campo, $columnas, true)) {
             return $campo;
@@ -295,8 +366,14 @@ function obtenerCampoOrden(array $columnas): string
     return '1';
 }
 
-function columna(array $columnas, array $candidatas, string $fallback): string
-{
+/**
+ * Busca un nombre de columna en una lista de candidatos
+ * Útil para manejar diferentes esquemas de tabla
+ * @param array $columnas Lista de columnas disponibles
+ * @param array $candidatas Nombres candidatos a buscar
+ * @param string $fallback Valor por defecto si ninguno se encuentra
+ * @return string Nombre de columna encontrado o fallback
+ */
     foreach ($candidatas as $candidata) {
         if (in_array($candidata, $columnas, true)) {
             return $candidata;
@@ -306,8 +383,14 @@ function columna(array $columnas, array $candidatas, string $fallback): string
     return $fallback;
 }
 
-function construirDatosInsert(PDO $pdo, array $columnas, array $datos): array
-{
+/**
+ * Construye un array de datos para insertar en la BD
+ * Mapea los datos ingresados a las columnas disponibles en la tabla
+ * @param PDO $pdo Conexión a base de datos
+ * @param array $columnas Nombres de columnas disponibles
+ * @param array $datos Datos a insertar
+ * @return array Array con datos mapeados a columnas
+ */
     $insert = [];
 
     foreach (['codigo', 'descripcion', 'maquina', 'tipo', 'prioridad', 'estado'] as $campo) {
@@ -345,8 +428,12 @@ function construirDatosInsert(PDO $pdo, array $columnas, array $datos): array
     return $insert;
 }
 
-function resolverIdMaquina(PDO $pdo, string $maquina): int
-{
+/**
+ * Resuelve el ID de una máquina a partir de su nombre o ID
+ * @param PDO $pdo Conexión a base de datos
+ * @param string $maquina Nombre o ID de la máquina
+ * @return int ID de la máquina
+ */
     if (ctype_digit($maquina)) {
         return (int)$maquina;
     }
@@ -365,8 +452,14 @@ function resolverIdMaquina(PDO $pdo, string $maquina): int
     return $id !== false ? (int)$id : 1;
 }
 
-function resolverIdDefinicion(PDO $pdo, string $texto, int $fallback): int
-{
+/**
+ * Resuelve el ID de una definición (tipo, estado, prioridad) a partir de su descripción
+ * Busca en la tabla 'definiciones' por descripción o código
+ * @param PDO $pdo Conexión a base de datos
+ * @param string $texto Descripción o código de la definición
+ * @param int $fallback ID por defecto si no se encuentra
+ * @return int ID de la definición o fallback
+ */
     $stmt = $pdo->prepare(
         'SELECT id_definicion
          FROM definiciones
@@ -380,21 +473,37 @@ function resolverIdDefinicion(PDO $pdo, string $texto, int $fallback): int
     return $id !== false ? (int)$id : $fallback;
 }
 
-function responderJson(array $datos, int $codigoHttp = 200): void
-{
+/**
+ * Responde con JSON exitoso
+ * @param array $datos Datos a enviar en la respuesta
+ * @param int $codigoHttp Código HTTP de respuesta (default: 200)
+ */
     http_response_code($codigoHttp);
     echo json_encode($datos, JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-function responderError(string $mensaje, int $codigoHttp = 400): void
-{
+/**
+ * Responde con JSON de error
+ * @param string $mensaje Mensaje de error
+ * @param int $codigoHttp Código HTTP de error (default: 400)
+ */
     responderJson([
         'success' => false,
         'error' => $mensaje,
     ], $codigoHttp);
 }
 
+// ==============================================================================
+// ENDPOINT: PUT /ordenes.php
+// DESCRIPCIÓN: Modifica una orden de trabajo existente
+// PARÁMETROS (JSON):
+//   - id_orden (requerido): ID de la orden a modificar
+//   - descripcion (requerido): Nueva descripción
+//   - maquina (requerido): Nueva máquina
+//   - tipo (requerido): Nuevo tipo
+//   - prioridad (requerido): Nueva prioridad
+// ==============================================================================
 function actualizarOrden(PDO $pdo): void
 {
     $body = json_decode(file_get_contents('php://input'), true);
@@ -466,6 +575,12 @@ function actualizarOrden(PDO $pdo): void
     ]);
 }
 
+// ==============================================================================
+// ENDPOINT: DELETE /ordenes.php
+// DESCRIPCIÓN: Elimina una orden de trabajo
+// PARÁMETROS (JSON):
+//   - id_orden (requerido): ID de la orden a eliminar
+// ==============================================================================
 function eliminarOrden(PDO $pdo): void
 {
     $body = json_decode(file_get_contents('php://input'), true);

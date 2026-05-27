@@ -1,17 +1,41 @@
 <?php
-// ============================================================
-//  api/mantenimiento/ejecuciones.php  —  CRUD para Ejecuciones
-// ============================================================
-// Referencia en la web:
-//   - Pantalla "Historial de Ejecuciones" (HTML/mantenimientoMenu/ejecuciones.html)
+// ==============================================================================
+// ARCHIVO: api/mantenimiento/ejecuciones.php
+// DESCRIPCIÓN: API REST para gestionar ejecuciones de mantenimiento (CRUD)
+// MÉTODOS HTTP SOPORTADOS:
+//   - GET: Obtener ejecuciones o tareas ejecutadas
+//   - POST: Crear nueva ejecución o actualizar estado de tareas
+//   - PUT: Modificar ejecución existente (no implementado actualmente)
+//   - DELETE: Eliminar ejecución
+// CLIENTES:
+//   - Js/ejecuciones.js (controlador frontend)
+//   - HTML/mantenimientoMenu/ejecuciones.html (interfaz web)
+// BASE DE DATOS:
+//   - Tabla: ejecuciones_mantenimiento
+//   - Tabla: tareas_ejecutadas
+// FUNCIONALIDADES:
+//   1. Listar ejecuciones con filtros (ID, resultado, orden)
+//   2. Crear nuevas ejecuciones de mantenimiento
+//   3. Obtener tareas ejecutadas de una ejecución
+//   4. Actualizar estado de tareas (completada/no completada)
+//   5. Eliminar ejecuciones
+// ==============================================================================
+
+// Cargar archivo de configuración con funciones auxiliares y conexión BD
 require_once '../config/helpers.php';
 require_once '../config/db_config.php';
 
+// Obtener el método HTTP de la petición (GET, POST, PUT, DELETE, etc.)
 $m = $_SERVER['REQUEST_METHOD'];
+// Obtener el parámetro 'action' de la URL para determinar subrutás
 $action = $_GET['action'] ?? '';
 
-// Endpoints añadidos para tareas ejecutadas. Usan PDO como API interna.
-if ($m === 'GET' && $action === 'get_tareas') {
+// ==============================================================================
+// ENDPOINT: GET /ejecuciones.php?action=get_tareas
+// DESCRIPCIÓN: Obtiene las tareas ejecutadas de una ejecución específica
+//               o todas las tareas ejecutadas si no se proporciona ID
+// ==============================================================================
+    // Obtener el ID de ejecución de los parámetros (si se proporciona)
     $idEjecucion = isset($_GET['id_ejecucion']) ? (int)$_GET['id_ejecucion'] : 0;
 
     try {
@@ -34,13 +58,20 @@ if ($m === 'GET' && $action === 'get_tareas') {
     }
 }
 
-if ($m === 'POST' && $action === 'update_tarea') {
+// ==============================================================================
+// ENDPOINT: POST /ejecuciones.php?action=update_tarea
+// DESCRIPCIÓN: Actualiza el estado de una tarea ejecutada (completada o no)
+// ==============================================================================
+    // Decodificar el JSON del cuerpo de la petición
     $body = json_decode(file_get_contents('php://input'), true) ?? [];
+    
+    // Extraer parámetros necesarios para actualizar la tarea
     $idTareaEjecutada = (int)($body['id'] ?? 0);
     $idEjecucion = (int)($body['id_ejecucion'] ?? 0);
     $idTarea = (int)($body['id_tarea'] ?? 0);
     $estadoTarea = trim((string)($body['estado_tarea'] ?? ''));
 
+    // Validar que el estado sea uno de los valores permitidos
     if ($estadoTarea !== 'Completada' && $estadoTarea !== 'No Completada') {
         respuestaError('Estado de tarea no válido.');
     }
@@ -54,11 +85,13 @@ if ($m === 'POST' && $action === 'update_tarea') {
     }
 }
 
-$conn = conectar();
-
-// ── GET ─────────────────────────────────────────────────────
-if ($m === 'GET') {
+// ==============================================================================
+// ENDPOINT: GET /ejecuciones.php
+// DESCRIPCIÓN: Obtiene lista de ejecuciones con filtros opcionales
+//               o detalles de una ejecución específica si se proporciona ID
+// ==============================================================================
     if (isset($_GET['id'])) {
+        // Obtener ID de la ejecución a buscar
         $id = (int)$_GET['id'];
 
         // 1. Obtener datos de la ejecución
@@ -92,6 +125,8 @@ if ($m === 'GET') {
             respuestaError('Error de base de datos: ' . $e->getMessage(), 500);
         }
     } else {
+        // Si no hay ID específico, listar todas las ejecuciones con filtros opcionales
+        // Obtener parámetros de filtro de la URL
         $idEjecucionFiltro = isset($_GET['id_ejecucion']) ? trim($_GET['id_ejecucion']) : '';
         $resultadoFiltro = isset($_GET['resultado']) ? trim($_GET['resultado']) : '';
         $ordenFiltro = isset($_GET['orden']) ? trim($_GET['orden']) : 'recientes';
@@ -159,9 +194,18 @@ if ($m === 'GET') {
     }
 }
 
-// ── POST ────────────────────────────────────────────────────
+// ==============================================================================
+// ENDPOINT: POST /ejecuciones.php
+// DESCRIPCIÓN: Crea una nueva ejecución de mantenimiento
+// PARÁMETROS (JSON):
+//   - id_orden (requerido): ID de la orden de trabajo
+//   - fecha_ejecucion: Fecha de la ejecución (default: hoy)
+//   - hora_inicio: Hora de inicio (opcional)
+//   - hora_fin: Hora de finalización (opcional)
+//   - observaciones: Notas sobre la intervención (opcional)
+//   - resultado: Resultado (exitoso o con_incidencias)
+// ==============================================================================
 if ($m === 'POST') {
-    iniciarSesion();
     $b = json_decode(file_get_contents('php://input'), true) ?? [];
 
     $id_orden = (int)($b['id_orden'] ?? 0);
@@ -192,9 +236,16 @@ if ($m === 'POST') {
     }
 }
 
-// ── DELETE ──────────────────────────────────────────────────
+// ==============================================================================
+// ENDPOINT: DELETE /ejecuciones.php
+// DESCRIPCIÓN: Elimina una ejecución de mantenimiento
+// PARÁMETROS (JSON):
+//   - id_ejecucion (requerido): ID de la ejecución a eliminar
+// ==============================================================================
 if ($m === 'DELETE') {
+    // Decodificar el JSON del cuerpo de la petición
     $b = json_decode(file_get_contents('php://input'), true) ?? [];
+    // Obtener ID de ejecución a eliminar
     $id = (int)($b['id_ejecucion'] ?? 0);
 
     if ($id <= 0) {
@@ -219,8 +270,15 @@ if ($m === 'DELETE') {
 $conn->close();
 respuestaError('Método no permitido', 405);
 
-function conectarPDOEjecuciones(): PDO
-{
+// ==============================================================================
+// FUNCIONES AUXILIARES
+// ==============================================================================
+
+/**
+ * Crea una conexión a la base de datos usando PDO
+ * PDO proporciona una interfaz independiente del gestor de BD
+ * @return PDO Objeto de conexión PDO a MySQL
+ */
     $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=' . DB_CHARSET;
 
     return new PDO($dsn, DB_USER, DB_PASS, [
@@ -230,8 +288,13 @@ function conectarPDOEjecuciones(): PDO
     ]);
 }
 
-function obtenerTareasEjecutadas(PDO $pdo, int $idEjecucion): array
-{
+/**
+ * Obtiene las tareas ejecutadas de una ejecución específica
+ * Normaliza los datos para que sean consistentes sin importar la estructura BD
+ * @param PDO $pdo Conexión a base de datos PDO
+ * @param int $idEjecucion ID de la ejecución
+ * @return array Lista de tareas ejecutadas normalizadas
+ */
     $columnas = obtenerColumnasPDO($pdo, 'tareas_ejecutadas');
 
     if (empty($columnas)) {
@@ -249,8 +312,12 @@ function obtenerTareasEjecutadas(PDO $pdo, int $idEjecucion): array
     return array_map('normalizarTareaEjecutada', $tareas);
 }
 
-function obtenerTodasTareasEjecutadas(PDO $pdo): array
-{
+/**
+ * Obtiene todas las tareas ejecutadas de todas las ejecuciones
+ * Ordena de más reciente a más antigua
+ * @param PDO $pdo Conexión a base de datos PDO
+ * @return array Lista de todas las tareas ejecutadas normalizadas
+ */
     $columnas = obtenerColumnasPDO($pdo, 'tareas_ejecutadas');
 
     if (empty($columnas)) {
@@ -268,8 +335,15 @@ function obtenerTodasTareasEjecutadas(PDO $pdo): array
     return array_map('normalizarTareaEjecutada', $tareas);
 }
 
-function actualizarTareaEjecutada(PDO $pdo, int $idTareaEjecutada, int $idEjecucion, int $idTarea, string $estadoTarea): void
-{
+/**
+ * Actualiza el estado de una tarea ejecutada (completada o no)
+ * Intenta usar varios métodos para ubicar y actualizar la tarea
+ * @param PDO $pdo Conexión a base de datos PDO
+ * @param int $idTareaEjecutada ID de la tarea ejecutada
+ * @param int $idEjecucion ID de la ejecución padre
+ * @param int $idTarea ID de la tarea
+ * @param string $estadoTarea Estado a asignar ('Completada' o 'No Completada')
+ */
     $columnas = obtenerColumnasPDO($pdo, 'tareas_ejecutadas');
 
     if (empty($columnas)) {
@@ -320,8 +394,12 @@ function actualizarTareaEjecutada(PDO $pdo, int $idTareaEjecutada, int $idEjecuc
     respuestaError('No se pudo identificar la tarea a actualizar.');
 }
 
-function normalizarTareaEjecutada(array $tarea): array
-{
+/**
+ * Normaliza un registro de tarea ejecutada desde BD a un formato estándar
+ * Convierte diferentes estructuras de tabla a un formato consistente
+ * @param array $tarea Datos de tarea desde la BD
+ * @return array Tarea normalizada con estructura uniforme
+ */
     $estado = $tarea['estado_tarea'] ?? ($tarea['completada'] ?? 0);
 
     return [
@@ -336,8 +414,12 @@ function normalizarTareaEjecutada(array $tarea): array
     ];
 }
 
-function tareaEstaCompletada($estado): bool
-{
+/**
+ * Verifica si una tarea está completada
+ * Maneja múltiples formatos: boolean, int (0/1), string ('Completada')
+ * @param mixed $estado Estado de la tarea
+ * @return bool true si la tarea está completada
+ */
     if ($estado === true || $estado === 1 || $estado === '1') {
         return true;
     }
@@ -345,8 +427,13 @@ function tareaEstaCompletada($estado): bool
     return strtolower((string)$estado) === 'completada';
 }
 
-function obtenerColumnasPDO(PDO $pdo, string $tabla): array
-{
+/**
+ * Obtiene la lista de nombres de columnas de una tabla
+ * Usa information_schema para ser independiente del gestor BD
+ * @param PDO $pdo Conexión a base de datos PDO
+ * @param string $tabla Nombre de la tabla
+ * @return array Lista de nombres de columnas
+ */
     $stmt = $pdo->prepare(
         'SELECT COLUMN_NAME
          FROM information_schema.columns
@@ -357,8 +444,12 @@ function obtenerColumnasPDO(PDO $pdo, string $tabla): array
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
-function existeTablaPDO(PDO $pdo, string $tabla): bool
-{
+/**
+ * Verifica si una tabla existe en la base de datos
+ * @param PDO $pdo Conexión a base de datos PDO
+ * @param string $tabla Nombre de la tabla
+ * @return bool true si la tabla existe
+ */
     $stmt = $pdo->prepare(
         'SELECT COUNT(*)
          FROM information_schema.tables
@@ -369,8 +460,13 @@ function existeTablaPDO(PDO $pdo, string $tabla): bool
     return (int)$stmt->fetchColumn() > 0;
 }
 
-function columnaEsNumericaPDO(PDO $pdo, string $tabla, string $columna): bool
-{
+/**
+ * Verifica si una columna es de tipo numérico
+ * @param PDO $pdo Conexión a base de datos PDO
+ * @param string $tabla Nombre de la tabla
+ * @param string $columna Nombre de la columna
+ * @return bool true si la columna es numérica
+ */
     $stmt = $pdo->prepare(
         'SELECT DATA_TYPE
          FROM information_schema.columns
