@@ -127,6 +127,18 @@ if ($metodo === 'POST') {
         respuestaError('Máquina y descripción son obligatorios.');
     }
 
+    // Control de duplicados: no permitir crear la misma incidencia si ya está activa
+    $chk = $conn->prepare("SELECT id_incidencia FROM incidencias WHERE id_maquina=? AND descripcion=? AND estado NOT IN ('cerrada', 'resuelta')");
+    $chk->bind_param("is", $id_maquina, $descripcion);
+    $chk->execute();
+    $chk->store_result();
+    if ($chk->num_rows > 0) {
+        $chk->close();
+        $conn->close();
+        respuestaError('Ya existe una incidencia activa idéntica para esta máquina.');
+    }
+    $chk->close();
+
     // Paso 1: Insertar la incidencia con estado 'abierta' y fecha actual
     $stmt = $conn->prepare(
         "INSERT INTO incidencias (id_maquina, descripcion, tipo, prioridad, estado, fecha_reporte)

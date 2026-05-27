@@ -114,16 +114,23 @@ if ($metodo === 'POST') {
         respuestaError('El nombre de la máquina es obligatorio.');
     }
 
-    // Validación de unicidad de número de serie (solo si no está vacío)
-    $chk = $conn->prepare("SELECT id_maquina FROM maquinas WHERE numero_serie=? AND numero_serie != ''");
-    $chk->bind_param("s", $numero_serie); 
+    // Validación de unicidad: no duplicar nombre ni número de serie
+    $chk = $conn->prepare("SELECT id_maquina, nombre, numero_serie FROM maquinas WHERE nombre=? OR (numero_serie=? AND numero_serie != '')");
+    $chk->bind_param("ss", $nombre, $numero_serie); 
     $chk->execute(); 
-    $chk->store_result();
+    $resChk = $chk->get_result();
     
-    if ($chk->num_rows > 0) { 
-        $chk->close(); 
-        $conn->close(); 
-        respuestaError('Ya existe una máquina con ese número de serie.'); 
+    while ($row = $resChk->fetch_assoc()) {
+        if (strtolower($row['nombre']) === strtolower($nombre)) {
+            $chk->close(); 
+            $conn->close(); 
+            respuestaError('Ya existe una máquina con ese nombre.'); 
+        }
+        if ($numero_serie !== '' && strtolower($row['numero_serie']) === strtolower($numero_serie)) {
+            $chk->close(); 
+            $conn->close(); 
+            respuestaError('Ya existe una máquina con ese número de serie.'); 
+        }
     }
     $chk->close();
 
@@ -174,6 +181,26 @@ if ($metodo === 'PUT') {
     if (!$nombre) {
         respuestaError('El nombre de la máquina es obligatorio.');
     }
+
+    // Validación de unicidad: no duplicar nombre ni número de serie en otra máquina
+    $chk = $conn->prepare("SELECT id_maquina, nombre, numero_serie FROM maquinas WHERE (nombre=? OR (numero_serie=? AND numero_serie != '')) AND id_maquina != ?");
+    $chk->bind_param("ssi", $nombre, $numero_serie, $id); 
+    $chk->execute(); 
+    $resChk = $chk->get_result();
+    
+    while ($row = $resChk->fetch_assoc()) {
+        if (strtolower($row['nombre']) === strtolower($nombre)) {
+            $chk->close(); 
+            $conn->close(); 
+            respuestaError('Ya existe otra máquina con ese nombre.'); 
+        }
+        if ($numero_serie !== '' && strtolower($row['numero_serie']) === strtolower($numero_serie)) {
+            $chk->close(); 
+            $conn->close(); 
+            respuestaError('Ya existe otra máquina con ese número de serie.'); 
+        }
+    }
+    $chk->close();
 
     // Actualizar la tupla en la base de datos
     $stmt = $conn->prepare("UPDATE maquinas SET nombre=?, tipo=?, numero_serie=?, ubicacion=?, fabricante=?, estado=?, proveedor_id=? WHERE id_maquina=?");

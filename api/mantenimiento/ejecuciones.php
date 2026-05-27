@@ -237,6 +237,18 @@ if ($m === 'POST' && $action === '') {
         respuestaError('El ID de orden es obligatorio.');
     }
 
+    // Control de duplicados: no registrar dos ejecuciones para la misma orden en el mismo día
+    $chk = $conn->prepare("SELECT id_ejecucion FROM ejecuciones_mantenimiento WHERE id_orden = ? AND fecha_ejecucion = ?");
+    $chk->bind_param("is", $id_orden, $fecha);
+    $chk->execute();
+    $chk->store_result();
+    if ($chk->num_rows > 0) {
+        $chk->close();
+        $conn->close();
+        respuestaError('Ya existe una ejecución registrada para esta orden en la fecha indicada.');
+    }
+    $chk->close();
+
     $stmt = $conn->prepare("INSERT INTO ejecuciones_mantenimiento (id_orden, fecha_ejecucion, hora_inicio, hora_fin, id_tecnico, observaciones, resultado) VALUES (?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("isssiss", $id_orden, $fecha, $h_inicio, $h_fin, $id_tecnico, $obs, $res);
 

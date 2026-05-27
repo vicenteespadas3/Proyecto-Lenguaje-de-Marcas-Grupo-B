@@ -216,6 +216,19 @@ function crearOrden(PDO $pdo): void
             responderError('La tabla ordenes_trabajo no tiene columnas compatibles para crear ordenes.', 500);
         }
 
+        // Control de duplicados: evitar crear una orden idéntica (misma máquina y descripción) que ya esté en estado Pendiente
+        $id_maq_dup = $datosInsert['id_maquina'] ?? 0;
+        $obs_dup = $datosInsert['observaciones'] ?? '';
+        if ($id_maq_dup > 0 && $obs_dup !== '') {
+            $chkSql = "SELECT id_orden FROM ordenes_trabajo WHERE id_maquina = :id_m AND observaciones = :obs AND id_estado = :id_e";
+            $chk = $pdo->prepare($chkSql);
+            $id_est_pendiente = resolverIdDefinicion($pdo, 'Pendiente', 1);
+            $chk->execute([':id_m' => $id_maq_dup, ':obs' => $obs_dup, ':id_e' => $id_est_pendiente]);
+            if ($chk->fetch()) {
+                responderError('Ya existe una orden de trabajo idéntica pendiente para esta máquina.');
+            }
+        }
+
         $campos       = array_keys($datosInsert);
         $placeholders = array_map('crearPlaceholder', $campos);
         $stmt = $pdo->prepare(
